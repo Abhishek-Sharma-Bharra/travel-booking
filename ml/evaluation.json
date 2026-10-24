@@ -1,0 +1,10 @@
+{
+  "dataset": "synthetic only",
+  "seed": 20261024,
+  "train_rows": 6000,
+  "held_out_rows": 2000,
+  "roc_auc": 0.7962832005772809,
+  "brier_score": 0.16794333464465716,
+  "accuracy_at_0_5": 0.7615,
+  "warning": "Performance on synthetic held-out data is not evidence of accuracy on real agency enquiries."
+}

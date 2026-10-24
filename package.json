@@ -1,0 +1,52 @@
+{
+  "name": "vashisht-travelos",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "db:generate": "tsx scripts/generate.ts",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx prisma/seed.ts",
+    "ml:train": "python3 ml/train.py",
+    "test:e2e": "playwright test",
+    "db:start": "bash scripts/dev-db.sh",
+    "db:backup": "bash scripts/backup.sh",
+    "subscription": "tsx scripts/subscription.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "better-auth": "1.7.12",
+    "dotenv": "^17.3.1",
+    "lucide-react": "^0.577.0",
+    "next": "16.4.3",
+    "papaparse": "^5.5.3",
+    "pg": "^8.16.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@prisma/client-generator-js": "^7.10.1",
+    "@prisma/internals": "^7.10.1",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^24.10.0",
+    "@types/papaparse": "^5.3.16",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "prettier": "^3.9.10",
+    "prisma": "7.10.1",
+    "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=24.11.0 <25"
+  }
+}

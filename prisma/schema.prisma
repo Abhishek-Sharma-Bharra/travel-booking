@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+}
+model Agency {
+  id String @id @default(cuid())
+  name String
+  logo String @default("")
+  contact String @default("")
+  footer String @default("Thank you for choosing us. Prices are subject to availability.")
+  plan String @default("Starter")
+  subscription String @default("Trial")
+  demo Boolean @default(false)
+  createdAt DateTime @default(now())
+  users User[]
+  leads Lead[]
+  packages Package[]
+  quotes Quote[]
+  bookings Booking[]
+  transactions Transaction[]
+  activities Activity[]
+  spends Spend[]
+}
+model User {
+  id String @id
+  name String
+  email String @unique
+  emailVerified Boolean @default(false)
+  image String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agencyId String?
+  role String @default("OWNER")
+  disabled Boolean @default(false)
+  agency Agency? @relation(fields:[agencyId], references:[id])
+  sessions Session[]
+  accounts Account[]
+  leads Lead[]
+}
+model Session {
+  id String @id
+  expiresAt DateTime
+  token String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId])
+}
+model Account {
+  id String @id
+  accountId String
+  providerId String
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  accessToken String?
+  refreshToken String?
+  idToken String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope String?
+  password String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId])
+}
+model Verification {
+  id String @id
+  identifier String
+  value String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([identifier])
+}
+model Lead {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  externalId String
+  customer String
+  email String @default("")
+  phone String @default("")
+  destination String
+  enquiryDate DateTime @default(now())
+  travelStart DateTime
+  travelEnd DateTime
+  travellers Int
+  budget Int
+  quotedPrice Int @default(0)
+  source String
+  assignedId String
+  assigned User @relation(fields:[assignedId],references:[id])
+  stage String @default("New")
+  notes String @default("")
+  lostReason String @default("")
+  followUp DateTime?
+  firstResponseHours Float?
+  repeatCustomer Boolean?
+  itineraryRequested Boolean?
+  score Float?
+  scoreReason String @default("Not scored: required inputs missing")
+  modelVersion String?
+  scoredAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  quotes Quote[]
+  booking Booking?
+  activities Activity[]
+  @@unique([agencyId,externalId])
+  @@index([agencyId,assignedId,enquiryDate])
+}
+model Package {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  name String
+  destination String
+  days Int
+  inclusions String
+  exclusions String
+  price Int
+  estimatedCost Int
+  quotes Quote[]
+  @@index([agencyId])
+}
+model Quote {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  leadId String
+  lead Lead @relation(fields:[leadId],references:[id])
+  packageId String
+  package Package @relation(fields:[packageId],references:[id])
+  travellers Int
+  unitPrice Int
+  travelStart DateTime
+  travelEnd DateTime
+  packageName String
+  destination String
+  duration Int
+  inclusions String
+  exclusions String
+  discount Int
+  taxBps Int
+  total Int
+  estimatedCost Int
+  status String @default("Draft")
+  createdAt DateTime @default(now())
+  booking Booking?
+  @@index([agencyId])
+}
+model Booking {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  leadId String @unique
+  lead Lead @relation(fields:[leadId],references:[id])
+  quoteId String @unique
+  quote Quote @relation(fields:[quoteId],references:[id])
+  total Int
+  cancellationFee Int @default(0)
+  status String @default("Confirmed")
+  supplierStatus String @default("Pending")
+  dueDate DateTime
+  travelStart DateTime
+  travelEnd DateTime
+  createdAt DateTime @default(now())
+  transactions Transaction[]
+  @@index([agencyId])
+}
+model Transaction {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  bookingId String
+  booking Booking @relation(fields:[bookingId],references:[id])
+  kind String
+  amount Int
+  supplier String @default("")
+  memo String @default("")
+  date DateTime @default(now())
+  dueDate DateTime?
+  createdAt DateTime @default(now())
+  @@index([agencyId,bookingId])
+}
+model Activity {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  leadId String?
+  lead Lead? @relation(fields:[leadId],references:[id])
+  actor String
+  action String
+  createdAt DateTime @default(now())
+  @@index([agencyId])
+}
+model Spend {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  month String
+  kind String
+  channel String
+  amount Int
+  memo String @default("")
+  @@unique([agencyId,month,kind,channel])
+}

@@ -1,0 +1,21 @@
+# Development only. Use managed PostgreSQL and a secret manager for deployment.
+services:
+  db:
+    image: postgres:17
+    container_name: travelos-postgres
+    environment:
+      POSTGRES_USER: travelos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+      POSTGRES_DB: travelos
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - travelos_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U travelos -d travelos']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  travelos_pgdata:
+    name: travelos_pgdata
