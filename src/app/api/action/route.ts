@@ -5,7 +5,9 @@ export async function POST(req: Request) {
   // Reject cross-origin writes even when an authenticated cookie is present.
   if (
     req.headers.get("origin") !==
-    new URL(process.env.BETTER_AUTH_URL ?? req.url).origin
+    new URL(
+      process.env.BETTER_AUTH_URL || process.env.RENDER_EXTERNAL_URL || req.url,
+    ).origin
   )
     return Response.json({ error: "Invalid request origin" }, { status: 403 });
   try {

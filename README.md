@@ -69,6 +69,6 @@ The [synthetic ML pipeline](ml/README.md) is a real trained logistic regression,
 
 ## Deploy, back up and operate
 
-See [deployment and recovery](docs/DEPLOYMENT.md), [feature status](docs/FEATURES.md) and [production readiness](docs/PRODUCTION.md). No hosting account or deployment credentials were provided, and **there is no live public URL yet**. You can deploy to a Node-capable host with a managed PostgreSQL database. Docker development volumes and running processes should not be assumed to survive a cloud environment rebuild; reseed a disposable demo, or restore a verified backup for non-demo data.
+See [deployment and recovery](docs/DEPLOYMENT.md), [feature status](docs/FEATURES.md) and [production readiness](docs/PRODUCTION.md). The owner has deployed the app at **https://vashisht-travelos.onrender.com**. Deployment authentication is being checked; this cloud workspace cannot independently reach the public host. You can deploy to a Node-capable host with a managed PostgreSQL database. Docker development volumes and running processes should not be assumed to survive a cloud environment rebuild; reseed a disposable demo, or restore a verified backup for non-demo data.
 
 No payment processing, subscription billing, external AI service, passport upload or identity-document collection is included.

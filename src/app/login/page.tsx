@@ -12,24 +12,67 @@ export default function Login() {
   }, []);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true);
+    if (busy) return;
     setError("");
     const f = new FormData(e.currentTarget);
+    const name = String(f.get("name") ?? "").trim();
+    const email = String(f.get("email") ?? "").trim();
+    const password = String(f.get("password") ?? "");
+    if (signup && (name.length < 2 || name.length > 100)) {
+      setError("Please enter your name using 2 to 100 characters.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (password.length < 12 || password.length > 128) {
+      setError(
+        "Your password must contain 12 to 128 characters. Please enter the full password.",
+      );
+      return;
+    }
+    setBusy(true);
     try {
       const result = signup
         ? await authClient.signUp.email({
-            name: String(f.get("name")),
-            email: String(f.get("email")),
-            password: String(f.get("password")),
+            name,
+            email,
+            password,
           })
         : await authClient.signIn.email({
-            email: String(f.get("email")),
-            password: String(f.get("password")),
+            email,
+            password,
           });
-      if (result.error) throw new Error(result.error.message);
+      if (result.error) {
+        const status = result.error.status;
+        const message =
+          status === 403
+            ? "Sign-in is blocked by the website configuration. Please contact the agency administrator."
+            : status === 429
+              ? "Too many attempts. Please wait a minute and try again."
+              : status >= 500
+                ? "The server could not complete your request. Please try again or contact support."
+                : result.error.message ||
+                  "Your request could not be completed. Please check your details and try again.";
+        throw new Error(message);
+      }
+      if (!result.data?.user?.id)
+        throw new Error(
+          "The server did not confirm your account. Please try signing in or contact support.",
+        );
       location.href = "/workspace";
     } catch (e) {
-      setError((e as Error).message);
+      const message = e instanceof Error ? e.message : "";
+      setError(
+        /abort|timeout|timed out/i.test(message)
+          ? "The server took too long to respond. If you were creating an account, try signing in before creating it again."
+          : /fetch|network/i.test(message)
+            ? "We could not reach the server. Check your connection and try again."
+            : message ||
+              "We could not complete your request. Please try again.",
+      );
+    } finally {
       setBusy(false);
     }
   }
@@ -47,7 +90,7 @@ export default function Login() {
             ? "A dedicated workspace for your team and your journeys."
             : "Your journeys, people and numbers, together."}
         </p>
-        <form onSubmit={submit}>
+        <form onSubmit={submit} method="post" noValidate aria-busy={busy}>
           {signup && (
             <label>
               Your name
@@ -78,7 +121,7 @@ export default function Login() {
             <small>At least 12 characters.</small>
           </label>
           {error && (
-            <div role="alert" className="error-box">
+            <div role="alert" aria-live="assertive" className="error-box">
               {error}
             </div>
           )}
@@ -89,6 +132,7 @@ export default function Login() {
         </form>
         <button
           className="text-button"
+          disabled={busy}
           onClick={() => {
             setSignup(!signup);
             setError("");
