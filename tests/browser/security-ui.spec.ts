@@ -125,6 +125,7 @@ test("authenticator enrollment and challenge work in the browser; regular owners
   });
   expect(denied.status()).toBe(403);
   await page.getByLabel("Sign out", { exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
   await page.goto("/login");
   await page.getByLabel("Work email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
