@@ -1,9 +1,18 @@
+import { createHash } from "node:crypto";
+import { inviteMember, revokeInvitation } from "./invitations";
+import { requireSubscription, ensureSeat, limitsFor } from "./subscriptions";
+import { HttpError } from "./http";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "./db";
-import { auth } from "./auth";
 import { Actor, scope, canManage, requireOwner, writable } from "./access";
-import { leadSchema, packageSchema, amount, dateValue } from "./validation";
+import {
+  leadSchema,
+  packageSchema,
+  amount,
+  dateValue,
+  taxRate,
+} from "./validation";
 import { balances, quoteTotal } from "./money";
 import { scoreLead } from "./model";
 const id = z.string().min(1).max(100);
@@ -13,6 +22,23 @@ export async function mutate(a: Actor, action: string, input: unknown) {
     where: { id: a.agencyId },
   });
   if (agency.demo) throw new Error("Demo workspace is read-only");
+  const currentUser = await db.user.findUnique({ where: { id: a.id } });
+  if (
+    !currentUser ||
+    currentUser.disabled ||
+    currentUser.agencyId !== a.agencyId
+  )
+    throw new HttpError(403, "Workspace access unavailable");
+  a = { ...a, role: currentUser.role };
+  if (!["settings", "team", "invite-revoke"].includes(action))
+    requireSubscription(agency);
+  if (action === "invite") return inviteMember(a, input);
+  if (action === "invite-revoke") return revokeInvitation(a, input);
+  if (action === "team-create")
+    throw new HttpError(
+      409,
+      "Use an email invitation. Members must choose their own password.",
+    );
   const audit = async (
     tx: Prisma.TransactionClient,
     what: string,
@@ -52,9 +78,39 @@ export async function mutate(a: Actor, action: string, input: unknown) {
       throw new Error(
         "Import new enquiries only; create quotations and bookings in the app",
       );
-    for (const l of parsed) await assignee(l.assignedId);
+    for (const uid of new Set(parsed.map((l) => l.assignedId)))
+      await assignee(uid);
     return db.$transaction(
       async (tx) => {
+        if (!wrapper.id) {
+          const existing = await tx.lead.count({
+            where: { agencyId: a.agencyId },
+          });
+          if (existing + parsed.length > limitsFor(agency.plan).leads)
+            throw new HttpError(
+              409,
+              "Your plan’s enquiry limit has been reached. Contact support before adding more records.",
+            );
+        }
+        if (action === "import") {
+          const created = await tx.lead.createManyAndReturn({
+            data: parsed.map((l) => ({
+              ...l,
+              agencyId: a.agencyId,
+              ...scoreLead(l),
+            })),
+            select: { id: true },
+          });
+          await tx.activity.createMany({
+            data: created.map((l) => ({
+              agencyId: a.agencyId,
+              actor: a.id,
+              action: "Enquiry imported",
+              leadId: l.id,
+            })),
+          });
+          return { message: `${created.length} enquiry record(s) saved` };
+        }
         for (const l of parsed) {
           if (wrapper.id && action === "lead") {
             const old = await leadAccess(tx, wrapper.id);
@@ -85,11 +141,7 @@ export async function mutate(a: Actor, action: string, input: unknown) {
             const lead = await tx.lead.create({
               data: { ...l, agencyId: a.agencyId, ...scoreLead(l) },
             });
-            await audit(
-              tx,
-              action === "import" ? "Enquiry imported" : "Enquiry created",
-              lead.id,
-            );
+            await audit(tx, "Enquiry created", lead.id);
           }
         }
         return { message: `${parsed.length} enquiry record(s) saved` };
@@ -131,14 +183,7 @@ export async function mutate(a: Actor, action: string, input: unknown) {
         leadId: id,
         packageId: id,
         discount: amount,
-        tax: z.coerce
-          .number()
-          .min(0)
-          .max(100)
-          .refine(
-            (n) => Number.isInteger(n * 100),
-            "Tax supports two decimal places",
-          ),
+        tax: taxRate,
       })
       .parse(input);
     return db.$transaction(async (tx) => {
@@ -149,7 +194,7 @@ export async function mutate(a: Actor, action: string, input: unknown) {
         where: { id: v.packageId, agencyId: a.agencyId },
       });
       if (!p) throw new Error("Package not found");
-      const taxBps = Math.round(v.tax * 100);
+      const taxBps = v.tax;
       const total = quoteTotal(p.price, l.travellers, v.discount, taxBps);
       quoteTotal(p.estimatedCost, l.travellers, 0, 0);
       const q = await tx.quote.create({
@@ -233,12 +278,16 @@ export async function mutate(a: Actor, action: string, input: unknown) {
     const v = z
       .object({
         bookingId: id,
+        requestId: z.uuid({
+          error: "Refresh this page before recording a transaction.",
+        }),
         kind: z.enum([
           "Receipt",
           "Refund",
           "Expense",
           "Supplier payment",
           "Supplier credit",
+          "Supplier refund",
         ]),
         amount: amount,
         supplier: z.string().trim().max(100).default(""),
@@ -250,10 +299,20 @@ export async function mutate(a: Actor, action: string, input: unknown) {
       })
       .parse(input);
     if (v.amount <= 0) throw new Error("Amount must be greater than zero");
-    if (["Expense", "Supplier payment", "Supplier credit"].includes(v.kind)) {
+    if (
+      [
+        "Expense",
+        "Supplier payment",
+        "Supplier credit",
+        "Supplier refund",
+      ].includes(v.kind)
+    ) {
       canManage(a);
       if (!v.supplier) throw new Error("Supplier name is required");
     }
+    const requestHash = createHash("sha256")
+      .update(JSON.stringify(v))
+      .digest("hex");
     return db.$transaction(
       async (tx) => {
         const b = await tx.booking.findFirst({
@@ -261,6 +320,25 @@ export async function mutate(a: Actor, action: string, input: unknown) {
           include: { transactions: true },
         });
         if (!b) throw new Error("Booking not found");
+        const previous = await tx.transaction.findUnique({
+          where: {
+            agencyId_requestId: {
+              agencyId: a.agencyId,
+              requestId: v.requestId,
+            },
+          },
+        });
+        if (previous) {
+          if (previous.requestHash !== requestHash)
+            throw new HttpError(
+              409,
+              "This submission was already used for a different entry. Close the form and start a new entry.",
+            );
+          return {
+            message:
+              "This transaction was already recorded. No duplicate was added.",
+          };
+        }
         const bal = balances(b);
         if (v.kind === "Receipt" && v.amount > bal.customerDue)
           throw new Error(
@@ -268,19 +346,31 @@ export async function mutate(a: Actor, action: string, input: unknown) {
           );
         if (v.kind === "Refund" && v.amount > bal.netCash)
           throw new Error("Refund cannot exceed unrefunded receipts");
-        if (["Supplier payment", "Supplier credit"].includes(v.kind)) {
+        if (
+          ["Supplier payment", "Supplier credit", "Supplier refund"].includes(
+            v.kind,
+          )
+        ) {
           const sup = balances({
             ...b,
             transactions: b.transactions.filter(
               (t) => t.supplier === v.supplier,
             ),
           });
-          if (v.amount > sup.supplierDue)
+          const available =
+            v.kind === "Supplier credit"
+              ? sup.supplierCost
+              : v.kind === "Supplier refund"
+                ? Math.max(0, -sup.supplierDue)
+                : Math.max(0, sup.supplierDue);
+          if (v.amount > available)
             throw new Error(
-              "Amount exceeds this supplier’s unpaid expense balance",
+              "Amount exceeds this supplier’s available expense/payment/refund balance",
             );
         }
-        await tx.transaction.create({ data: { ...v, agencyId: a.agencyId } });
+        await tx.transaction.create({
+          data: { ...v, requestHash, agencyId: a.agencyId },
+        });
         await audit(
           tx,
           `${v.kind} recorded: ${v.amount} paise; ${v.memo}`,
@@ -397,6 +487,10 @@ export async function mutate(a: Actor, action: string, input: unknown) {
         where: { id: v.id, agencyId: a.agencyId },
       });
       if (!u) throw new Error("Team member not found");
+      if (u.disabled && !v.disabled) {
+        requireSubscription(agency);
+        await ensureSeat(tx, agency);
+      }
       await tx.user.update({
         where: { id: u.id },
         data: { role: v.role, disabled: v.disabled },
@@ -408,37 +502,6 @@ export async function mutate(a: Actor, action: string, input: unknown) {
       );
     });
     return { message: "Team access saved" };
-  }
-  if (action === "team-create") {
-    requireOwner(a);
-    const v = z
-      .object({
-        name: z.string().min(2).max(100),
-        email: z.email(),
-        password: z.string().min(12).max(128),
-        role: z.enum(["MANAGER", "AGENT"]),
-      })
-      .parse(input);
-    const result = await auth.api.signUpEmail({
-      body: { name: v.name, email: v.email, password: v.password },
-    });
-    const fresh = await db.user.findUniqueOrThrow({
-      where: { id: result.user.id },
-    });
-    await db.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: fresh.id },
-        data: { agencyId: a.agencyId, role: v.role },
-      });
-      if (fresh.agencyId)
-        await tx.agency.delete({ where: { id: fresh.agencyId } });
-      await tx.session.deleteMany({ where: { userId: fresh.id } });
-      await audit(tx, `Team member added: ${v.name}, ${v.role}`);
-    });
-    return {
-      message:
-        "Team member created. Share the initial password securely; they can change it in Settings.",
-    };
   }
   throw new Error("Unknown action");
 }

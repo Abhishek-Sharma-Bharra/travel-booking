@@ -21,7 +21,10 @@ async function main() {
   glue.__wbg_set_wasm(instance.exports);
   (instance.exports.__wbindgen_start as CallableFunction)();
   const schema = await readFile("prisma/schema.prisma", "utf8");
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new pg.Pool({
+    connectionString:
+      process.env.MIGRATION_DATABASE_URL || process.env.DATABASE_URL,
+  });
   const engine = await glue.SchemaEngine.new(
     { datamodels: [["schema.prisma", schema]] },
     () => {},

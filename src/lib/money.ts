@@ -40,7 +40,7 @@ export function balances(b: {
   const receipts = sum("Receipt"),
     refunds = sum("Refund"),
     costs = sum("Expense"),
-    paid = sum("Supplier payment"),
+    paid = sum("Supplier payment") - sum("Supplier refund"),
     credits = sum("Supplier credit");
   const sales = b.status === "Cancelled" ? b.cancellationFee : b.total;
   return {

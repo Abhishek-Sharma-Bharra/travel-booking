@@ -7,7 +7,7 @@ Status describes the implemented MVP, not a production-readiness claim.
 | Agency signup, login, logout | Implemented | Better Auth passwords, server sessions; each signup gets a separate agency |
 | Server tenant isolation | Implemented | Fresh DB-backed actor on every authenticated request; scope includes agency and agent assignment; direct and HTTP attack tests |
 | Owner / manager / agent | Implemented | Owners manage users; managers manage packages, spend and supplier entries; agents handle assigned sales/receipts/refunds |
-| Team access | Implemented | Owner creates member with initial password, changes role, disables access and revokes sessions; no invitation emails |
+| Team access | Implemented | Owner emails a hashed, expiring, one-use invitation; recipient chooses a password; role/disable controls and session revocation remain |
 | Enquiries | Implemented | Create, edit, search, source/date/destination/person/stage filters, assignment, notes and lost reason |
 | Follow-ups and activity | Implemented | Schedule, overdue review, log completion and next date; persisted audit history |
 | Pipeline | Implemented | Interactive cards and detail/edit controls; no drag-and-drop; first 30 per stage with list/search for all |
@@ -24,12 +24,14 @@ Status describes the implemented MVP, not a production-readiness claim.
 | Real-world agency model | Deferred | No validation on real agency data, automatic retraining, causal or revenue-lift claims |
 | Isolated read-only demo | Implemented | 1,500 fictional enquiries; 330 bookings (30 cancelled); six completed months; interactive non-persisted calculator |
 | Agency settings / logo / footer | Implemented | Owner settings, HTTPS image URL, contact details, printable footer |
-| Subscription management | Implemented, manual | Stored plan/status and operator-only CLI update with audit; no billing or plan quota enforcement |
+| Subscription management | Implemented, manual | 14-day trials, seat/enquiry limits and inactive-write restrictions; verified/MFA-proven operator UI and CLI; manual billing only |
 | Exports | Implemented | Filtered enquiry/booking/transaction/marketing/report CSVs; Settings exports all accessible tables; formula neutralisation; money unit labels or raw paise in full-record exports |
 | Onboarding and audit | Implemented | Owner checklist; important booking, ledger, enquiry and role changes recorded |
 | Backup / restore | Implemented for local development | Dump helper and documented restore; hosted backup automation remains deployment work |
 | Production operations | Deferred | Hosting, custom domain, real secrets, email verification/recovery, external audit, monitoring and deployment backup policy |
-| Performance / accessibility | Partial | Responsive UI, labels/loading/errors and basic browser coverage; client loads permitted dataset; no server pagination, full keyboard/focus audit or scale/load test |
-| Financial correction workflow | Partial | Refunds and unpaid supplier credits supported; paid supplier refunds, expense deletion, ledger reversal approvals and accounting reconciliation need further work |
+| Performance / accessibility | Partial | Responsive UI, labels/loading/errors and basic browser coverage; client loads permitted dataset; dialog focus/Escape tested; no server pagination, full accessibility audit or scale/load test |
+| Financial correction workflow | Partial | Customer refunds and paid/unpaid supplier credits/refunds supported; expense deletion, formal reversal approvals and statutory accounting reconciliation remain separate work |
 
 Sensitive identity document upload, payment processing, live subscription billing and invented testimonials/results are deliberately excluded.
+
+See docs/PRODUCTION-RELEASE.md for 0.2 changes and live prerequisites. Email delivery is not considered verified by mocked tests; the live Render deployment is not automatically upgraded by these local changes.

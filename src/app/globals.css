@@ -2827,3 +2827,10 @@ td .badge + small {
 .metric.highlight > strong {
   font-size: clamp(17px, 1.8vw, 29px);
 }
+.auth-help {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}

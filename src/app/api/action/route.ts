@@ -1,39 +1,40 @@
 import { actor } from "@/lib/session";
 import { mutate } from "@/lib/actions";
-import { ZodError } from "zod";
+import {
+  jsonBody,
+  sameOrigin,
+  errorResponse,
+  privateHeaders,
+  HttpError,
+} from "@/lib/http";
+import { limitRequests } from "@/lib/rate-limit";
+import { z, ZodError } from "zod";
 export async function POST(req: Request) {
-  // Reject cross-origin writes even when an authenticated cookie is present.
-  if (
-    req.headers.get("origin") !==
-    new URL(
-      process.env.BETTER_AUTH_URL || process.env.RENDER_EXTERNAL_URL || req.url,
-    ).origin
-  )
-    return Response.json({ error: "Invalid request origin" }, { status: 403 });
   try {
+    sameOrigin(req);
     const a = await actor();
-    const body = await req.json();
-    return Response.json(await mutate(a, body.action, body.input));
+    await limitRequests(`mutation:${a.agencyId}:${a.id}`);
+    const body = z
+      .object({ action: z.string().max(40), input: z.unknown() })
+      .parse(await jsonBody(req));
+    return Response.json(await mutate(a, body.action, body.input), {
+      headers: privateHeaders,
+    });
   } catch (e) {
-    const error =
-      e instanceof ZodError
-        ? e.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")
-        : (e as Error).message;
-    const safe =
-      (e as { code?: string }).code === "P2002"
-        ? "A record with that ID already exists. No rows were imported."
-        : (e as { code?: string }).code === "P2034"
-          ? "Another update occurred. Refresh and try again."
-          : (e as Error).name?.startsWith("Prisma")
-            ? "The database could not save this record. Refresh and try again."
-            : error;
-    console.error(
-      "Action failed:",
-      e instanceof ZodError ? "Validation error" : (e as Error).name,
-    );
-    return Response.json(
-      { error: safe },
-      { status: error === "Please sign in" ? 401 : 400 },
-    );
+    if (e instanceof ZodError)
+      return errorResponse(
+        new HttpError(
+          400,
+          e.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+        ),
+      );
+    console.error("Mutation failed", {
+      code:
+        (e as { code?: string }).code ||
+        ((e as Error).name === "HttpError"
+          ? "REQUEST_REJECTED"
+          : "REQUEST_FAILED"),
+    });
+    return errorResponse(e);
   }
 }

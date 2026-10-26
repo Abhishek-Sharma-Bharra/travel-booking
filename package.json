@@ -1,6 +1,6 @@
 {
   "name": "vashisht-travelos",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
@@ -15,7 +15,15 @@
     "test:e2e": "playwright test",
     "db:start": "bash scripts/dev-db.sh",
     "db:backup": "bash scripts/backup.sh",
-    "subscription": "tsx scripts/subscription.ts"
+    "subscription": "tsx scripts/subscription.ts",
+    "check:launch": "tsx scripts/readiness.ts",
+    "agency:list": "tsx scripts/agencies.ts",
+    "maintenance": "tsx scripts/maintenance.ts",
+    "backup:secure": "tsx scripts/secure-backup.ts create",
+    "backup:verify": "tsx scripts/secure-backup.ts verify",
+    "backup:restore-test": "tsx scripts/secure-backup.ts restore-test",
+    "mail:check": "tsx scripts/mail-check.ts",
+    "db:provision-runtime": "tsx scripts/provision-runtime-role.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
@@ -24,6 +32,7 @@
     "dotenv": "^17.3.1",
     "lucide-react": "^0.577.0",
     "next": "16.4.3",
+    "nodemailer": "^10.2.1",
     "papaparse": "^5.5.3",
     "pg": "^8.16.3",
     "react": "19.2.4",
@@ -36,6 +45,7 @@
     "@prisma/internals": "^7.10.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^24.10.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/papaparse": "^5.3.16",
     "@types/pg": "^8.15.5",
     "@types/react": "^19.2.0",

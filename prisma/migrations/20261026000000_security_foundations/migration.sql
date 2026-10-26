@@ -1,0 +1,23 @@
+-- Additive migration: no customer records or ledger rows are deleted.
+ALTER TABLE "Agency" ADD COLUMN "trialEndsAt" TIMESTAMP(3), ADD COLUMN "subscriptionExpiresAt" TIMESTAMP(3);
+UPDATE "Agency" SET "trialEndsAt"="createdAt"+interval '14 days';
+ALTER TABLE "Agency" ALTER COLUMN "trialEndsAt" SET NOT NULL, ALTER COLUMN "trialEndsAt" SET DEFAULT (now()+interval '14 days');
+CREATE UNIQUE INDEX "User_id_agencyId_key" ON "User"("id","agencyId");
+CREATE UNIQUE INDEX "Lead_id_agencyId_key" ON "Lead"("id","agencyId");
+CREATE UNIQUE INDEX "Package_id_agencyId_key" ON "Package"("id","agencyId");
+CREATE UNIQUE INDEX "Quote_id_leadId_agencyId_key" ON "Quote"("id","leadId","agencyId");
+CREATE UNIQUE INDEX "Booking_id_agencyId_key" ON "Booking"("id","agencyId");
+ALTER TABLE "Lead" DROP CONSTRAINT "Lead_assignedId_fkey", ADD CONSTRAINT "Lead_assignedId_agencyId_fkey" FOREIGN KEY ("assignedId","agencyId") REFERENCES "User"("id","agencyId") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "Quote" DROP CONSTRAINT "Quote_leadId_fkey", DROP CONSTRAINT "Quote_packageId_fkey", ADD CONSTRAINT "Quote_leadId_agencyId_fkey" FOREIGN KEY ("leadId","agencyId") REFERENCES "Lead"("id","agencyId") ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT "Quote_packageId_agencyId_fkey" FOREIGN KEY ("packageId","agencyId") REFERENCES "Package"("id","agencyId") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "Booking" DROP CONSTRAINT "Booking_leadId_fkey", DROP CONSTRAINT "Booking_quoteId_fkey", ADD CONSTRAINT "Booking_leadId_agencyId_fkey" FOREIGN KEY ("leadId","agencyId") REFERENCES "Lead"("id","agencyId") ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT "Booking_quoteId_leadId_agencyId_fkey" FOREIGN KEY ("quoteId","leadId","agencyId") REFERENCES "Quote"("id","leadId","agencyId") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "Transaction" DROP CONSTRAINT "Transaction_bookingId_fkey", ADD CONSTRAINT "Transaction_bookingId_agencyId_fkey" FOREIGN KEY ("bookingId","agencyId") REFERENCES "Booking"("id","agencyId") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "Activity" DROP CONSTRAINT "Activity_leadId_fkey", ADD CONSTRAINT "Activity_leadId_agencyId_fkey" FOREIGN KEY ("leadId","agencyId") REFERENCES "Lead"("id","agencyId") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "Transaction" ADD COLUMN "requestId" TEXT, ADD COLUMN "requestHash" TEXT;
+CREATE UNIQUE INDEX "Transaction_agencyId_requestId_key" ON "Transaction"("agencyId","requestId");
+ALTER TABLE "Transaction" ADD CONSTRAINT "transaction_amount_positive" CHECK ("amount">0), ADD CONSTRAINT "transaction_kind_valid" CHECK ("kind" IN ('Receipt','Refund','Expense','Supplier payment','Supplier credit','Supplier refund'));
+ALTER TABLE "User" ADD CONSTRAINT "user_role_valid" CHECK ("role" IN ('OWNER','MANAGER','AGENT'));
+CREATE TABLE "RateLimit" ("id" TEXT PRIMARY KEY,"key" TEXT NOT NULL UNIQUE,"count" INTEGER NOT NULL,"lastRequest" BIGINT NOT NULL);
+CREATE TABLE "RequestBucket" ("key" TEXT PRIMARY KEY,"count" INTEGER NOT NULL,"expiresAt" TIMESTAMP(3) NOT NULL);
+CREATE INDEX "RequestBucket_expiresAt_idx" ON "RequestBucket"("expiresAt");
+CREATE TABLE "Invitation" ("id" TEXT PRIMARY KEY,"agencyId" TEXT NOT NULL REFERENCES "Agency"("id") ON DELETE RESTRICT ON UPDATE CASCADE,"email" TEXT NOT NULL,"role" TEXT NOT NULL CHECK ("role" IN ('MANAGER','AGENT')),"tokenHash" TEXT NOT NULL UNIQUE,"status" TEXT NOT NULL DEFAULT 'Pending',"expiresAt" TIMESTAMP(3) NOT NULL,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"acceptedAt" TIMESTAMP(3));
+CREATE INDEX "Invitation_agencyId_email_status_idx" ON "Invitation"("agencyId","email","status");

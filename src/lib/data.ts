@@ -1,3 +1,5 @@
+import { subscriptionAccess, limitsFor } from "./subscriptions";
+import { mailReady, verificationRequired } from "./mail";
 import { db } from "./db";
 import { Actor, scope } from "./access";
 export async function workspaceData(a: Actor) {
@@ -46,6 +48,27 @@ export async function workspaceData(a: Actor) {
       }),
     ]);
   return {
+    access: {
+      canWrite: !a.demo && subscriptionAccess(agency),
+      limits: limitsFor(agency.plan),
+      emailConfigured: mailReady(),
+      emailVerificationRequired: verificationRequired(),
+    },
+    invitations:
+      a.role === "OWNER"
+        ? await db.invitation.findMany({
+            where: { agencyId: a.agencyId },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              status: true,
+              expiresAt: true,
+            },
+            orderBy: { createdAt: "desc" },
+            take: 50,
+          })
+        : [],
     agency,
     users,
     leads,

@@ -267,6 +267,7 @@ test("authenticated HTTP tenant isolation, role enforcement, CSRF and disabled a
       input: {
         agencyId: data.agency.id,
         bookingId: booking.id,
+        requestId: crypto.randomUUID(),
         kind: "Receipt",
         amount: "1",
         memo: "Cross-agency attack",
@@ -279,18 +280,20 @@ test("authenticated HTTP tenant isolation, role enforcement, CSRF and disabled a
   const foreignData = await (await foreign.get("/api/data")).json();
   expect(foreignData.leads).toHaveLength(0);
   expect(foreignData.bookings).toHaveLength(0);
-  const team = await owner.post("/api/action", {
-    data: {
-      action: "team-create",
-      input: {
-        name: "Test Sales Agent",
-        email: agentEmail,
-        password,
-        role: "AGENT",
-      },
-    },
+  // Setup a teammate fixture without asking an owner to choose another person's password.
+  const account = await foreign.post("/api/auth/sign-up/email", {
+    data: { name: "Test Sales Agent", email: agentEmail, password },
   });
-  expect(team.ok(), await team.text()).toBeTruthy();
+  expect(account.ok()).toBeTruthy();
+  const created = await db.user.findUniqueOrThrow({
+    where: { email: agentEmail },
+  });
+  const emptyAgency = created.agencyId;
+  await db.user.update({
+    where: { id: created.id },
+    data: { agencyId: data.agency.id, role: "AGENT" },
+  });
+  if (emptyAgency) await db.agency.delete({ where: { id: emptyAgency } });
   const agent = await playwright.request.newContext({
     baseURL: "http://localhost:3000",
     extraHTTPHeaders: { Origin: "http://localhost:3000" },

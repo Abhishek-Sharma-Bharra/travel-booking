@@ -1,6 +1,6 @@
 # Deployment, backup and restore
 
-No deployment has been performed and no public URL exists yet. The app needs a Node.js 24 host and PostgreSQL; it does not require a paid ML API, payment processor or outbound email to run the demo.
+The owner deployed the MVP at https://vashisht-travelos.onrender.com. The 0.2 hardening release requires the staged rollout and live prerequisites in PRODUCTION-RELEASE.md; it was not automatically deployed by this task. The app needs a Node.js 24 host and PostgreSQL; it does not require a paid ML API, payment processor or outbound email to run the demo.
 
 ## Deploy on a Node-capable managed host
 
@@ -59,3 +59,7 @@ Set `DATABASE_URL` in a separate test shell/environment to point to `travelos_re
 | Optional email provider | Future invitations, verification and password recovery | Message volume and deliverability services |
 
 No current provider prices are assumed. ML inference, demo data and manual subscriptions require no paid API. There is no payment-processing or live SaaS billing integration.
+
+## 0.2 deployment changes
+
+Use PRODUCTION-RELEASE.md for controlled owner-role migrations, DML-only runtime credentials, email verification/MFA/operator setup and readiness checks. Do not keep database-owner credentials or run DDL migrations in the web runtime. Run the backup/restore gate on the actual Render data before upgrading.

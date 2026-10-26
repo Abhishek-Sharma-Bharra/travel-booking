@@ -1,0 +1,48 @@
+name: TravelOS checks
+on:
+  pull_request:
+  push:
+    branches: [main, travelos-mvp, production-hardening]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: travelos_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/travelos_test
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: fictional-ci-only-secret-not-a-live-credential-2026
+      REQUIRE_EMAIL_VERIFICATION: 'false'
+      PLAYWRIGHT_PRODUCTION: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:migrate
+      - run: npm run db:seed
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Select the installed test browser
+        run: node -e "require('node:fs').appendFileSync(process.env.GITHUB_ENV,'CHROMIUM_PATH='+require('playwright').chromium.executablePath()+'\n')"
+      - run: npm run test:e2e
+      - run: npm audit --omit=dev

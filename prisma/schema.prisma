@@ -13,6 +13,9 @@ model Agency {
   plan String @default("Starter")
   subscription String @default("Trial")
   demo Boolean @default(false)
+  trialEndsAt DateTime @default(dbgenerated("(now() + interval '14 days')"))
+  subscriptionExpiresAt DateTime?
+  invitations Invitation[]
   createdAt DateTime @default(now())
   users User[]
   leads Lead[]
@@ -34,12 +37,16 @@ model User {
   agencyId String?
   role String @default("OWNER")
   disabled Boolean @default(false)
+  twoFactorEnabled Boolean @default(false)
+  twoFactors TwoFactor[]
   agency Agency? @relation(fields:[agencyId], references:[id])
   sessions Session[]
   accounts Account[]
   leads Lead[]
+  @@unique([id,agencyId])
 }
 model Session {
+  mfaVerifiedAt DateTime?
   id String @id
   expiresAt DateTime
   token String @unique
@@ -94,7 +101,7 @@ model Lead {
   quotedPrice Int @default(0)
   source String
   assignedId String
-  assigned User @relation(fields:[assignedId],references:[id])
+  assigned User @relation(fields:[assignedId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   stage String @default("New")
   notes String @default("")
   lostReason String @default("")
@@ -111,6 +118,7 @@ model Lead {
   quotes Quote[]
   booking Booking?
   activities Activity[]
+  @@unique([id,agencyId])
   @@unique([agencyId,externalId])
   @@index([agencyId,assignedId,enquiryDate])
 }
@@ -126,6 +134,7 @@ model Package {
   price Int
   estimatedCost Int
   quotes Quote[]
+  @@unique([id,agencyId])
   @@index([agencyId])
 }
 model Quote {
@@ -133,9 +142,9 @@ model Quote {
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   leadId String
-  lead Lead @relation(fields:[leadId],references:[id])
+  lead Lead @relation(fields:[leadId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   packageId String
-  package Package @relation(fields:[packageId],references:[id])
+  package Package @relation(fields:[packageId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   travellers Int
   unitPrice Int
   travelStart DateTime
@@ -152,6 +161,7 @@ model Quote {
   status String @default("Draft")
   createdAt DateTime @default(now())
   booking Booking?
+  @@unique([id,leadId,agencyId])
   @@index([agencyId])
 }
 model Booking {
@@ -159,9 +169,9 @@ model Booking {
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   leadId String @unique
-  lead Lead @relation(fields:[leadId],references:[id])
+  lead Lead @relation(fields:[leadId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   quoteId String @unique
-  quote Quote @relation(fields:[quoteId],references:[id])
+  quote Quote @relation(fields:[quoteId,leadId,agencyId],references:[id,leadId,agencyId],onUpdate:Restrict,onDelete:Restrict)
   total Int
   cancellationFee Int @default(0)
   status String @default("Confirmed")
@@ -171,6 +181,9 @@ model Booking {
   travelEnd DateTime
   createdAt DateTime @default(now())
   transactions Transaction[]
+  @@unique([leadId,agencyId])
+  @@unique([quoteId,leadId,agencyId])
+  @@unique([id,agencyId])
   @@index([agencyId])
 }
 model Transaction {
@@ -178,7 +191,9 @@ model Transaction {
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   bookingId String
-  booking Booking @relation(fields:[bookingId],references:[id])
+  booking Booking @relation(fields:[bookingId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
+  requestId String?
+  requestHash String?
   kind String
   amount Int
   supplier String @default("")
@@ -186,6 +201,7 @@ model Transaction {
   date DateTime @default(now())
   dueDate DateTime?
   createdAt DateTime @default(now())
+  @@unique([agencyId,requestId])
   @@index([agencyId,bookingId])
 }
 model Activity {
@@ -193,7 +209,7 @@ model Activity {
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   leadId String?
-  lead Lead? @relation(fields:[leadId],references:[id])
+  lead Lead? @relation(fields:[leadId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   actor String
   action String
   createdAt DateTime @default(now())
@@ -209,4 +225,43 @@ model Spend {
   amount Int
   memo String @default("")
   @@unique([agencyId,month,kind,channel])
+}
+
+model RateLimit {
+  id String @id @default(cuid())
+  key String @unique
+  count Int
+  lastRequest BigInt
+}
+model RequestBucket {
+  key String @id
+  count Int
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+model Invitation {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  email String
+  role String
+  tokenHash String @unique
+  status String @default("Pending")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  acceptedAt DateTime?
+  @@index([agencyId,email,status])
+}
+
+model TwoFactor {
+  id String @id
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  secret String
+  backupCodes String
+  verified Boolean @default(true)
+  failedVerificationCount Int @default(0)
+  lockedUntil DateTime?
+  @@index([userId])
+  @@index([secret])
 }

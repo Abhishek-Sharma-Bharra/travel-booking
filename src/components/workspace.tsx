@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import SecuritySettings from "./security-settings";
 import {
   Compass,
   LayoutDashboard,
@@ -163,7 +164,16 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     extra: Record<string, unknown> = {},
   ) {
     setFormError("");
-    setForm({ title, action, fields, values, extra });
+    setForm({
+      title,
+      action,
+      fields,
+      values,
+      extra: {
+        ...extra,
+        ...(action === "transaction" ? { requestId: crypto.randomUUID() } : {}),
+      },
+    });
   }
   async function run(action: string, input: Record<string, unknown>) {
     if (data.demo) {
@@ -395,6 +405,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   "Expense",
                   "Supplier payment",
                   "Supplier credit",
+                  "Supplier refund",
                 ]
               : ["Receipt", "Refund"],
           ),
@@ -1645,7 +1656,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </div>
                 <div>
                   <div>
-                    <small>Supplier expense balances</small>
+                    <small>Supplier net balance</small>
                     <strong>
                       {inr(
                         a.bookings.reduce(
@@ -1756,6 +1767,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                                 <small>
                                   Actual cost {inr(bal.supplierCost)}
                                 </small>
+                                {bal.supplierDue < 0 && (
+                                  <small>
+                                    Supplier refund owed {inr(-bal.supplierDue)}
+                                  </small>
+                                )}
                               </td>
                               <td>
                                 <div className="row-actions">
@@ -2381,6 +2397,13 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </section>
             </>
           )}
+          {!data.demo && !data.access.canWrite && (
+            <div className="info-box">
+              Your trial or subscription is inactive. You can view and export
+              existing records. Contact support to renew before changing
+              business records.
+            </div>
+          )}
           {page === "Settings" && (
             <>
               <div className="report-columns">
@@ -2396,6 +2419,10 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     <Badge value={data.agency.plan} />
                     <Badge value={data.agency.subscription} />
                     <span>Manually managed subscription</span>
+                    <span>
+                      {data.users.filter((u) => !u.disabled).length} /{" "}
+                      {data.access.limits.seats} active users
+                    </span>
                   </div>
                   {owner && (
                     <button
@@ -2433,9 +2460,26 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     </button>
                   )}
                   <p className="method-note">
-                    Plans and subscription status are stored for manual
-                    administration. There is no live billing integration.
+                    {data.agency.subscription === "Trial"
+                      ? `Trial ends ${indianDate(data.agency.trialEndsAt)}.`
+                      : data.agency.subscriptionExpiresAt
+                        ? `Subscription ends ${indianDate(data.agency.subscriptionExpiresAt)}.`
+                        : "Subscription dates are managed by the service administrator."}{" "}
+                    Plan limits are enforced on the server. No money is charged
+                    automatically.
                   </p>
+                  {owner && !data.access.emailConfigured && (
+                    <p className="info-box">
+                      Email invitations and password recovery need to be enabled
+                      by the service administrator before client onboarding.
+                    </p>
+                  )}
+                  {owner && !data.access.emailVerificationRequired && (
+                    <p className="info-box">
+                      Required email verification is not enabled yet. Complete
+                      the launch checklist before onboarding real clients.
+                    </p>
+                  )}
                 </section>
                 <section className="panel prose">
                   <h2>Owner onboarding checklist</h2>
@@ -2475,15 +2519,8 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     <button
                       className="btn primary small"
                       onClick={() =>
-                        openForm("Add team member", "team-create", [
-                          { name: "name", label: "Name" },
+                        openForm("Invite team member", "invite", [
                           { name: "email", label: "Email", type: "email" },
-                          {
-                            name: "password",
-                            label: "Initial password (12+ characters)",
-                            type: "password",
-                            hint: "Share securely. Member can change it after signing in.",
-                          },
                           {
                             name: "role",
                             label: "Role",
@@ -2493,7 +2530,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                       }
                     >
                       <Plus size={16} />
-                      Add member
+                      Invite member
                     </button>
                   )}
                 </div>
@@ -2571,6 +2608,67 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   </table>
                 </div>
               </section>
+              {owner && (
+                <section className="panel">
+                  <h2>Team invitations</h2>
+                  <p className="method-note">
+                    Recipients choose their own password. Invitations expire
+                    after 7 days and reserve one plan seat.
+                  </p>
+                  {data.invitations.length ? (
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Expires</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.invitations.map((i) => (
+                            <tr key={i.id}>
+                              <td>{i.email}</td>
+                              <td>{i.role}</td>
+                              <td>
+                                {new Date(i.expiresAt) < new Date() &&
+                                i.status === "Pending"
+                                  ? "Expired"
+                                  : i.status}
+                              </td>
+                              <td>{indianDate(i.expiresAt)}</td>
+                              <td>
+                                {i.status === "Pending" && (
+                                  <button
+                                    className="text-button"
+                                    disabled={busy || data.demo}
+                                    onClick={() =>
+                                      openForm(
+                                        "Revoke invitation",
+                                        "invite-revoke",
+                                        [],
+                                        {},
+                                        { id: i.id },
+                                      )
+                                    }
+                                  >
+                                    Revoke invitation
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="muted">No invitations sent yet.</p>
+                  )}
+                </section>
+              )}
+              {!data.demo && <SecuritySettings />}
               {!data.demo && (
                 <section className="panel prose">
                   <h2>Your password</h2>

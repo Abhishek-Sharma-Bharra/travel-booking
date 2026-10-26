@@ -32,6 +32,9 @@ export const amount = z.union([z.string(), z.number()]).transform((v, ctx) => {
     return z.NEVER;
   }
 });
+export const taxRate = amount.refine((n) => n <= 10000, {
+  message: "Tax must be between 0 and 100% with at most two decimal places",
+});
 const text = z.string().trim().max(2000);
 export const leadSchema = z
   .object({

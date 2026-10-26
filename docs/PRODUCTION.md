@@ -1,20 +1,30 @@
-# Before charging for a live deployment
+# Client launch checklist
 
-This working MVP is suitable for an honest, fictional-data sales demonstration. Passing checks and a successful build do not make it production-ready.
+The 0.2 code release adds production foundations. **Do not hand over a real-data paid pilot solely because it builds.** Complete the live operational gates in [PRODUCTION-RELEASE.md](PRODUCTION-RELEASE.md).
 
-- [ ] Deploy to an HTTPS origin with private PostgreSQL, separate staging/production databases and strong secrets. No public deployment was performed in this task.
-- [ ] Perform independent server access-control review, including every read/write/export and assignment change; consider PostgreSQL row-level security or composite tenant foreign keys as defence in depth.
-- [ ] Configure email verification, owner recovery/password reset and a secure member-invitation workflow. Current signup has no email verification or self-service recovery. Create initial member passwords securely and require a change operationally.
-- [ ] Configure shared persistent auth rate limiting for multi-instance deployments and mutation/API request-size limits. Default auth limits are per instance; the application mutation route does not have a distributed limiter.
-- [ ] Arrange monitored encrypted backups, point-in-time recovery, retention and a documented restore rehearsal. Docker volumes are not backups.
-- [ ] Review legal terms, privacy notice, customer consent, export/deletion process and handling of contact information with appropriate advisers.
-- [ ] Review money limits, cancellation policies, tax-inclusive value, statutory tax treatment, accounting reconciliation, refunds and correction approvals with an accountant.
-- [ ] Add supplier refund/paid-credit correction workflows if needed. Current append-only ledger is an operational record, not a general accounting system.
-- [ ] Agree manual subscription administration and service terms. Stored plans/status do not enforce quotas or charge a card.
-- [ ] Set up alerts, structured redacted logs, incident response, migration ownership and database connection pooling for the chosen host.
-- [ ] Run a security dependency audit and patch supported package versions before release. Pinned internal Prisma helper APIs need deliberate upgrade testing.
-- [ ] Run cross-browser/mobile, keyboard focus, screen-reader, print-output and high-volume/load reviews. Dialog focus trapping and server-side pagination are not yet implemented.
-- [ ] Evaluate the model on timestamped, consented real agency data before using it operationally. Until then retain the synthetic-model warning and human review.
-- [ ] Define whether clients need historical month-end reporting; current reports recompute the present state of the selected cohort.
+## Implemented and verified locally
 
-No hosting or other external account is provisioned by the application. No claim of production readiness, validated forecasting, improved conversion or business savings is made.
+- [x] Server tenant/role checks plus composite tenant database foreign keys.
+- [x] Shared auth/application request limits, streamed request bounds, private responses and browser security headers.
+- [x] Email verification, one-time password reset and revocation of old sessions (delivery mocked in tests).
+- [x] Secure expiring recipient-bound invitations; plan seats and 14-day trial/write restrictions.
+- [x] Authenticator and recovery codes; allowlisted/verified/MFA-proven subscription operator page.
+- [x] Idempotent financial submissions; paid supplier credit/refund correction workflow.
+- [x] Encrypted backup, integrity checks, isolated local restore and least-privilege role provisioning tools.
+- [x] Typed build, regression/access/security tests and Chromium browser flows; CI workflow supplied.
+- [x] Operator, onboarding, privacy/service-summary and recovery documentation.
+
+## Required outside actions before real client handover
+
+- [ ] Back up the **actual Render database**, restore a separate staging copy and validate migrations there.
+- [ ] Choose hosting/database plans suitable for the commitment; confirm persistence, capacity, uptime and backup retention. The previous free database showed 23 November 2026 expiry.
+- [ ] Configure real email secrets securely; test actual verification/reset/invitation inbox delivery. Enable `REQUIRE_EMAIL_VERIFICATION=true` after delivery works.
+- [ ] Configure operator email allowlist, verify that account, enable app MFA and store recovery codes privately.
+- [ ] Run the web app with a least-privilege DB user and keep owner credentials in a controlled migration job.
+- [ ] Set monitored encrypted/offsite backups, restoration ownership, recovery objectives and alerts. Provided commands do not create a scheduler or storage account.
+- [ ] Run `npm run check:launch` with the actual runtime environment; configure monitoring. A ready health response is a configuration check, not an independent audit.
+- [ ] Obtain independent access/security review and accountant review of your manual financial workflow.
+- [ ] Complete provider legal identity/contact, privacy/data-processing terms, retention/deletion policy, pricing/taxes and signed client order with appropriate advisers.
+- [ ] Finish representative load, Firefox/Safari/device and accessibility review before expanding beyond a small controlled pilot.
+
+Reports remain current-state cohort reports, not immutable closed-period accounting. ML remains explicitly synthetic/unvalidated. No live billing, payment transfer, identity-document upload or automatic model retraining is included. No production mail/backup/account reconfiguration or paid infrastructure purchase was performed by this coding task.

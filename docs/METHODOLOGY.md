@@ -12,7 +12,7 @@ Every persisted financial amount is an integer number of paise, with an individu
 | Customer balance | max(0, current booked obligation − receipts + refunds), across bookings created in the range |
 | Refund due | max(0, receipts − refunds − current obligation), shown for cancelled bookings |
 | Actual supplier cost | Expense entries minus Supplier credit entries, whether settled or not |
-| Supplier balance | Expenses − credits − supplier payments, separately per booking and exact supplier name |
+| Supplier balance | Expenses − credits − supplier payments + supplier refunds, separately per booking and exact supplier name |
 | Booking contribution | Current booked value − actual supplier costs; excludes all advertising and operating expenses; not net profit |
 | Overdue customer balance | Current positive balance where the booking due date is before today |
 | Overdue follow-ups | Open enquiries matching dimensions with scheduled follow-up before today; all enquiry dates, explicitly indicated in UI |
@@ -29,7 +29,7 @@ The explicit method is **first touch**: 100% of a booking's commercial value is 
 
 ## Cancellations, credits and refunds
 
-Cancellation does not automatically move cash. Set a retained cancellation fee, then explicitly record refunds and supplier credits. A cancelled booking has booked value equal to that fee, not its original quotation. Expenses create costs, supplier payments settle liabilities, and credits reverse costs. Payments are never deducted a second time as cost. Customer refunds cannot exceed unrefunded receipts. Receipts cannot exceed current customer obligation; after cancellation that obligation is only the retained fee. Supplier payments and credits cannot exceed the named supplier's unpaid expense balance. Corrections involving already-paid supplier refunds require an operator-assisted reconciliation; there is no supplier refund transaction type in this MVP.
+Cancellation does not automatically move cash. Set a retained cancellation fee, then explicitly record refunds and supplier credits. A cancelled booking has booked value equal to that fee, not its original quotation. Expenses create costs, supplier payments settle liabilities, and credits reverse costs. Payments are never deducted a second time as cost. Customer refunds cannot exceed unrefunded receipts. Receipts cannot exceed current customer obligation; after cancellation that obligation is only the retained fee. Supplier payments cannot exceed the named supplier's positive balance. Credits cannot exceed its uncredited expenses, including paid expenses. A supplier refund cannot exceed the supplier's negative balance (amount owed back to the agency). Supplier refunds settle cash already owed back after a credit; they do not reverse costs a second time. Negative supplier balances explicitly represent refunds owed to the agency.
 
 Entries are append-only in the UI. Correction/deletion and full accounting period closure are intentionally absent. Dates are calendar days stored at UTC midnight and displayed in Indian format; this avoids timezone drift in travel dates. Today-based due-date and follow-up checks use the Asia/Kolkata calendar date.
 
