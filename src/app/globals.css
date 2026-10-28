@@ -2834,3 +2834,79 @@ td .badge + small {
   margin-top: 15px;
   flex-wrap: wrap;
 }
+
+.assistant-card {
+  background: var(--surface, #fff);
+  border: 1px solid #dce5da;
+  border-radius: 16px;
+  padding: 22px;
+  margin: 18px 0;
+  color: #173e39;
+}
+.assistant-card p {
+  line-height: 1.65;
+  margin: 10px 0;
+}
+.assistant-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin: 14px 0;
+}
+.assistant-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  flex: 1;
+  min-width: 160px;
+}
+.assistant-card input,
+.assistant-card textarea,
+.assistant-card select {
+  border: 1px solid #b9cec5;
+  background: #fff;
+  color: #173e39;
+  border-radius: 7px;
+  padding: 10px;
+  font: inherit;
+  max-width: 100%;
+}
+.assistant-card textarea {
+  width: 100%;
+  min-height: 110px;
+}
+.priority-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  border-top: 1px solid #dce5da;
+  padding: 14px 0;
+}
+.assistant-card summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 12px 0;
+}
+.assistant-card details {
+  margin-top: 12px;
+}
+.assistant-card button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+@media (max-width: 640px) {
+  .priority-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .assistant-card {
+    padding: 15px;
+  }
+  .assistant-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

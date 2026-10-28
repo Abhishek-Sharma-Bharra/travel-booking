@@ -76,3 +76,7 @@ The [synthetic ML pipeline](ml/README.md) is a real trained logistic regression,
 See [deployment and recovery](docs/DEPLOYMENT.md), [feature status](docs/FEATURES.md) and [production readiness](docs/PRODUCTION.md). The owner has deployed the app at **https://vashisht-travelos.onrender.com**. Deployment authentication is being checked; this cloud workspace cannot independently reach the public host. You can deploy to a Node-capable host with a managed PostgreSQL database. Docker development volumes and running processes should not be assumed to survive a cloud environment rebuild; reseed a disposable demo, or restore a verified backup for non-demo data.
 
 No payment processing, subscription billing, external AI service, passport upload or identity-document collection is included.
+
+### Sales & operations assistant (review release)
+
+Today's priorities, structured customer-message drafts, package-based itinerary/quote review, explicit quotation approval/versioning, multilingual copy-only follow-ups and an owner's briefing build on the existing workflows. Live extraction is optional and server-only; the public demo uses a labelled fictional sample. See [configuration, review steps and limitations](docs/AI-SALES-ASSISTANT.md). No automatic customer communications or production deployment are included.

@@ -48,6 +48,7 @@ export async function workspaceData(a: Actor) {
       }),
     ]);
   return {
+    refreshedAt: new Date().toISOString(),
     access: {
       canWrite: !a.demo && subscriptionAccess(agency),
       limits: limitsFor(agency.plan),

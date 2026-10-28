@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { extractionSchema } from "./assistant";
 import { paise } from "./money";
 export const sources = [
   "Meta Ads",
@@ -38,6 +39,8 @@ export const taxRate = amount.refine((n) => n <= 10000, {
 const text = z.string().trim().max(2000);
 export const leadSchema = z
   .object({
+    originalMessage: z.string().max(4000).optional(),
+    requirementDraft: extractionSchema.optional(),
     externalId: z.string().trim().min(1).max(80),
     customer: z.string().trim().min(2).max(100),
     email: z.union([z.literal(""), z.email()]).default(""),
@@ -95,6 +98,11 @@ export const leadSchema = z
     path: ["lostReason"],
   });
 export const packageSchema = z.object({
+  hotelCategory: text.default(""),
+  itinerary: text.default(""),
+  paymentTerms: text.default(""),
+  cancellationTerms: text.default(""),
+  rateNotes: text.default(""),
   name: z.string().trim().min(2).max(100),
   destination: z.string().trim().min(2).max(100),
   days: z.coerce.number().int().min(1).max(365),

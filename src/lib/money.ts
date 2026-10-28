@@ -78,3 +78,44 @@ export const indiaToday = () =>
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
+
+// Markup is a percentage of cost; margin is a percentage of selling price.
+export function pricedUnit(
+  cost: number,
+  mode: string,
+  bps: number,
+  recorded: number,
+) {
+  if (
+    !Number.isSafeInteger(cost) ||
+    cost < 0 ||
+    !Number.isInteger(bps) ||
+    bps < 0 ||
+    bps >= 10000
+  )
+    throw new Error("Invalid pricing inputs");
+  if (
+    !["Recorded selling rate", "Cost plus markup", "Target margin"].includes(
+      mode,
+    )
+  )
+    throw new Error("Invalid pricing mode");
+  if (mode === "Recorded selling rate") {
+    if (
+      !Number.isSafeInteger(recorded) ||
+      recorded < 0 ||
+      recorded > 2000000000
+    )
+      throw new Error("Invalid recorded rate");
+    return recorded;
+  }
+  const denominator = mode === "Target margin" ? 10000 - bps : 10000;
+  const numerator =
+    BigInt(cost) * BigInt(mode === "Target margin" ? 10000 : 10000 + bps);
+  const result = Number(
+    (numerator + BigInt(Math.floor(denominator / 2))) / BigInt(denominator),
+  );
+  if (!Number.isSafeInteger(result) || result > 2000000000)
+    throw new Error("Pricing exceeds the supported amount");
+  return result;
+}

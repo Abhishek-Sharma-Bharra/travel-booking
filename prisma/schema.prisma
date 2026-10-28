@@ -85,6 +85,8 @@ model Verification {
   @@index([identifier])
 }
 model Lead {
+  originalMessage String @default("")
+  requirementDraft Json?
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
@@ -123,6 +125,11 @@ model Lead {
   @@index([agencyId,assignedId,enquiryDate])
 }
 model Package {
+  hotelCategory String @default("")
+  itinerary String @default("")
+  paymentTerms String @default("")
+  cancellationTerms String @default("")
+  rateNotes String @default("")
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
@@ -138,6 +145,12 @@ model Package {
   @@index([agencyId])
 }
 model Quote {
+  version Int @default(1)
+  proposal String @default("")
+  paymentTerms String @default("")
+  cancellationTerms String @default("")
+  approvedAt DateTime?
+  approvedBy String?
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
@@ -161,6 +174,7 @@ model Quote {
   status String @default("Draft")
   createdAt DateTime @default(now())
   booking Booking?
+  @@unique([agencyId,leadId,version])
   @@unique([id,leadId,agencyId])
   @@index([agencyId])
 }

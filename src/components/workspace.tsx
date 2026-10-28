@@ -1,6 +1,11 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  AssistantPanel,
+  PrioritiesPanel,
+  FollowUpPanel,
+} from "./travel-assistant";
 import SecuritySettings from "./security-settings";
 import {
   Compass,
@@ -205,7 +210,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       setBusy(false);
     }
   }
-  function enquiryForm(l?: Lead) {
+  function enquiryForm(l?: Lead, draft: Record<string, unknown> = {}) {
     const fields: Field[] = [
       { name: "externalId", label: "Lead / external ID" },
       { name: "customer", label: "Customer name" },
@@ -318,11 +323,19 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       l ? "Edit enquiry" : "New enquiry",
       "lead",
       fields,
-      values,
-      l ? { id: l.id } : {},
+      { ...values, ...draft },
+      {
+        ...(l ? { id: l.id } : {}),
+        ...(draft.requirementDraft
+          ? {
+              requirementDraft: draft.requirementDraft,
+              originalMessage: draft.originalMessage,
+            }
+          : {}),
+      },
     );
   }
-  function quotationForm(l?: Lead) {
+  function quotationForm(l?: Lead, draft: Record<string, unknown> = {}) {
     openForm(
       "Build a quotation",
       "quote",
@@ -345,10 +358,38 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             label: `${p.name} · ${inr(p.price)} / person`,
           })),
         },
+        {
+          name: "proposal",
+          label:
+            "Reviewed day-wise proposal (no unconfirmed prices or promises)",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "pricingMode",
+          label: "Pricing basis",
+          options: options([
+            "Recorded selling rate",
+            "Cost plus markup",
+            "Target margin",
+          ]),
+        },
+        {
+          ...numField("pricingPercent", "Markup / target margin (%)"),
+          max: 99.99,
+          required: false,
+        },
         numField("discount", "Discount on subtotal (₹)"),
         { ...numField("tax", "Optional tax (%)"), max: 100 },
       ],
-      { leadId: l?.id, discount: "0", tax: "0" },
+      {
+        leadId: l?.id,
+        discount: "0",
+        tax: "0",
+        pricingMode: "Recorded selling rate",
+        pricingPercent: "0",
+        ...draft,
+      },
     );
     setDetail(null);
   }
@@ -368,6 +409,35 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         },
         numField("price", "Selling price / person (₹)"),
         numField("estimatedCost", "Estimated supplier cost / person (₹)"),
+        {
+          name: "hotelCategory",
+          label: "Recorded hotel category",
+          required: false,
+        },
+        {
+          name: "itinerary",
+          label: "Maintained day-wise itinerary",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "paymentTerms",
+          label: "Recorded payment terms",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "cancellationTerms",
+          label: "Recorded cancellation terms",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "rateNotes",
+          label: "Rate basis / supplier confirmation notes",
+          type: "textarea",
+          required: false,
+        },
         { name: "inclusions", label: "Inclusions", type: "textarea" },
         { name: "exclusions", label: "Exclusions", type: "textarea" },
       ],
@@ -993,8 +1063,37 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               The start date must be before the end date.
             </p>
           )}
+          {page === "Enquiries" && (
+            <AssistantPanel
+              data={data}
+              onReview={(draft) => enquiryForm(undefined, draft)}
+            />
+          )}
           {page === "Overview" && (
             <>
+              <PrioritiesPanel
+                data={data}
+                onOpen={setDetail}
+                onRecord={(kind, id, leadId) => {
+                  if (kind === "Quotation follow-up") {
+                    setPrintQuote(data.quotes.find((q) => q.id === id) || null);
+                    return;
+                  }
+                  if (
+                    kind === "Customer payment due" ||
+                    kind === "Departure task"
+                  ) {
+                    changePage("Bookings");
+                    setFilters({
+                      ...defaultFilters(),
+                      from: "2000-01-01",
+                      search: lead(leadId)?.externalId || "",
+                    });
+                    return;
+                  }
+                  setDetail(lead(leadId) || null);
+                }}
+              />
               <div className="section-label">
                 <span>PERFORMANCE SNAPSHOT</span>
                 <span>
@@ -1403,7 +1502,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                               {l.followUp ? indianDate(l.followUp) : "—"}
                             </td>
                             <td>
-                              {l.score === null ? (
+                              {["Won", "Lost"].includes(l.stage) ? (
+                                <span className="muted">
+                                  Closed · historical score in details
+                                </span>
+                              ) : l.score === null ? (
                                 <span className="muted" title={l.scoreReason}>
                                   Not scored
                                 </span>
@@ -1585,7 +1688,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                                 <Printer size={14} />
                                 Print / view
                               </button>
-                              {q.status === "Draft" && (
+                              {["Draft", "Approved"].includes(q.status) && (
                                 <button
                                   className="btn secondary small"
                                   onClick={() =>
@@ -2292,7 +2395,8 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                             }
                           />
                           <p>
-                            Model booking probability · for demonstration only
+                            Synthetic model output · not validated booking
+                            probability
                           </p>
                         </div>
                       );
@@ -2312,44 +2416,50 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     or quoted. Missing inputs and values outside the supported
                     ranges produce “Not scored”.
                   </p>
-                  <ul>
-                    <li>
-                      Budget fit: 0.25–2.0; departure: 0–365 days from enquiry.
-                    </li>
-                    <li>Travellers: 1–20; first response: 0–168 hours.</li>
-                    <li>
-                      Repeat-customer and itinerary-request status must be
-                      explicitly supplied.
-                    </li>
-                    <li>
-                      High priority: ≥65%; medium: 35–65%; low: below 35%.
-                    </li>
-                    <li>
-                      Explanations describe coefficient contributions relative
-                      to the synthetic training average. They are associations,
-                      not causes.
-                    </li>
-                  </ul>
-                  <p>
-                    <strong>Version:</strong> {modelInfo.version}
-                  </p>
-                  <p>
-                    Python trains on 6,000 synthetic rows and evaluates on a
-                    separate 2,000-row holdout. Evaluation and limitations are
-                    in <code>ml/evaluation.json</code> and{" "}
-                    <code>ml/README.md</code>. Those results do not establish
-                    real-world accuracy.
-                  </p>
-                  <p>
-                    No uploaded records are used for retraining. Lead stage,
-                    receipts and booking outcome are excluded from model inputs.
-                  </p>
+                  <details>
+                    <summary>Technical model details</summary>
+                    <ul>
+                      <li>
+                        Budget fit: 0.25–2.0; departure: 0–365 days from
+                        enquiry.
+                      </li>
+                      <li>Travellers: 1–20; first response: 0–168 hours.</li>
+                      <li>
+                        Repeat-customer and itinerary-request status must be
+                        explicitly supplied.
+                      </li>
+                      <li>
+                        Synthetic score bands: high ≥65%; medium 35–65%; low
+                        below 35%. These are not operational priorities.
+                      </li>
+                      <li>
+                        Explanations describe how recorded inputs affect this
+                        demonstration model. They are not evidence of real
+                        customer intent.
+                      </li>
+                    </ul>
+                    <p>
+                      <strong>Version:</strong> {modelInfo.version}
+                    </p>
+                    <p>
+                      Python trains on 6,000 synthetic rows and evaluates on a
+                      separate 2,000-row holdout. Evaluation and limitations are
+                      in <code>ml/evaluation.json</code> and{" "}
+                      <code>ml/README.md</code>. Those results do not establish
+                      real-world accuracy.
+                    </p>
+                    <p>
+                      No uploaded records are used for retraining. Lead stage,
+                      receipts and booking outcome are excluded from model
+                      inputs.
+                    </p>
+                  </details>
                 </section>
               </div>
               <section className="panel">
                 <div className="panel-heading">
                   <div>
-                    <h2>Open enquiries, prioritised</h2>
+                    <h2>Open enquiries · synthetic model context</h2>
                     <p>All dates · your permitted records only</p>
                   </div>
                 </div>
@@ -2358,7 +2468,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     <thead>
                       <tr>
                         <th>Enquiry</th>
-                        <th>Model probability</th>
+                        <th>Synthetic model output</th>
                         <th>Explanation / reason</th>
                         <th>Scored at</th>
                       </tr>
@@ -2963,7 +3073,18 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               );
               let input = { ...values, ...form.extra };
               if (form.action === "lead")
-                input = { lead: values, ...form.extra };
+                input = {
+                  lead: {
+                    ...values,
+                    ...(form.extra?.requirementDraft
+                      ? {
+                          requirementDraft: form.extra.requirementDraft,
+                          originalMessage: form.extra.originalMessage,
+                        }
+                      : {}),
+                  },
+                  ...form.extra,
+                };
               if (form.action === "team")
                 input.disabled = values.disabled === "true";
               if (await run(form.action, input)) setForm(null);
@@ -2972,10 +3093,13 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <Fields fields={form.fields} values={form.values} />
             {form.action === "quote" && (
               <p className="method-note">
-                Total = travellers × package price − discount + optional tax on
-                the discounted subtotal. Amounts are rounded to the nearest
-                paise. Package price and estimated supplier costs are
-                snapshotted in the quotation.
+                Total = travellers × reviewed unit selling price − discount +
+                optional tax on the discounted subtotal. Amounts are rounded to
+                the nearest paise. Markup uses cost × (1 + percentage); target
+                margin uses cost ÷ (1 − percentage). Room quantities are not
+                inferred; only maintained per-traveller rates apply. Package
+                rates and estimated supplier costs are snapshotted in the
+                quotation.
               </p>
             )}
             {form.action === "transaction" && (
@@ -3072,7 +3196,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <p>
               {detail.score === null
                 ? "Not scored"
-                : `${(detail.score * 100).toFixed(1)}% model booking probability · ${detail.score >= 0.65 ? "High" : detail.score >= 0.35 ? "Medium" : "Low"} priority`}
+                : `${(detail.score * 100).toFixed(1)}% synthetic model output · not a validated booking probability`}
             </p>
             <p>{detail.scoreReason}</p>
             <small>
@@ -3104,6 +3228,35 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </p>
             </details>
           </section>
+          {detail.originalMessage && (
+            <details>
+              <summary>
+                Original customer message & reviewed requirements
+              </summary>
+              <p style={{ whiteSpace: "pre-wrap" }}>{detail.originalMessage}</p>
+              <pre style={{ whiteSpace: "pre-wrap" }}>
+                {JSON.stringify(detail.requirementDraft, null, 2)}
+              </pre>
+            </details>
+          )}
+          <FollowUpPanel
+            data={data}
+            lead={detail}
+            onQuote={(draft) => quotationForm(detail, draft)}
+            onSchedule={async (date) => {
+              const ok = await run("schedule-followup", {
+                id: detail.id,
+                date,
+              });
+              if (ok) setDetail(null);
+              return ok;
+            }}
+          />
+          {formError && (
+            <p className="error-box" role="alert">
+              {formError}
+            </p>
+          )}
           <h3>Activity history</h3>
           <div className="audit-list">
             {data.activities
@@ -3305,7 +3458,14 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               <div>
                 <span className="eyebrow">YOUR NEXT JOURNEY</span>
                 <h1>Quotation</h1>
-                <p>{printQuote.id}</p>
+                <p>
+                  {printQuote.id} · Version {printQuote.version}
+                </p>
+                <p>
+                  {printQuote.status === "Draft"
+                    ? "DRAFT — review required before sharing"
+                    : "Reviewed proposal"}
+                </p>
                 <p>{indianDate(printQuote.createdAt)}</p>
               </div>
             </div>
@@ -3356,6 +3516,20 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </tr>
               </tbody>
             </table>
+            <h3>Proposed itinerary</h3>
+            <p style={{ whiteSpace: "pre-wrap" }}>
+              {printQuote.proposal || "No itinerary recorded."}
+            </p>
+            <h3>Payment terms</h3>
+            <p>
+              {printQuote.paymentTerms ||
+                "Not recorded — confirm before sharing."}
+            </p>
+            <h3>Cancellation terms</h3>
+            <p>
+              {printQuote.cancellationTerms ||
+                "Not recorded — confirm before sharing."}
+            </p>
             <h3>Included in your journey</h3>
             <p>{printQuote.inclusions}</p>
             <h3>Exclusions</h3>
@@ -3368,8 +3542,28 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </p>
             )}
           </div>
+          {formError && (
+            <p className="error-box" role="alert">
+              {formError}
+            </p>
+          )}
           <div className="modal-actions">
-            <button className="btn primary" onClick={() => window.print()}>
+            {printQuote.status === "Draft" && !data.demo && (
+              <button
+                className="btn secondary"
+                onClick={async () => {
+                  if (await run("approve-quote", { id: printQuote.id }))
+                    setPrintQuote(null);
+                }}
+              >
+                Approve reviewed quotation
+              </button>
+            )}
+            <button
+              className="btn primary"
+              disabled={printQuote.status === "Draft" && !data.demo}
+              onClick={() => window.print()}
+            >
               <Printer size={16} />
               Print / save PDF
             </button>

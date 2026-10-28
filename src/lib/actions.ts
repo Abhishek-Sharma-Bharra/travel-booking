@@ -13,7 +13,7 @@ import {
   dateValue,
   taxRate,
 } from "./validation";
-import { balances, quoteTotal } from "./money";
+import { balances, quoteTotal, pricedUnit } from "./money";
 import { scoreLead } from "./model";
 const id = z.string().min(1).max(100);
 export async function mutate(a: Actor, action: string, input: unknown) {
@@ -177,57 +177,113 @@ export async function mutate(a: Actor, action: string, input: unknown) {
     } else await db.package.create({ data: { ...v, agencyId: a.agencyId } });
     return { message: "Package saved" };
   }
+  if (action === "schedule-followup") {
+    const v = z.object({ id, date: dateValue }).parse(input);
+    return db.$transaction(async (tx) => {
+      const l = await leadAccess(tx, v.id);
+      if (["Won", "Lost"].includes(l.stage))
+        throw new Error("Choose an open enquiry");
+      await tx.lead.update({ where: { id: l.id }, data: { followUp: v.date } });
+      await audit(tx, "Internal follow-up scheduled; no message sent", l.id);
+      return { message: "Follow-up scheduled; no message sent" };
+    });
+  }
+  if (action === "approve-quote") {
+    const v = z.object({ id }).parse(input);
+    return db.$transaction(async (tx) => {
+      const q = await tx.quote.findFirst({
+        where: { id: v.id, agencyId: a.agencyId, lead: scope(a) },
+      });
+      if (!q || q.status !== "Draft")
+        throw new Error("Draft quotation unavailable");
+      await tx.quote.update({
+        where: { id: q.id },
+        data: { status: "Approved", approvedAt: new Date(), approvedBy: a.id },
+      });
+      await audit(tx, `Quotation ${q.id} reviewed and approved`, q.leadId);
+      return { message: "Quotation approved for sharing" };
+    });
+  }
   if (action === "quote") {
     const v = z
       .object({
         leadId: id,
         packageId: id,
+        proposal: z.string().max(12000).default(""),
+        pricingMode: z
+          .enum(["Recorded selling rate", "Cost plus markup", "Target margin"])
+          .default("Recorded selling rate"),
+        pricingPercent: taxRate.default(0),
         discount: amount,
         tax: taxRate,
       })
       .parse(input);
-    return db.$transaction(async (tx) => {
-      const l = await leadAccess(tx, v.leadId);
-      if (["Won", "Lost"].includes(l.stage))
-        throw new Error("Choose an open enquiry");
-      const p = await tx.package.findFirst({
-        where: { id: v.packageId, agencyId: a.agencyId },
-      });
-      if (!p) throw new Error("Package not found");
-      const taxBps = v.tax;
-      const total = quoteTotal(p.price, l.travellers, v.discount, taxBps);
-      quoteTotal(p.estimatedCost, l.travellers, 0, 0);
-      const q = await tx.quote.create({
-        data: {
-          agencyId: a.agencyId,
-          leadId: l.id,
-          packageId: p.id,
-          travellers: l.travellers,
-          unitPrice: p.price,
-          travelStart: l.travelStart,
-          travelEnd: l.travelEnd,
-          packageName: p.name,
-          destination: p.destination,
-          duration: p.days,
-          inclusions: p.inclusions,
-          exclusions: p.exclusions,
-          discount: v.discount,
-          taxBps,
-          total,
-          estimatedCost: p.estimatedCost * l.travellers,
-        },
-      });
-      await tx.lead.update({
-        where: { id: l.id },
-        data: {
-          stage: "Quoted",
-          quotedPrice: p.price,
-          ...scoreLead({ ...l, quotedPrice: p.price }),
-        },
-      });
-      await audit(tx, `Quotation ${q.id} created`, l.id);
-      return { message: "Quotation created" };
-    });
+    return db.$transaction(
+      async (tx) => {
+        const l = await leadAccess(tx, v.leadId);
+        if (["Won", "Lost"].includes(l.stage))
+          throw new Error("Choose an open enquiry");
+        const p = await tx.package.findFirst({
+          where: { id: v.packageId, agencyId: a.agencyId },
+        });
+        if (!p) throw new Error("Package not found");
+        const taxBps = v.tax;
+        const unitPrice = pricedUnit(
+          p.estimatedCost,
+          v.pricingMode,
+          v.pricingPercent,
+          p.price,
+        );
+        if (
+          unitPrice <= 0 ||
+          (v.pricingMode !== "Recorded selling rate" && p.estimatedCost <= 0)
+        )
+          throw new Error(
+            "Maintain a positive package rate/cost before quoting.",
+          );
+        const total = quoteTotal(unitPrice, l.travellers, v.discount, taxBps);
+        quoteTotal(p.estimatedCost, l.travellers, 0, 0);
+        const previousVersion = await tx.quote.aggregate({
+          where: { leadId: l.id, agencyId: a.agencyId },
+          _max: { version: true },
+        });
+        const q = await tx.quote.create({
+          data: {
+            agencyId: a.agencyId,
+            version: (previousVersion._max.version ?? 0) + 1,
+            proposal: v.proposal,
+            paymentTerms: p.paymentTerms,
+            cancellationTerms: p.cancellationTerms,
+            leadId: l.id,
+            packageId: p.id,
+            travellers: l.travellers,
+            unitPrice,
+            travelStart: l.travelStart,
+            travelEnd: l.travelEnd,
+            packageName: p.name,
+            destination: p.destination,
+            duration: p.days,
+            inclusions: p.inclusions,
+            exclusions: p.exclusions,
+            discount: v.discount,
+            taxBps,
+            total,
+            estimatedCost: p.estimatedCost * l.travellers,
+          },
+        });
+        await tx.lead.update({
+          where: { id: l.id },
+          data: {
+            stage: "Quoted",
+            quotedPrice: unitPrice,
+            ...scoreLead({ ...l, quotedPrice: unitPrice }),
+          },
+        });
+        await audit(tx, `Quotation ${q.id} created`, l.id);
+        return { message: "Quotation created" };
+      },
+      { isolationLevel: "Serializable" },
+    );
   }
   if (action === "accept") {
     const v = z.object({ id, dueDate: dateValue }).parse(input);
@@ -237,7 +293,8 @@ export async function mutate(a: Actor, action: string, input: unknown) {
           where: { id: v.id, agencyId: a.agencyId, lead: scope(a) },
         });
         if (!q) throw new Error("Quotation not found");
-        if (q.status !== "Draft") throw new Error("Quotation already accepted");
+        if (!["Draft", "Approved"].includes(q.status))
+          throw new Error("Quotation already accepted");
         const l = await leadAccess(tx, q.leadId);
         if (
           q.travellers !== l.travellers ||
@@ -251,7 +308,11 @@ export async function mutate(a: Actor, action: string, input: unknown) {
           throw new Error("Reopen the enquiry before booking");
         await tx.quote.update({
           where: { id: q.id },
-          data: { status: "Accepted" },
+          data: {
+            status: "Accepted",
+            approvedAt: q.approvedAt || new Date(),
+            approvedBy: q.approvedBy || a.id,
+          },
         });
         await tx.booking.create({
           data: {
