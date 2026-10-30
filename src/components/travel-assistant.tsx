@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { whatsappNumber, whatsappUrl } from "@/lib/whatsapp";
 import type { Dataset } from "@/lib/data";
 import {
   priorities,
@@ -520,6 +521,7 @@ export function FollowUpPanel({
     [notice, setNotice] = useState(""),
     [proposal, setProposal] = useState(""),
     [packageId, setPackageId] = useState("");
+  const recipient = whatsappNumber(lead.phone);
   const related = data.activities.filter((a) => a.leadId === lead.id);
   const suggestions = packageSuggestions(data, lead.id);
   const p = data.packages.find((p) => p.id === packageId);
@@ -607,9 +609,32 @@ export function FollowUpPanel({
       >
         Copy message
       </button>
+      <button
+        className="btn secondary"
+        disabled={data.demo || !draft.trim() || !recipient}
+        onClick={() => {
+          const url = whatsappUrl(lead.phone, draft);
+          if (!url || data.demo) return;
+          window.open(url, "_blank", "noopener,noreferrer");
+          setNotice(
+            "WhatsApp requested in a new tab. Review the recipient and press Send there. Not marked sent or delivered in TravelOS. If no tab opens, allow pop-ups or copy the message.",
+          );
+        }}
+      >
+        Open in WhatsApp
+      </button>
       <p>
-        WhatsApp/email delivery integration: not connected in this workflow. No
-        automatic sending.
+        {recipient
+          ? `WhatsApp recipient: +${recipient}.`
+          : "Edit this enquiry and save a phone number with an explicit country code, for example +91 followed by the 10-digit Indian mobile number."}
+      </p>
+      {data.demo && (
+        <p>Opening customer chats is disabled in this fictional demo.</p>
+      )}
+      <p>
+        WhatsApp opens externally with your edited draft. No automatic sending.
+        Official WhatsApp API and email delivery are not connected in this
+        workflow.
       </p>
       <label>
         Schedule internal follow-up

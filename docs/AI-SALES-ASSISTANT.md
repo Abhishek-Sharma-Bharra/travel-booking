@@ -47,3 +47,7 @@ Run `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e`. No lin
 - Applied all three additive assistant migrations to local development PostgreSQL; no production database access, reset, live AI inference or customer message delivery occurred.
 
 Browser checks include no-key error/input preservation; no record before Save; exact dates initially blank; original Hinglish message and INR 120,000 **total** budget retained; package-based deterministic INR 100,000 quote; explicit approval before print; approval retaining booking availability; and the prior signup → enquiry → quotation → booking → receipt workflow.
+
+### Manual WhatsApp handoff
+
+The enquiry follow-up panel includes **Open in WhatsApp** after preparing/editing a draft. Save an explicit international customer phone number (`+91` and the Indian mobile number, or another real country code; `00` international prefix is accepted). The panel displays the normalized recipient before opening. Missing/invalid numbers, empty drafts and the public demo disable the action. No country code is guessed. Clicking opens a fixed HTTPS `wa.me` URL with the encoded edited text; the user reviews and presses Send in WhatsApp. It makes no database changes and records no sent/delivered/completed event. This is not an official API integration and adds no API credentials or automated sending. The recipient and draft are handed to WhatsApp only on the user's click. No database migration is needed for this change.

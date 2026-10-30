@@ -90,3 +90,24 @@ test("AI absent, provider failure and invalid JSON never become fabricated draft
     else delete process.env.AI_API_KEY;
   }
 });
+
+test("WhatsApp uses explicit international phones and safely encodes the reviewed draft", async () => {
+  const { whatsappNumber, whatsappUrl } = await import("../src/lib/whatsapp");
+  assert.equal(whatsappNumber("+1 (202) 555-0123"), "12025550123");
+  assert.equal(whatsappNumber("0012025550123"), "12025550123");
+  for (const phone of [
+    "",
+    "9876543210",
+    "+0123456789",
+    "+123",
+    "javascript:123456789",
+    "+1234567890123456",
+  ])
+    assert.equal(whatsappNumber(phone), null);
+  assert.equal(whatsappUrl("+12025550123", "   "), null);
+  const draft = "नमस्ते & hello?\nTotal ₹10,000 #review";
+  const url = new URL(whatsappUrl("+12025550123", draft)!);
+  assert.equal(url.origin, "https://wa.me");
+  assert.equal(url.pathname, "/12025550123");
+  assert.equal(url.searchParams.get("text"), draft);
+});

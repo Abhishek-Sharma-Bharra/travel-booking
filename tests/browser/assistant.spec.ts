@@ -39,6 +39,9 @@ test("fictional assistant preview, priorities, follow-up copying and mobile demo
     .getByRole("button", { name: "Demo Traveller 0001", exact: true })
     .click();
   await page.getByRole("button", { name: "Prepare template draft" }).click();
+  await expect(
+    page.getByRole("button", { name: "Open in WhatsApp", exact: true }),
+  ).toBeDisabled();
   await expect(page.getByLabel("Editable follow-up draft")).not.toHaveValue("");
   await expect(
     page.getByText("No automatic sending.", { exact: false }),
@@ -107,6 +110,7 @@ test("live extraction failure retains input and reviewed draft saves only after 
         .toISOString()
         .slice(0, 10),
       end = new Date(Date.now() + 50 * 86400000).toISOString().slice(0, 10);
+    await dialog.getByLabel("Phone (optional)").fill("+12025550123");
     await dialog.getByLabel("Travel start").fill(start);
     await dialog.getByLabel("Travel end").fill(end);
     await dialog.getByRole("button", { name: "Save record" }).click();
@@ -143,6 +147,34 @@ test("live extraction failure retains input and reviewed draft saves only after 
     await page
       .getByRole("button", { name: "Reviewed Test", exact: true })
       .click();
+    const eventsBefore = await db.activity.count({
+      where: { agencyId: u.agencyId! },
+    });
+    await page.getByRole("button", { name: "Prepare template draft" }).click();
+    const edited = "Hello & नमस्ते, please review your trip.";
+    await page.getByLabel("Editable follow-up draft").fill(edited);
+    await page.evaluate(() => {
+      window.open = ((url: unknown) => {
+        (window as unknown as { whatsappOpened: string }).whatsappOpened =
+          String(url);
+        return null;
+      }) as typeof window.open;
+    });
+    await page
+      .getByRole("button", { name: "Open in WhatsApp", exact: true })
+      .click();
+    const opened = await page.evaluate(
+      () => (window as unknown as { whatsappOpened: string }).whatsappOpened,
+    );
+    expect(new URL(opened).pathname).toBe("/12025550123");
+    expect(new URL(opened).searchParams.get("text")).toBe(edited);
+    expect(await db.activity.count({ where: { agencyId: u.agencyId! } })).toBe(
+      eventsBefore,
+    );
+    await expect(
+      page.getByRole("status").filter({ hasText: "Not marked sent" }),
+    ).toBeVisible();
+
     await page
       .getByText("Generate itinerary & quote draft", { exact: true })
       .click();
