@@ -35,3 +35,9 @@ These results do not verify the live Render deployment or its current database s
 Publishing `main` may trigger Render automatic deployment. Production publication is pending owner approval and a verified database backup. Keep the previous Render deployment available until live checks pass.
 
 After release, verify sign-in, existing records, package selection, quotation versions, booking confirmation and receipt balances using a designated test agency. If release fails, restore the prior application deployment and investigate migration logs. Keep the additive column and historical records; do not drop tables or reset production. The old application does not allocate quote versions, so restrict quotation creation while running that older application until a compatible fix is deployed. Restore a database backup only through a separately approved recovery procedure.
+
+## Quotation PDF sharing follow-up
+
+The existing browser Print / save PDF workflow now includes quotation reference, version and status, preserves multiline agency terms, and suggests a reference/version filename. In the print window choose **Save as PDF**. The customer message can be copied and pasted into WhatsApp/email; attach the saved PDF manually. Nothing is sent automatically and there is no public quotation link. Internal supplier costs are excluded from the customer message and quotation preview. Print controls/help are excluded from the PDF. No schema changes or new dependencies are required for this follow-up.
+
+Follow-up verification: TypeScript and production build passed. All 7 browser tests passed, including actual Chromium PDF generation, version/status display, clipboard content, print-only visibility and restoration of the original page title.

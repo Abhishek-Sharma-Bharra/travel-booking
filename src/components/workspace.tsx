@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Compass,
@@ -176,6 +176,38 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     setMenu(false);
     if (p !== "Enquiries") setFilters((f) => ({ ...f, search: "" }));
   }
+  useEffect(() => {
+    if (!printQuote) return;
+    const previous = document.title;
+    document.title = `Quotation-${printQuote.id}-v${printQuote.version}`;
+    return () => {
+      document.title = previous;
+    };
+  }, [printQuote]);
+
+  async function copyQuotationMessage(q: Quote) {
+    const customer = lead(q.leadId)?.customer ?? "Customer";
+    const message = [
+      `Hello ${customer},`,
+      `Please find your travel quotation from ${data.agency.name}.`,
+      `Reference: ${q.id} · Version ${q.version}`,
+      `${q.packageName} · ${q.destination} · ${q.travellers} travellers`,
+      `${indianDate(q.travelStart)} — ${indianDate(q.travelEnd)}`,
+      `Quotation total: ${inr(q.total)}`,
+      "Please review the attached quotation PDF for inclusions, exclusions and terms. This quotation is not a payment receipt or tax invoice.",
+      data.agency.contact,
+      data.demo ? "DEMO · Fictional quotation." : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    try {
+      await navigator.clipboard.writeText(message);
+      notify("Customer message copied. Attach the saved PDF before sending.");
+    } catch {
+      notify("Clipboard is unavailable. Save the PDF and share it manually.");
+    }
+  }
+
   function openSalesRecords(leadId: string, target: "Quotations" | "Bookings") {
     setDetail(null);
     setPage(target);
@@ -1665,7 +1697,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                           <tr key={q.id}>
                             <td>
                               {q.id.slice(-10)}
-                            <small>Version {q.version}</small>
+                              <small>Version {q.version}</small>
                               <small>{indianDate(q.createdAt)}</small>
                             </td>
                             <td>
@@ -3426,7 +3458,10 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               <div>
                 <span className="eyebrow">YOUR NEXT JOURNEY</span>
                 <h1>Quotation</h1>
-                <p>{printQuote.id}</p>
+                <p>Reference: {printQuote.id}</p>
+                <p>
+                  Version {printQuote.version} · {printQuote.status}
+                </p>
                 <p>{indianDate(printQuote.createdAt)}</p>
               </div>
             </div>
@@ -3462,7 +3497,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   <td>− {inr(printQuote.discount)}</td>
                 </tr>
                 <tr>
-                  <td>Optional tax ({printQuote.taxBps / 100}%)</td>
+                  <td>Tax ({printQuote.taxBps / 100}%)</td>
                   <td>
                     {inr(
                       printQuote.total -
@@ -3478,10 +3513,26 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </tbody>
             </table>
             <h3>Included in your journey</h3>
-            <p>{printQuote.inclusions}</p>
+            <p className="quotation-copy">
+              {printQuote.inclusions || "Not specified"}
+            </p>
             <h3>Exclusions</h3>
-            <p>{printQuote.exclusions}</p>
-            <div className="quotation-footer">{data.agency.footer}</div>
+            <p className="quotation-copy">
+              {printQuote.exclusions || "Not specified"}
+            </p>
+            <div className="quotation-footer quotation-copy">
+              {data.agency.footer && (
+                <>
+                  <h3>Agency terms &amp; notes</h3>
+                  <p>{data.agency.footer}</p>
+                </>
+              )}
+              <p>
+                This quotation is not a payment receipt or tax invoice.
+                Availability and booking confirmation must be confirmed
+                separately with the agency.
+              </p>
+            </div>
             {data.demo && (
               <p className="method-note">
                 DEMO · Fictional quotation. Not a confirmed booking or tax
@@ -3489,7 +3540,18 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </p>
             )}
           </div>
+          <p className="quotation-help">
+            To download: choose Save as PDF in the print window. Then attach the
+            saved file in WhatsApp or email. Copying the message does not send
+            it or attach a PDF.
+          </p>
           <div className="modal-actions">
+            <button
+              className="btn"
+              onClick={() => copyQuotationMessage(printQuote)}
+            >
+              Copy customer message
+            </button>
             <button className="btn primary" onClick={() => window.print()}>
               <Printer size={16} />
               Print / save PDF

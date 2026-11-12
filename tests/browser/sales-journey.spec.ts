@@ -116,6 +116,29 @@ test("historical enquiry journeys keep quotes and bookings visible, guide missin
   );
   await expect(page.getByLabel("From date")).toHaveCount(0);
   await expect(page.getByText("Version 1", { exact: true })).toBeVisible();
+  const previousTitle = await page.title();
+  await page.getByRole("button", { name: "Print / view", exact: true }).click();
+  const preview = page.getByRole("dialog");
+  await expect(preview).toContainText("Version 1 · Draft");
+  await expect(preview).toContainText("not a payment receipt or tax invoice");
+  await expect(page).toHaveTitle(/^Quotation-.+-v1$/);
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  await preview.getByRole("button", { name: "Copy customer message" }).click();
+  const message = await page.evaluate(() => navigator.clipboard.readText());
+  expect(message).toContain("Hello Journey Traveller");
+  expect(message).toContain("₹50,000");
+  expect(message).not.toContain("15000"); // Internal supplier costs must stay private.
+  await page.emulateMedia({ media: "print" });
+  await expect(page.locator(".quotation-help")).toBeHidden();
+  await expect(preview.locator(".print-sheet")).toBeVisible();
+  const pdf = await page.pdf({ format: "A4", printBackground: true });
+  expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+  await page.emulateMedia({ media: "screen" });
+  await preview
+    .getByRole("button", { name: "Close dialog", exact: true })
+    .click();
+  await expect(page).toHaveTitle(previousTitle);
+
   await page
     .getByRole("button", { name: "Build quotation", exact: true })
     .click();

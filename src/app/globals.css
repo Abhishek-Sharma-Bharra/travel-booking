@@ -2899,3 +2899,39 @@ td .badge + small {
     grid-template-columns: 1fr;
   }
 }
+
+/* Preserve agency-entered line breaks and long references in customer PDFs. */
+.quotation-copy {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.quotation-header p {
+  overflow-wrap: anywhere;
+}
+.quotation-help {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 20px;
+}
+@media print {
+  .quotation-help {
+    display: none !important;
+  }
+  .quotation-header,
+  .quote-to,
+  .quote-total {
+    break-inside: avoid;
+  }
+  .quotation h3 {
+    break-after: avoid;
+  }
+  .quotation table {
+    width: 100%;
+  }
+  .quotation thead {
+    display: table-header-group;
+  }
+  .quotation tr {
+    break-inside: avoid;
+  }
+}
