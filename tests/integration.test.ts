@@ -2,7 +2,15 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { db } from "../src/lib/db";
-import { mutate } from "../src/lib/actions";
+import { mutate as serverMutate } from "../src/lib/actions";
+const mutate = (a: Actor, action: string, input: unknown) =>
+  serverMutate(
+    a,
+    action,
+    action === "transaction"
+      ? { ...(input as object), requestId: randomUUID() }
+      : input,
+  );
 import { workspaceData, demoData } from "../src/lib/data";
 import { balances } from "../src/lib/money";
 import type { Actor } from "../src/lib/access";

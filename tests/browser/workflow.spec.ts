@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { db } from "../../src/lib/db";
 const suffix = Date.now().toString();
 const email = `browser-${suffix}@test.invalid`,
@@ -256,18 +256,26 @@ test("authenticated HTTP tenant isolation, role enforcement, CSRF and disabled a
     agentEmail = `browser-${suffix}-agent@test.invalid`;
   const foreign = await playwright.request.newContext({
     baseURL: "http://localhost:3000",
-    extraHTTPHeaders: { Origin: "http://localhost:3000" },
+    // Independent fictional client IP; keep production signup limits enabled.
+    extraHTTPHeaders: {
+      Origin: "http://localhost:3000",
+      "X-Forwarded-For": "192.0.2.200",
+    },
   });
   const signedForeign = await foreign.post("/api/auth/sign-up/email", {
     data: { name: "Foreign test owner", email: foreignEmail, password },
   });
-  expect(signedForeign.ok()).toBeTruthy();
+  expect(
+    signedForeign.ok(),
+    `Foreign fixture signup status: ${signedForeign.status()}`,
+  ).toBeTruthy();
   const denied = await foreign.post("/api/action", {
     data: {
       action: "transaction",
       input: {
         agencyId: data.agency.id,
         bookingId: booking.id,
+        requestId: crypto.randomUUID(),
         kind: "Receipt",
         amount: "1",
         memo: "Cross-agency attack",
@@ -280,18 +288,20 @@ test("authenticated HTTP tenant isolation, role enforcement, CSRF and disabled a
   const foreignData = await (await foreign.get("/api/data")).json();
   expect(foreignData.leads).toHaveLength(0);
   expect(foreignData.bookings).toHaveLength(0);
-  const team = await owner.post("/api/action", {
-    data: {
-      action: "team-create",
-      input: {
-        name: "Test Sales Agent",
-        email: agentEmail,
-        password,
-        role: "AGENT",
-      },
-    },
+  // Setup a teammate fixture without asking an owner to choose another person's password.
+  const account = await foreign.post("/api/auth/sign-up/email", {
+    data: { name: "Test Sales Agent", email: agentEmail, password },
   });
-  expect(team.ok(), await team.text()).toBeTruthy();
+  expect(account.ok()).toBeTruthy();
+  const created = await db.user.findUniqueOrThrow({
+    where: { email: agentEmail },
+  });
+  const emptyAgency = created.agencyId;
+  await db.user.update({
+    where: { id: created.id },
+    data: { agencyId: data.agency.id, role: "AGENT" },
+  });
+  if (emptyAgency) await db.agency.delete({ where: { id: emptyAgency } });
   const agent = await playwright.request.newContext({
     baseURL: "http://localhost:3000",
     extraHTTPHeaders: { Origin: "http://localhost:3000" },
@@ -329,6 +339,38 @@ test("authenticated HTTP tenant isolation, role enforcement, CSRF and disabled a
   const assigned = await (await agent.get("/api/data")).json();
   expect(assigned.leads).toHaveLength(1);
   expect(assigned.bookings).toHaveLength(1);
+  expect(JSON.stringify(assigned)).not.toContain("estimatedCost");
+  expect(JSON.stringify(assigned)).not.toContain("rateNotes");
+  const from = new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+    to = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const analytics = await agent.get(`/api/analytics?from=${from}&to=${to}`);
+  expect(analytics.status()).toBe(200);
+  const kpis = await analytics.json();
+  expect(kpis.financial).toBe(false);
+  expect(
+    kpis.current.find((m: { key: string }) => m.key === "costs").value,
+  ).toBeNull();
+  expect(kpis.performance[0].recordedCosts).toBeUndefined();
+  // The foreign context most recently signed up the agent fixture. Sign back
+  // into the separate foreign owner before asserting cross-agency analytics.
+  expect(
+    (
+      await foreign.post("/api/auth/sign-in/email", {
+        data: { email: foreignEmail, password },
+      })
+    ).ok(),
+  ).toBeTruthy();
+  expect((await (await foreign.get("/api/data")).json()).agency.id).not.toBe(
+    data.agency.id,
+  );
+  expect(
+    (
+      await foreign.get(
+        `/api/analytics?from=${from}&to=${to}&package=${data.packages[0].id}`,
+      )
+    ).status(),
+  ).toBe(404);
+
   expect(
     (
       await owner.post("/api/action", {

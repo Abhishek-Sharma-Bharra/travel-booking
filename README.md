@@ -1,6 +1,14 @@
+# Current Render restoration
+
+See [the current release guide](docs/RENDER-RESTORATION.md) for restored features, provider setup and migration precautions. Hosting stays on Render; earlier verification notes below are historical.
+
 # Vashisht TravelOS
 
 A working SaaS MVP by **Vashisht Analytics** for small and medium travel agencies in India. English UI, INR, calendar travel dates, Indian date displays. PostgreSQL stores agency records; the isolated, read-only demo needs no account or paid API.
+
+## Production foundations (0.2)
+
+Start with [the release and Gmail/Render setup guide](docs/PRODUCTION-RELEASE.md), [encrypted backup runbook](docs/BACKUP-RUNBOOK.md), [security review](docs/SECURITY-REVIEW.md) and [first-client onboarding guide](docs/CLIENT-ONBOARDING.md). The new version has verification/recovery, safe email invitations, authenticator MFA, an operator subscription page, shared request limits, database tenant constraints, payment replay protection and encrypted recovery tools. Live email, hosted backup monitoring, least-privilege credentials and an independent review still need operator setup. A custom website domain is optional.
 
 ## Start here
 
@@ -35,12 +43,12 @@ Read [the demo guide and three-minute script](docs/DEMO.md). Start with Overview
 
 1. Create an account with the owner's work email and a unique 12+ character password.
 2. Open **Settings → Edit agency profile**. Add agency name, contact details, optional HTTPS logo URL and quotation footer.
-3. Add team members in Settings. Give initial passwords through a secure channel; ask members to change them in Settings after signing in. There is no outbound invitation email service.
+3. Configure email first, then invite members from Settings. Recipients verify/sign in with the invited email, choose their own password and accept the one-time link. Owners do not choose or share member passwords.
 4. Create packages with inclusions, exclusions, selling price and estimated supplier cost per person.
 5. Add enquiries or download the CSV template from **Enquiries → Import CSV**. Replace sample fields, use active teammate IDs displayed in the importer, inspect row errors and confirm import.
 6. Build a quotation from an open enquiry; accept it to create one booking. Record receipts and actual supplier expenses separately. Record supplier payments against the same supplier name.
 7. Record monthly ad and operating spend. Review follow-ups, current balances and the monthly report with the client.
-8. Agree subscription and onboarding terms outside the app. A trusted database operator updates metadata using `npm run subscription -- <agency-id> Growth Active`. This does not collect money or enforce plan quotas.
+8. Agree subscription and onboarding terms outside the app. A trusted database operator updates metadata using `npm run subscription -- <agency-id> Growth Active 30`. This collects no money; plan limits and subscription write access are enforced. The verified/MFA-proven `/admin` page offers the same manual administration without a terminal.
 
 ## Technology and checks
 
@@ -55,7 +63,7 @@ npm run test:e2e           # starts a dev server if needed
 
 Browser tests use `/usr/bin/chromium` when available, or `CHROMIUM_PATH` if set. Otherwise install the matching browser with `npx playwright install chromium`. Linux may need `npx playwright install-deps chromium`. Browser downloads require network access to Playwright's distribution domains. Tests create and remove their own isolated fictional agencies; use a development database, never a production database.
 
-Tests cover server tenant/role attacks, atomic CSV duplicate handling, quotation-to-booking conversion, refunds, partial collections, supplier balances, cancellation accounting, date filtering, formula-safe CSV export and 80 Python/TypeScript inference comparisons. Browser coverage exercises demo navigation, mobile navigation, filters, search, pipeline, export, print previews, signup, login, logout and the enquiry-to-receipt workflow. See [verification](docs/VERIFICATION.md) for executed outcomes.
+Tests cover server and database tenant/role attacks, atomic bulk CSV imports, quote-to-booking conversion, exact money/refunds, supplier correction balances, request replay, subscription limits, recovery tokens, authenticator/recovery codes, privileged operator proof, encrypted backup integrity and 80 Python/TypeScript inference comparisons. Browser coverage exercises demo navigation, mobile navigation, filters, search, pipeline, export, print previews, signup, login, logout and the enquiry-to-receipt workflow. See [verification](docs/VERIFICATION.md) for executed outcomes.
 
 ### Prisma in restricted networks
 
@@ -72,3 +80,13 @@ The [synthetic ML pipeline](ml/README.md) is a real trained logistic regression,
 See [deployment and recovery](docs/DEPLOYMENT.md), [feature status](docs/FEATURES.md) and [production readiness](docs/PRODUCTION.md). The owner has deployed the app at **https://vashisht-travelos.onrender.com**. Deployment authentication is being checked; this cloud workspace cannot independently reach the public host. You can deploy to a Node-capable host with a managed PostgreSQL database. Docker development volumes and running processes should not be assumed to survive a cloud environment rebuild; reseed a disposable demo, or restore a verified backup for non-demo data.
 
 No payment processing, subscription billing, external AI service, passport upload or identity-document collection is included.
+
+### Sales & operations assistant (review release)
+
+Today's priorities, structured customer-message drafts, package-based itinerary/quote review, explicit quotation approval/versioning, multilingual copy-only follow-ups and an owner's briefing build on the existing workflows. Live extraction is optional and server-only; the public demo uses a labelled fictional sample. See [configuration, review steps and limitations](docs/AI-SALES-ASSISTANT.md). No automatic customer communications or production deployment are included.
+
+The in-app **Subscription** page shows plan, usage and expiry and lets owners request manual renewal/upgrade/cancellation review. It does not collect payments or activate subscriptions automatically. See [subscription workflow](docs/SUBSCRIPTIONS.md).
+
+### Phase 1 advanced KPI dashboard
+
+Open **Analytics** for tenant-scoped server aggregates, agency reporting timezones, comparisons, trends, paginated breakdowns and CSV. Manual receipts and verified-provider data are distinct; incomplete financial data stays unavailable. Owner advertising and manager direct-cost declarations are explicit and revision-protected. See [Phase 1 setup, metric definitions and staging limits](docs/phase-1/README.md). Render production has not been migrated.

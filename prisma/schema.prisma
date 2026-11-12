@@ -5,6 +5,13 @@ datasource db {
   provider = "postgresql"
 }
 model Agency {
+  automationPolicy AutomationPolicy?
+  automationJobs AutomationJob[]
+  messagingChannels WhatsAppChannel[]
+  integrations IntegrationConnection[]
+  adSpendRevision Int @default(0)
+  timezone String @default("Asia/Kolkata")
+  reportingCoverage ReportingCoverage[]
   id String @id @default(cuid())
   name String
   logo String @default("")
@@ -13,6 +20,9 @@ model Agency {
   plan String @default("Starter")
   subscription String @default("Trial")
   demo Boolean @default(false)
+  trialEndsAt DateTime @default(dbgenerated("(now() + interval '14 days')"))
+  subscriptionExpiresAt DateTime?
+  invitations Invitation[]
   createdAt DateTime @default(now())
   users User[]
   leads Lead[]
@@ -24,6 +34,7 @@ model Agency {
   spends Spend[]
 }
 model User {
+  tourProgress TourProgress[]
   id String @id
   name String
   email String @unique
@@ -34,12 +45,16 @@ model User {
   agencyId String?
   role String @default("OWNER")
   disabled Boolean @default(false)
+  twoFactorEnabled Boolean @default(false)
+  twoFactors TwoFactor[]
   agency Agency? @relation(fields:[agencyId], references:[id])
   sessions Session[]
   accounts Account[]
   leads Lead[]
+  @@unique([id,agencyId])
 }
 model Session {
+  mfaVerifiedAt DateTime?
   id String @id
   expiresAt DateTime
   token String @unique
@@ -78,6 +93,8 @@ model Verification {
   @@index([identifier])
 }
 model Lead {
+  originalMessage String @default("")
+  requirementDraft Json?
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
@@ -94,7 +111,7 @@ model Lead {
   quotedPrice Int @default(0)
   source String
   assignedId String
-  assigned User @relation(fields:[assignedId],references:[id])
+  assigned User @relation(fields:[assignedId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   stage String @default("New")
   notes String @default("")
   lostReason String @default("")
@@ -111,10 +128,16 @@ model Lead {
   quotes Quote[]
   booking Booking?
   activities Activity[]
+  @@unique([id,agencyId])
   @@unique([agencyId,externalId])
   @@index([agencyId,assignedId,enquiryDate])
 }
 model Package {
+  hotelCategory String @default("")
+  itinerary String @default("")
+  paymentTerms String @default("")
+  cancellationTerms String @default("")
+  rateNotes String @default("")
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
@@ -126,17 +149,23 @@ model Package {
   price Int
   estimatedCost Int
   quotes Quote[]
+  @@unique([id,agencyId])
   @@index([agencyId])
 }
 model Quote {
   version Int @default(1)
+  proposal String @default("")
+  paymentTerms String @default("")
+  cancellationTerms String @default("")
+  approvedAt DateTime?
+  approvedBy String?
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   leadId String
-  lead Lead @relation(fields:[leadId],references:[id])
+  lead Lead @relation(fields:[leadId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   packageId String
-  package Package @relation(fields:[packageId],references:[id])
+  package Package @relation(fields:[packageId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   travellers Int
   unitPrice Int
   travelStart DateTime
@@ -153,17 +182,21 @@ model Quote {
   status String @default("Draft")
   createdAt DateTime @default(now())
   booking Booking?
-  @@index([agencyId])
   @@unique([agencyId,leadId,version])
+  @@unique([id,leadId,agencyId])
+  @@index([agencyId])
 }
 model Booking {
+  notifications WhatsAppNotification[]
+  costRevision Int @default(0)
+  directCostsComplete Boolean @default(false)
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   leadId String @unique
-  lead Lead @relation(fields:[leadId],references:[id])
+  lead Lead @relation(fields:[leadId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   quoteId String @unique
-  quote Quote @relation(fields:[quoteId],references:[id])
+  quote Quote @relation(fields:[quoteId,leadId,agencyId],references:[id,leadId,agencyId],onUpdate:Restrict,onDelete:Restrict)
   total Int
   cancellationFee Int @default(0)
   status String @default("Confirmed")
@@ -173,14 +206,21 @@ model Booking {
   travelEnd DateTime
   createdAt DateTime @default(now())
   transactions Transaction[]
+  @@unique([leadId,agencyId])
+  @@unique([quoteId,leadId,agencyId])
+  @@unique([id,agencyId])
   @@index([agencyId])
+  @@index([agencyId,createdAt])
 }
 model Transaction {
+  dateBasis String @default("CALENDAR")
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   bookingId String
-  booking Booking @relation(fields:[bookingId],references:[id])
+  booking Booking @relation(fields:[bookingId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
+  requestId String?
+  requestHash String?
   kind String
   amount Int
   supplier String @default("")
@@ -188,14 +228,16 @@ model Transaction {
   date DateTime @default(now())
   dueDate DateTime?
   createdAt DateTime @default(now())
+  @@unique([agencyId,requestId])
   @@index([agencyId,bookingId])
+  @@index([agencyId,date])
 }
 model Activity {
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
   leadId String?
-  lead Lead? @relation(fields:[leadId],references:[id])
+  lead Lead? @relation(fields:[leadId,agencyId],references:[id,agencyId],onUpdate:Restrict,onDelete:Restrict)
   actor String
   action String
   createdAt DateTime @default(now())
@@ -211,4 +253,266 @@ model Spend {
   amount Int
   memo String @default("")
   @@unique([agencyId,month,kind,channel])
+}
+
+model RateLimit {
+  id String @id @default(cuid())
+  key String @unique
+  count Int
+  lastRequest BigInt
+}
+model RequestBucket {
+  key String @id
+  count Int
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+model Invitation {
+  id String @id @default(cuid())
+  agencyId String
+  agency Agency @relation(fields:[agencyId],references:[id])
+  email String
+  role String
+  tokenHash String @unique
+  status String @default("Pending")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  acceptedAt DateTime?
+  @@index([agencyId,email,status])
+}
+
+model TwoFactor {
+  id String @id
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  secret String
+  backupCodes String
+  verified Boolean @default(true)
+  failedVerificationCount Int @default(0)
+  lockedUntil DateTime?
+  @@index([userId])
+  @@index([secret])
+}
+
+model ReportingCoverage {
+ id String @id @default(cuid())
+ agencyId String
+ agency Agency @relation(fields:[agencyId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ fromDate String
+ toDate String
+ source String @default("")
+ timezone String
+ kind String @default("Advertising")
+ attestedBy String
+ attestedAt DateTime @default(now())
+ @@unique([agencyId,fromDate,toDate,source,timezone,kind],map:"ReportingCoverage_scope_key")
+}
+
+model IntegrationConnection {
+ id String @id @default(cuid())
+ agencyId String
+ agency Agency @relation(fields:[agencyId],references:[id],onUpdate:Restrict,onDelete:Restrict)
+ provider String
+ accountId String @default("")
+ accountName String @default("")
+ currency String @default("")
+ timezone String @default("")
+ status String @default("SELECT_ACCOUNT")
+ credentials String
+ expiresAt DateTime?
+ revision Int @default(0)
+ lastSyncedAt DateTime?
+ errorCode String @default("")
+ createdAt DateTime @default(now())
+ runs IntegrationSyncRun[]
+ metrics AdDailyMetric[]
+ @@unique([agencyId,provider,accountId])
+ @@unique([id,agencyId])
+}
+model IntegrationAuthorization {
+ id String @id
+ agencyId String
+ userId String
+ provider String
+ verifier String @default("")
+ expiresAt DateTime
+ @@index([expiresAt])
+}
+model IntegrationSyncRun {
+ id String @id @default(cuid())
+ agencyId String
+ connectionId String
+ connection IntegrationConnection @relation(fields:[connectionId,agencyId],references:[id,agencyId],onDelete:Restrict,onUpdate:Restrict)
+ fromDate String
+ toDate String
+ status String @default("RUNNING")
+ cursor String @default("")
+ staged Json @default("[]")
+ revision Int
+ leaseToken String
+ leaseUntil DateTime
+ errorCode String @default("")
+ createdAt DateTime @default(now())
+ completedAt DateTime?
+ @@index([agencyId,connectionId,createdAt])
+}
+model AdDailyMetric {
+ providerConversions String?
+ conversionDefinition String @default("")
+ id String @id @default(cuid())
+ agencyId String
+ connectionId String
+ connection IntegrationConnection @relation(fields:[connectionId,agencyId],references:[id,agencyId],onDelete:Restrict,onUpdate:Restrict)
+ day String
+ campaignId String
+ campaignName String
+ adSetId String @default("")
+ adSetName String @default("")
+ spendMicros BigInt
+ impressions BigInt
+ clicks BigInt
+ currency String
+ timezone String
+ syncedAt DateTime @default(now())
+ @@unique([agencyId,connectionId,day,campaignId,adSetId],map:"AdDailyMetric_dimensions_key")
+ @@index([agencyId,day])
+}
+
+model WhatsAppChannel {
+ id String @id @default(cuid())
+ agencyId String
+ agency Agency @relation(fields:[agencyId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ phoneId String @unique
+ wabaId String
+ displayPhone String
+ credentials String
+ enabled Boolean @default(false)
+ revision Int @default(0)
+ templates WhatsAppTemplate[]
+ notifications WhatsAppNotification[]
+ @@unique([id,agencyId])
+}
+model WhatsAppTemplate {
+ id String @id @default(cuid())
+ agencyId String
+ channelId String
+ channel WhatsAppChannel @relation(fields:[channelId,agencyId],references:[id,agencyId],onDelete:Restrict,onUpdate:Restrict)
+ name String
+ language String
+ body String
+ status String
+ parameterCount Int
+ purpose String @default("")
+ slots Json @default("[]")
+ revision Int @default(0)
+ notifications WhatsAppNotification[]
+ @@unique([channelId,name,language])
+ @@unique([id,agencyId])
+}
+model MessagingConsent {
+ id String @id @default(cuid())
+ agencyId String
+ phone String
+ optedIn Boolean @default(false)
+ updatedAt DateTime @default(now())
+ @@unique([agencyId,phone])
+}
+model MessagingConsentEvent {
+ id String @id
+ agencyId String
+ phone String
+ optedIn Boolean
+ evidence String
+ actor String
+ occurredAt DateTime @default(now())
+ @@index([agencyId,phone,occurredAt])
+}
+model WhatsAppNotification {
+ id String @id @default(cuid())
+ agencyId String
+ channelId String
+ channel WhatsAppChannel @relation(fields:[channelId,agencyId],references:[id,agencyId],onDelete:Restrict,onUpdate:Restrict)
+ templateId String
+ template WhatsAppTemplate @relation(fields:[templateId,agencyId],references:[id,agencyId],onDelete:Restrict,onUpdate:Restrict)
+ bookingId String
+ booking Booking @relation(fields:[bookingId,agencyId],references:[id,agencyId],onDelete:Restrict,onUpdate:Restrict)
+ purpose String
+ occurrence String
+ phone String
+ parameters Json
+ templateRevision Int
+ channelRevision Int
+ status String @default("QUEUED")
+ providerMessageId String? @unique
+ errorCode String @default("")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([agencyId,bookingId,purpose,occurrence],map:"WhatsAppNotification_business_key")
+ @@index([agencyId,status,createdAt])
+}
+model MessagingDeliveryEvent {
+ id String @id
+ agencyId String
+ notificationId String
+ status String
+ occurredAt DateTime
+ @@index([agencyId,notificationId])
+}
+
+model AutomationPolicy {
+ agencyId String @id
+ agency Agency @relation(fields:[agencyId],references:[id])
+ enabled Boolean @default(false)
+ ads Boolean @default(false)
+ reminders Boolean @default(false)
+ notifications Boolean @default(false)
+ summaries Boolean @default(false)
+ alerts Boolean @default(false)
+ revision Int @default(0)
+ updatedAt DateTime @updatedAt
+}
+model AutomationJob {
+ id String @id @default(cuid())
+ agencyId String
+ agency Agency @relation(fields:[agencyId],references:[id])
+ kind String
+ key String
+ payload Json
+ policyRevision Int
+ status String @default("QUEUED")
+ attempts Int @default(0)
+ failures Int @default(0)
+ availableAt DateTime @default(now())
+ leaseToken String @default("")
+ leaseUntil DateTime?
+ errorCode String @default("")
+ result Json?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ logs AutomationAttempt[]
+ @@unique([agencyId,key])
+ @@unique([id,agencyId])
+ @@index([status,availableAt,leaseUntil])
+}
+model AutomationAttempt {
+ id String @id @default(cuid())
+ agencyId String
+ jobId String
+ job AutomationJob @relation(fields:[jobId,agencyId],references:[id,agencyId],onDelete:Restrict,onUpdate:Restrict)
+ attempt Int
+ status String
+ errorCode String @default("")
+ createdAt DateTime @default(now())
+ @@index([agencyId,createdAt])
+}
+
+model TourProgress {
+ userId String @id
+ agencyId String
+ user User @relation(fields:[userId,agencyId],references:[id,agencyId],onDelete:Cascade,onUpdate:Restrict)
+ version Int
+ role String
+ step Int @default(0)
+ status String @default("ACTIVE")
+ updatedAt DateTime @updatedAt
 }

@@ -1,0 +1,4 @@
+ALTER TABLE "Package" ADD COLUMN "hotelCategory" TEXT NOT NULL DEFAULT '', ADD COLUMN "itinerary" TEXT NOT NULL DEFAULT '', ADD COLUMN "paymentTerms" TEXT NOT NULL DEFAULT '', ADD COLUMN "cancellationTerms" TEXT NOT NULL DEFAULT '', ADD COLUMN "rateNotes" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "Quote" ADD COLUMN IF NOT EXISTS "version" INTEGER NOT NULL DEFAULT 0, ADD COLUMN "proposal" TEXT NOT NULL DEFAULT '', ADD COLUMN "paymentTerms" TEXT NOT NULL DEFAULT '', ADD COLUMN "cancellationTerms" TEXT NOT NULL DEFAULT '', ADD COLUMN "approvedAt" TIMESTAMP(3), ADD COLUMN "approvedBy" TEXT;
+WITH numbered AS (SELECT "id", row_number() OVER (PARTITION BY "agencyId","leadId" ORDER BY "createdAt","id") AS n FROM "Quote") UPDATE "Quote" SET "version"=numbered.n FROM numbered WHERE "Quote"."id"=numbered."id" AND "Quote"."version"=0;
+ALTER TABLE "Quote" ALTER COLUMN "version" SET DEFAULT 1;

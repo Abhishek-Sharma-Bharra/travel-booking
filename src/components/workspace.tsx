@@ -1,6 +1,18 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
+import {
+  AssistantPanel,
+  PrioritiesPanel,
+  FollowUpPanel,
+} from "./travel-assistant";
+import SubscriptionPage from "./subscription";
+import AdvancedAnalytics from "./advanced-analytics";
+import Messaging from "./messaging";
+import Automation from "./automation";
+import GuidedTour from "./guided-tour";
+import Integrations from "./integrations";
+import SecuritySettings from "./security-settings";
 import {
   Compass,
   LayoutDashboard,
@@ -57,6 +69,7 @@ const navigation = [
     group: "WORKSPACE",
     items: [
       ["Overview", LayoutDashboard],
+      ["Analytics", BarChart3],
       ["Enquiries", Users],
       ["Packages", Package],
       ["Quotations", FileText],
@@ -75,12 +88,18 @@ const navigation = [
   {
     group: "AGENCY",
     items: [
+      ["Messaging", Megaphone],
+      ["Automation", Settings],
+      ["Integrations", Settings],
+      ["Subscription", Wallet],
       ["Settings", Settings],
       ["Demo guide", BookOpen],
     ],
   },
 ] as const;
 const subtitles: Record<string, string> = {
+  Analytics:
+    "Precise server-calculated KPIs, clear coverage and reporting periods.",
   Overview:
     "A clearer view of your agency. Every enquiry, every journey, every rupee.",
   Enquiries: "Good journeys start with a conversation. Keep yours moving.",
@@ -93,6 +112,11 @@ const subtitles: Record<string, string> = {
   "Monthly report":
     "Your month in focus. Numbers, observations and next steps.",
   "Lead intelligence": "A little more context for your next conversation.",
+  Messaging:
+    "Consent-based official notifications, templates and delivery status.",
+  Automation: "Agency controls, scheduled work and execution history.",
+  Integrations: "Authorized service connections and synchronization history.",
+  Subscription: "Your plan, usage, renewal and subscription requests.",
   Settings: "Make this workspace yours.",
   "Demo guide": "A simple path through Vashisht TravelOS.",
 };
@@ -127,6 +151,10 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     extra?: Record<string, unknown>;
   } | null>(null);
   const [salesFocus, setSalesFocus] = useState<string | null>(null);
+  useEffect(() => {
+    if (new URLSearchParams(location.search).has("integration"))
+      setPage("Integrations");
+  }, []);
   const [detail, setDetail] = useState<Lead | null>(null),
     [printQuote, setPrintQuote] = useState<Quote | null>(null),
     [printReport, setPrintReport] = useState(false),
@@ -169,8 +197,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     setToast(s);
     setTimeout(() => setToast(""), 6000);
   };
+  const manualNavigation = useRef(0);
   function changePage(p: string) {
+    manualNavigation.current++;
     setSalesFocus(null);
+    setFormError("");
     setPage(p);
     setPageIndex(0);
     setMenu(false);
@@ -209,6 +240,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
   }
 
   function openSalesRecords(leadId: string, target: "Quotations" | "Bookings") {
+    manualNavigation.current++;
     setDetail(null);
     setPage(target);
     setPageIndex(0);
@@ -223,7 +255,16 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     extra: Record<string, unknown> = {},
   ) {
     setFormError("");
-    setForm({ title, action, fields, values, extra });
+    setForm({
+      title,
+      action,
+      fields,
+      values,
+      extra: {
+        ...extra,
+        ...(action === "transaction" ? { requestId: crypto.randomUUID() } : {}),
+      },
+    });
   }
   async function run(
     action: string,
@@ -264,7 +305,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       setBusy(false);
     }
   }
-  function enquiryForm(l?: Lead) {
+  function enquiryForm(l?: Lead, draft: Record<string, unknown> = {}) {
     const fields: Field[] = [
       { name: "externalId", label: "Lead / external ID" },
       { name: "customer", label: "Customer name" },
@@ -377,11 +418,19 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       l ? "Edit enquiry" : "New enquiry",
       "lead",
       fields,
-      values,
-      l ? { id: l.id } : {},
+      { ...values, ...draft },
+      {
+        ...(l ? { id: l.id } : {}),
+        ...(draft.requirementDraft
+          ? {
+              requirementDraft: draft.requirementDraft,
+              originalMessage: draft.originalMessage,
+            }
+          : {}),
+      },
     );
   }
-  function quotationForm(l?: Lead) {
+  function quotationForm(l?: Lead, draft: Record<string, unknown> = {}) {
     if (
       l &&
       (data.bookings.some((b) => b.leadId === l.id) ||
@@ -438,10 +487,38 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             label: `${p.name} · ${inr(p.price)} / person`,
           })),
         },
+        {
+          name: "proposal",
+          label:
+            "Reviewed day-wise proposal (no unconfirmed prices or promises)",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "pricingMode",
+          label: "Pricing basis",
+          options: options(
+            manager
+              ? ["Recorded selling rate", "Cost plus markup", "Target margin"]
+              : ["Recorded selling rate"],
+          ),
+        },
+        {
+          ...numField("pricingPercent", "Markup / target margin (%)"),
+          max: 99.99,
+          required: false,
+        },
         numField("discount", "Discount on subtotal (₹)"),
         { ...numField("tax", "Optional tax (%)"), max: 100 },
       ],
-      { leadId: l?.id, discount: "0", tax: "0" },
+      {
+        leadId: l?.id,
+        discount: "0",
+        tax: "0",
+        pricingMode: "Recorded selling rate",
+        pricingPercent: "0",
+        ...draft,
+      },
     );
     setDetail(null);
   }
@@ -461,6 +538,35 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         },
         numField("price", "Selling price / person (₹)"),
         numField("estimatedCost", "Estimated supplier cost / person (₹)"),
+        {
+          name: "hotelCategory",
+          label: "Recorded hotel category",
+          required: false,
+        },
+        {
+          name: "itinerary",
+          label: "Maintained day-wise itinerary",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "paymentTerms",
+          label: "Recorded payment terms",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "cancellationTerms",
+          label: "Recorded cancellation terms",
+          type: "textarea",
+          required: false,
+        },
+        {
+          name: "rateNotes",
+          label: "Rate basis / supplier confirmation notes",
+          type: "textarea",
+          required: false,
+        },
         { name: "inclusions", label: "Inclusions", type: "textarea" },
         { name: "exclusions", label: "Exclusions", type: "textarea" },
       ],
@@ -498,6 +604,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   "Expense",
                   "Supplier payment",
                   "Supplier credit",
+                  "Supplier refund",
                 ]
               : ["Receipt", "Refund"],
           ),
@@ -814,7 +921,16 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <div key={g.group}>
               <p className="nav-group">{g.group}</p>
               {g.items
-                .filter(([name]) => name !== "Marketing" || manager)
+                .filter(
+                  ([name]) =>
+                    ![
+                      "Marketing",
+                      "Monthly report",
+                      "Integrations",
+                      "Messaging",
+                      "Automation",
+                    ].includes(name) || manager,
+                )
                 .map(([name, Icon]) => (
                   <button
                     key={name}
@@ -906,6 +1022,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <strong>{page}</strong>
           </div>
           <div className="topbar-right">
+            <GuidedTour
+              role={data.actor.role}
+              demo={data.demo}
+              navigate={changePage}
+              canAutoStart={() => manualNavigation.current === 0}
+            />
             <span className="today">
               <CalendarDays size={15} />
               {indianDate(new Date())}
@@ -930,7 +1052,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           </div>
         )}
         <div className="page-content">
-          <div className="page-heading">
+          <div className="page-heading" data-tour-page={page}>
             <div>
               <span className="eyebrow">
                 {page === "Overview"
@@ -947,7 +1069,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <div className="heading-actions">
               {page === "Overview" && (
                 <>
-                  <ExportButton rows={summaryExport} />
+                  {manager && <ExportButton rows={summaryExport} />}
                   <button className="btn primary" onClick={() => enquiryForm()}>
                     <Plus size={17} />
                     New enquiry
@@ -1027,6 +1149,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           {!salesFocus &&
             ![
               "Settings",
+              "Analytics",
+              "Integrations",
+              "Messaging",
+              "Automation",
+              "Subscription",
               "Demo guide",
               "Lead intelligence",
               "Packages",
@@ -1108,13 +1235,67 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </button>
               </div>
             )}
+          {formError && !form && !detail && !printQuote && !importOpen && (
+            <p className="error-box" role="alert">
+              {formError}
+            </p>
+          )}
           {!salesFocus && filters.from > filters.to && (
             <p className="error-box" role="alert">
               The start date must be before the end date.
             </p>
           )}
-          {page === "Overview" && (
+          {page === "Overview" && !manager && (
+            <PrioritiesPanel data={data} onOpen={setDetail} />
+          )}
+          {(page === "Analytics" || (page === "Overview" && !manager)) && (
+            <AdvancedAnalytics data={data} onChange={run} />
+          )}
+          {page === "Enquiries" && (
+            <AssistantPanel
+              data={data}
+              onReview={(draft) => enquiryForm(undefined, draft)}
+            />
+          )}
+          {page === "Overview" && manager && (
             <>
+              <section className="assistant-card">
+                <p>
+                  The overview below retains legacy current-state/manual-report
+                  definitions. For timezone-aware KPIs, verified/manual
+                  distinctions and cost-completeness controls use Advanced
+                  Analytics.
+                </p>
+                <button
+                  className="btn primary"
+                  onClick={() => changePage("Analytics")}
+                >
+                  Open advanced analytics
+                </button>
+              </section>
+              <PrioritiesPanel
+                data={data}
+                onOpen={setDetail}
+                onRecord={(kind, id, leadId) => {
+                  if (kind === "Quotation follow-up") {
+                    setPrintQuote(data.quotes.find((q) => q.id === id) || null);
+                    return;
+                  }
+                  if (
+                    kind === "Customer payment due" ||
+                    kind === "Departure task"
+                  ) {
+                    changePage("Bookings");
+                    setFilters({
+                      ...defaultFilters(),
+                      from: "2000-01-01",
+                      search: lead(leadId)?.externalId || "",
+                    });
+                    return;
+                  }
+                  setDetail(lead(leadId) || null);
+                }}
+              />
               <div className="section-label">
                 <span>PERFORMANCE SNAPSHOT</span>
                 <span>
@@ -1523,7 +1704,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                               {l.followUp ? indianDate(l.followUp) : "—"}
                             </td>
                             <td>
-                              {l.score === null ? (
+                              {["Won", "Lost"].includes(l.stage) ? (
+                                <span className="muted">
+                                  Closed · historical score in details
+                                </span>
+                              ) : l.score === null ? (
                                 <span className="muted" title={l.scoreReason}>
                                   Not scored
                                 </span>
@@ -1618,13 +1803,19 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                         {p.inclusions}
                       </p>
                       <details>
-                        <summary>Exclusions & cost estimate</summary>
+                        <summary>
+                          {manager
+                            ? "Exclusions & cost estimate"
+                            : "Exclusions"}
+                        </summary>
                         <p>{p.exclusions}</p>
-                        <p>
-                          Estimated supplier cost: {inr(p.estimatedCost)} /
-                          person. Actual expenses are recorded separately on the
-                          booking.
-                        </p>
+                        {manager && (
+                          <p>
+                            Estimated supplier cost: {inr(p.estimatedCost)} /
+                            person. Actual expenses are recorded separately on
+                            the booking.
+                          </p>
+                        )}
                       </details>
                       <div className="package-actions">
                         <button
@@ -1723,32 +1914,34 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                                   <Printer size={14} />
                                   Print / view
                                 </button>
-                                {q.status === "Draft" && !blocked && (
-                                  <button
-                                    className="btn secondary small"
-                                    onClick={() =>
-                                      openForm(
-                                        "Accept quotation & create booking",
-                                        "accept",
-                                        [
+                                {["Draft", "Approved"].includes(q.status) &&
+                                  !blocked && (
+                                    <button
+                                      className="btn secondary small"
+                                      onClick={() =>
+                                        openForm(
+                                          "Accept quotation & create booking",
+                                          "accept",
+                                          [
+                                            {
+                                              name: "dueDate",
+                                              label:
+                                                "Customer balance due date",
+                                              type: "date",
+                                            },
+                                          ],
                                           {
-                                            name: "dueDate",
-                                            label: "Customer balance due date",
-                                            type: "date",
+                                            dueDate: lead(
+                                              q.leadId,
+                                            )?.travelStart.slice(0, 10),
                                           },
-                                        ],
-                                        {
-                                          dueDate: lead(
-                                            q.leadId,
-                                          )?.travelStart.slice(0, 10),
-                                        },
-                                        { id: q.id },
-                                      )
-                                    }
-                                  >
-                                    Accept & book
-                                  </button>
-                                )}
+                                          { id: q.id },
+                                        )
+                                      }
+                                    >
+                                      Accept & book
+                                    </button>
+                                  )}
                                 {existingBooking && (
                                   <button
                                     className="btn secondary small"
@@ -1759,11 +1952,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                                     Open booking
                                   </button>
                                 )}
-                                {q.status === "Draft" && blocked && (
-                                  <small className="sales-blocked">
-                                    {blocked}
-                                  </small>
-                                )}
+                                {["Draft", "Approved"].includes(q.status) &&
+                                  blocked && (
+                                    <small className="sales-blocked">
+                                      {blocked}
+                                    </small>
+                                  )}
                               </div>
                             </td>
                           </tr>
@@ -1810,14 +2004,20 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </div>
                 <div>
                   <div>
-                    <small>Supplier expense balances</small>
+                    <small>
+                      {manager
+                        ? "Supplier net balance"
+                        : "Supplier financials restricted"}
+                    </small>
                     <strong>
-                      {inr(
-                        a.bookings.reduce(
-                          (s, b) => s + balances(b).supplierDue,
-                          0,
-                        ),
-                      )}
+                      {manager
+                        ? inr(
+                            a.bookings.reduce(
+                              (s, b) => s + balances(b).supplierDue,
+                              0,
+                            ),
+                          )
+                        : "Restricted"}
                     </strong>
                   </div>
                 </div>
@@ -1851,8 +2051,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                       salesINR: balances(b).sales / 100,
                       cashReceivedNetINR: balances(b).netCash / 100,
                       customerDueINR: balances(b).customerDue / 100,
-                      supplierDueINR: balances(b).supplierDue / 100,
-                      contributionINR: balances(b).contribution / 100,
+                      ...(manager
+                        ? {
+                            supplierDueINR: balances(b).supplierDue / 100,
+                            contributionINR: balances(b).contribution / 100,
+                          }
+                        : {}),
                     }))}
                   />
                 </div>
@@ -1904,9 +2108,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                               </td>
                               <td>
                                 {inr(bal.sales)}
-                                <small>
-                                  Estimate: {inr(b.quote.estimatedCost)} cost
-                                </small>
+                                {manager && (
+                                  <small>
+                                    Estimate: {inr(b.quote.estimatedCost)} cost
+                                  </small>
+                                )}
                               </td>
                               <td
                                 className={
@@ -1925,12 +2131,47 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                                 )}
                               </td>
                               <td>
-                                {inr(bal.supplierDue)}
-                                <small>
-                                  Actual cost {inr(bal.supplierCost)}
-                                </small>
+                                {manager ? inr(bal.supplierDue) : "Restricted"}
+                                {manager && (
+                                  <>
+                                    <small>
+                                      Actual cost {inr(bal.supplierCost)}
+                                    </small>
+                                    {bal.supplierDue < 0 && (
+                                      <small>
+                                        Supplier refund owed{" "}
+                                        {inr(-bal.supplierDue)}
+                                      </small>
+                                    )}
+                                  </>
+                                )}
                               </td>
                               <td>
+                                {manager && (
+                                  <button
+                                    className="btn secondary small"
+                                    disabled={data.demo || busy}
+                                    onClick={async () => {
+                                      if (
+                                        !window.confirm(
+                                          b.directCostsComplete
+                                            ? "Withdraw direct cost completeness?"
+                                            : "Confirm all supplier expenses/credits for this booking have been reconciled. This is not a net-profit certification.",
+                                        )
+                                      )
+                                        return;
+                                      await run("cost-coverage", {
+                                        id: b.id,
+                                        complete: !b.directCostsComplete,
+                                        revision: b.costRevision,
+                                      });
+                                    }}
+                                  >
+                                    {b.directCostsComplete
+                                      ? "Costs complete · withdraw"
+                                      : "Attest direct costs complete"}
+                                  </button>
+                                )}
                                 <div className="row-actions">
                                   <button
                                     className="text-button"
@@ -2449,7 +2690,8 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                             }
                           />
                           <p>
-                            Model booking probability · for demonstration only
+                            Synthetic model output · not validated booking
+                            probability
                           </p>
                         </div>
                       );
@@ -2469,44 +2711,50 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     or quoted. Missing inputs and values outside the supported
                     ranges produce “Not scored”.
                   </p>
-                  <ul>
-                    <li>
-                      Budget fit: 0.25–2.0; departure: 0–365 days from enquiry.
-                    </li>
-                    <li>Travellers: 1–20; first response: 0–168 hours.</li>
-                    <li>
-                      Repeat-customer and itinerary-request status must be
-                      explicitly supplied.
-                    </li>
-                    <li>
-                      High priority: ≥65%; medium: 35–65%; low: below 35%.
-                    </li>
-                    <li>
-                      Explanations describe coefficient contributions relative
-                      to the synthetic training average. They are associations,
-                      not causes.
-                    </li>
-                  </ul>
-                  <p>
-                    <strong>Version:</strong> {modelInfo.version}
-                  </p>
-                  <p>
-                    Python trains on 6,000 synthetic rows and evaluates on a
-                    separate 2,000-row holdout. Evaluation and limitations are
-                    in <code>ml/evaluation.json</code> and{" "}
-                    <code>ml/README.md</code>. Those results do not establish
-                    real-world accuracy.
-                  </p>
-                  <p>
-                    No uploaded records are used for retraining. Lead stage,
-                    receipts and booking outcome are excluded from model inputs.
-                  </p>
+                  <details>
+                    <summary>Technical model details</summary>
+                    <ul>
+                      <li>
+                        Budget fit: 0.25–2.0; departure: 0–365 days from
+                        enquiry.
+                      </li>
+                      <li>Travellers: 1–20; first response: 0–168 hours.</li>
+                      <li>
+                        Repeat-customer and itinerary-request status must be
+                        explicitly supplied.
+                      </li>
+                      <li>
+                        Synthetic score bands: high ≥65%; medium 35–65%; low
+                        below 35%. These are not operational priorities.
+                      </li>
+                      <li>
+                        Explanations describe how recorded inputs affect this
+                        demonstration model. They are not evidence of real
+                        customer intent.
+                      </li>
+                    </ul>
+                    <p>
+                      <strong>Version:</strong> {modelInfo.version}
+                    </p>
+                    <p>
+                      Python trains on 6,000 synthetic rows and evaluates on a
+                      separate 2,000-row holdout. Evaluation and limitations are
+                      in <code>ml/evaluation.json</code> and{" "}
+                      <code>ml/README.md</code>. Those results do not establish
+                      real-world accuracy.
+                    </p>
+                    <p>
+                      No uploaded records are used for retraining. Lead stage,
+                      receipts and booking outcome are excluded from model
+                      inputs.
+                    </p>
+                  </details>
                 </section>
               </div>
               <section className="panel">
                 <div className="panel-heading">
                   <div>
-                    <h2>Open enquiries, prioritised</h2>
+                    <h2>Open enquiries · synthetic model context</h2>
                     <p>All dates · your permitted records only</p>
                   </div>
                 </div>
@@ -2515,7 +2763,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     <thead>
                       <tr>
                         <th>Enquiry</th>
-                        <th>Model probability</th>
+                        <th>Synthetic model output</th>
                         <th>Explanation / reason</th>
                         <th>Scored at</th>
                       </tr>
@@ -2554,6 +2802,24 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </section>
             </>
           )}
+          {!data.demo && !data.access.canWrite && (
+            <div className="info-box">
+              Your trial or subscription is inactive. You can view and export
+              existing records. Contact support to renew before changing
+              business records.
+            </div>
+          )}
+          {page === "Automation" && <Automation data={data} />}
+          {page === "Messaging" && <Messaging data={data} />}
+          {page === "Integrations" && <Integrations data={data} />}
+          {page === "Subscription" && (
+            <SubscriptionPage
+              data={data}
+              onRequest={async (input) => run("subscription-request", input)}
+              error={formError}
+              busy={busy}
+            />
+          )}
           {page === "Settings" && (
             <>
               <div className="report-columns">
@@ -2569,6 +2835,10 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     <Badge value={data.agency.plan} />
                     <Badge value={data.agency.subscription} />
                     <span>Manually managed subscription</span>
+                    <span>
+                      {data.users.filter((u) => !u.disabled).length} /{" "}
+                      {data.access.limits.seats} active users
+                    </span>
                   </div>
                   {owner && (
                     <button
@@ -2579,6 +2849,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                           "settings",
                           [
                             { name: "name", label: "Agency name" },
+                            {
+                              name: "timezone",
+                              label: "Reporting timezone (IANA)",
+                              hint: "For example Asia/Kolkata or America/New_York. Historical events are not rewritten.",
+                            },
                             {
                               name: "logo",
                               label: "Logo URL (HTTPS)",
@@ -2606,9 +2881,26 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     </button>
                   )}
                   <p className="method-note">
-                    Plans and subscription status are stored for manual
-                    administration. There is no live billing integration.
+                    {data.agency.subscription === "Trial"
+                      ? `Trial ends ${indianDate(data.agency.trialEndsAt)}.`
+                      : data.agency.subscriptionExpiresAt
+                        ? `Subscription ends ${indianDate(data.agency.subscriptionExpiresAt)}.`
+                        : "Subscription dates are managed by the service administrator."}{" "}
+                    Plan limits are enforced on the server. No money is charged
+                    automatically.
                   </p>
+                  {owner && !data.access.emailConfigured && (
+                    <p className="info-box">
+                      Email invitations and password recovery need to be enabled
+                      by the service administrator before client onboarding.
+                    </p>
+                  )}
+                  {owner && !data.access.emailVerificationRequired && (
+                    <p className="info-box">
+                      Required email verification is not enabled yet. Complete
+                      the launch checklist before onboarding real clients.
+                    </p>
+                  )}
                 </section>
                 <section className="panel prose">
                   <h2>Owner onboarding checklist</h2>
@@ -2648,15 +2940,8 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     <button
                       className="btn primary small"
                       onClick={() =>
-                        openForm("Add team member", "team-create", [
-                          { name: "name", label: "Name" },
+                        openForm("Invite team member", "invite", [
                           { name: "email", label: "Email", type: "email" },
-                          {
-                            name: "password",
-                            label: "Initial password (12+ characters)",
-                            type: "password",
-                            hint: "Share securely. Member can change it after signing in.",
-                          },
                           {
                             name: "role",
                             label: "Role",
@@ -2666,7 +2951,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                       }
                     >
                       <Plus size={16} />
-                      Add member
+                      Invite member
                     </button>
                   )}
                 </div>
@@ -2744,6 +3029,67 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   </table>
                 </div>
               </section>
+              {owner && (
+                <section className="panel">
+                  <h2>Team invitations</h2>
+                  <p className="method-note">
+                    Recipients choose their own password. Invitations expire
+                    after 7 days and reserve one plan seat.
+                  </p>
+                  {data.invitations.length ? (
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Expires</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.invitations.map((i) => (
+                            <tr key={i.id}>
+                              <td>{i.email}</td>
+                              <td>{i.role}</td>
+                              <td>
+                                {new Date(i.expiresAt) < new Date() &&
+                                i.status === "Pending"
+                                  ? "Expired"
+                                  : i.status}
+                              </td>
+                              <td>{indianDate(i.expiresAt)}</td>
+                              <td>
+                                {i.status === "Pending" && (
+                                  <button
+                                    className="text-button"
+                                    disabled={busy || data.demo}
+                                    onClick={() =>
+                                      openForm(
+                                        "Revoke invitation",
+                                        "invite-revoke",
+                                        [],
+                                        {},
+                                        { id: i.id },
+                                      )
+                                    }
+                                  >
+                                    Revoke invitation
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="muted">No invitations sent yet.</p>
+                  )}
+                </section>
+              )}
+              {!data.demo && <SecuritySettings />}
               {!data.demo && (
                 <section className="panel prose">
                   <h2>Your password</h2>
@@ -3038,7 +3384,18 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               );
               let input = { ...values, ...form.extra };
               if (form.action === "lead")
-                input = { lead: values, ...form.extra };
+                input = {
+                  lead: {
+                    ...values,
+                    ...(form.extra?.requirementDraft
+                      ? {
+                          requirementDraft: form.extra.requirementDraft,
+                          originalMessage: form.extra.originalMessage,
+                        }
+                      : {}),
+                  },
+                  ...form.extra,
+                };
               if (form.action === "team")
                 input.disabled = values.disabled === "true";
               if (
@@ -3059,10 +3416,13 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <Fields fields={form.fields} values={form.values} />
             {form.action === "quote" && (
               <p className="method-note">
-                Total = travellers × package price − discount + optional tax on
-                the discounted subtotal. Amounts are rounded to the nearest
-                paise. Package price and estimated supplier costs are
-                snapshotted in the quotation.
+                Total = travellers × reviewed unit selling price − discount +
+                optional tax on the discounted subtotal. Amounts are rounded to
+                the nearest paise. Markup uses cost × (1 + percentage); target
+                margin uses cost ÷ (1 − percentage). Room quantities are not
+                inferred; only maintained per-traveller rates apply. Package
+                rates and estimated supplier costs are snapshotted in the
+                quotation.
               </p>
             )}
             {form.action === "transaction" && (
@@ -3159,7 +3519,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <p>
               {detail.score === null
                 ? "Not scored"
-                : `${(detail.score * 100).toFixed(1)}% model booking probability · ${detail.score >= 0.65 ? "High" : detail.score >= 0.35 ? "Medium" : "Low"} priority`}
+                : `${(detail.score * 100).toFixed(1)}% synthetic model output · not a validated booking probability`}
             </p>
             <p>{detail.scoreReason}</p>
             <small>
@@ -3257,6 +3617,35 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </p>
             )}
           </section>
+          {detail.originalMessage && (
+            <details>
+              <summary>
+                Original customer message & reviewed requirements
+              </summary>
+              <p style={{ whiteSpace: "pre-wrap" }}>{detail.originalMessage}</p>
+              <pre style={{ whiteSpace: "pre-wrap" }}>
+                {JSON.stringify(detail.requirementDraft, null, 2)}
+              </pre>
+            </details>
+          )}
+          <FollowUpPanel
+            data={data}
+            lead={detail}
+            onQuote={(draft) => quotationForm(detail, draft)}
+            onSchedule={async (date) => {
+              const ok = await run("schedule-followup", {
+                id: detail.id,
+                date,
+              });
+              if (ok) setDetail(null);
+              return ok;
+            }}
+          />
+          {formError && (
+            <p className="error-box" role="alert">
+              {formError}
+            </p>
+          )}
           <h3>Activity history</h3>
           <div className="audit-list">
             {data.activities
@@ -3512,6 +3901,20 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </tr>
               </tbody>
             </table>
+            <h3>Proposed itinerary</h3>
+            <p style={{ whiteSpace: "pre-wrap" }}>
+              {printQuote.proposal || "No itinerary recorded."}
+            </p>
+            <h3>Payment terms</h3>
+            <p>
+              {printQuote.paymentTerms ||
+                "Not recorded — confirm before sharing."}
+            </p>
+            <h3>Cancellation terms</h3>
+            <p>
+              {printQuote.cancellationTerms ||
+                "Not recorded — confirm before sharing."}
+            </p>
             <h3>Included in your journey</h3>
             <p className="quotation-copy">
               {printQuote.inclusions || "Not specified"}
@@ -3540,6 +3943,14 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </p>
             )}
           </div>
+          {printQuote.status === "Draft" &&
+            !!printQuote.proposal.trim() &&
+            !data.demo && (
+              <p className="quotation-help">
+                Review the generated proposal and approve the quotation before
+                sharing.
+              </p>
+            )}
           <p className="quotation-help">
             To download: choose Save as PDF in the print window. Then attach the
             saved file in WhatsApp or email. Copying the message does not send
@@ -3548,11 +3959,35 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           <div className="modal-actions">
             <button
               className="btn"
+              disabled={
+                printQuote.status === "Draft" &&
+                !!printQuote.proposal.trim() &&
+                !data.demo
+              }
               onClick={() => copyQuotationMessage(printQuote)}
             >
               Copy customer message
             </button>
-            <button className="btn primary" onClick={() => window.print()}>
+            {printQuote.status === "Draft" && !data.demo && (
+              <button
+                className="btn secondary"
+                onClick={async () => {
+                  if (await run("approve-quote", { id: printQuote.id }))
+                    setPrintQuote(null);
+                }}
+              >
+                Approve reviewed quotation
+              </button>
+            )}
+            <button
+              className="btn primary"
+              disabled={
+                printQuote.status === "Draft" &&
+                !!printQuote.proposal.trim() &&
+                !data.demo
+              }
+              onClick={() => window.print()}
+            >
               <Printer size={16} />
               Print / save PDF
             </button>

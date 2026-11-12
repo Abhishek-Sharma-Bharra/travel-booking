@@ -18,7 +18,8 @@ export function bookingBlockReason(
   if (hasBooking)
     return "This enquiry already has a booking. Open the existing booking instead.";
   if (!enquiry) return "This enquiry is unavailable. Refresh the workspace.";
-  if (quote.status !== "Draft") return "This quotation is no longer a draft.";
+  if (!["Draft", "Approved"].includes(quote.status))
+    return "This quotation is no longer available for booking.";
   if (enquiry.stage === "Lost")
     return "Reopen the lost enquiry before accepting a quotation.";
   if (enquiry.stage === "Won")

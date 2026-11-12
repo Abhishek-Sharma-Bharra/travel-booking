@@ -1,10 +1,26 @@
+import { requestSubscription } from "./subscription-requests";
+import {
+  timezoneSchema,
+  reportingWindow,
+  fullCalendarMonths,
+  calendarDate,
+} from "./reporting-time";
+import { createHash } from "node:crypto";
+import { inviteMember, revokeInvitation } from "./invitations";
+import { requireSubscription, ensureSeat, limitsFor } from "./subscriptions";
+import { HttpError } from "./http";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "./db";
-import { auth } from "./auth";
 import { Actor, scope, canManage, requireOwner, writable } from "./access";
-import { leadSchema, packageSchema, amount, dateValue } from "./validation";
-import { balances, quoteTotal } from "./money";
+import {
+  leadSchema,
+  packageSchema,
+  amount,
+  dateValue,
+  taxRate,
+} from "./validation";
+import { balances, quoteTotal, pricedUnit } from "./money";
 import { scoreLead } from "./model";
 const id = z.string().min(1).max(100);
 export type MutationResult = {
@@ -23,6 +39,28 @@ export async function mutate(
     where: { id: a.agencyId },
   });
   if (agency.demo) throw new Error("Demo workspace is read-only");
+  const currentUser = await db.user.findUnique({ where: { id: a.id } });
+  if (
+    !currentUser ||
+    currentUser.disabled ||
+    currentUser.agencyId !== a.agencyId
+  )
+    throw new HttpError(403, "Workspace access unavailable");
+  a = { ...a, role: currentUser.role };
+  if (
+    !["settings", "team", "invite-revoke", "subscription-request"].includes(
+      action,
+    )
+  )
+    requireSubscription(agency);
+  if (action === "subscription-request") return requestSubscription(a, input);
+  if (action === "invite") return inviteMember(a, input);
+  if (action === "invite-revoke") return revokeInvitation(a, input);
+  if (action === "team-create")
+    throw new HttpError(
+      409,
+      "Use an email invitation. Members must choose their own password.",
+    );
   const audit = async (
     tx: Prisma.TransactionClient,
     what: string,
@@ -62,9 +100,39 @@ export async function mutate(
       throw new Error(
         "Import new enquiries only; create quotations and bookings in the app",
       );
-    for (const l of parsed) await assignee(l.assignedId);
+    for (const uid of new Set(parsed.map((l) => l.assignedId)))
+      await assignee(uid);
     return db.$transaction(
       async (tx) => {
+        if (!wrapper.id) {
+          const existing = await tx.lead.count({
+            where: { agencyId: a.agencyId },
+          });
+          if (existing + parsed.length > limitsFor(agency.plan).leads)
+            throw new HttpError(
+              409,
+              "Your plan’s enquiry limit has been reached. Contact support before adding more records.",
+            );
+        }
+        if (action === "import") {
+          const created = await tx.lead.createManyAndReturn({
+            data: parsed.map((l) => ({
+              ...l,
+              agencyId: a.agencyId,
+              ...scoreLead(l),
+            })),
+            select: { id: true },
+          });
+          await tx.activity.createMany({
+            data: created.map((l) => ({
+              agencyId: a.agencyId,
+              actor: a.id,
+              action: "Enquiry imported",
+              leadId: l.id,
+            })),
+          });
+          return { message: `${created.length} enquiry record(s) saved` };
+        }
         for (const l of parsed) {
           if (wrapper.id && action === "lead") {
             const old = await leadAccess(tx, wrapper.id);
@@ -95,11 +163,7 @@ export async function mutate(
             const lead = await tx.lead.create({
               data: { ...l, agencyId: a.agencyId, ...scoreLead(l) },
             });
-            await audit(
-              tx,
-              action === "import" ? "Enquiry imported" : "Enquiry created",
-              lead.id,
-            );
+            await audit(tx, "Enquiry created", lead.id);
           }
         }
         return { message: `${parsed.length} enquiry record(s) saved` };
@@ -122,6 +186,85 @@ export async function mutate(
       return { message: "Follow-up completed and recorded" };
     });
   }
+  if (action === "cost-coverage") {
+    canManage(a);
+    const v = z
+      .object({ id, complete: z.boolean(), revision: z.number().int().min(0) })
+      .parse(input);
+    return db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Booking" WHERE id=${v.id} AND "agencyId"=${a.agencyId} FOR UPDATE`;
+      const b = await tx.booking.findFirst({
+        where: { id: v.id, agencyId: a.agencyId },
+      });
+      if (!b) throw new Error("Booking not found");
+      if (b.costRevision !== v.revision)
+        throw new Error(
+          "Supplier costs changed. Refresh and reconcile before attesting.",
+        );
+      await tx.booking.update({
+        where: { id: b.id },
+        data: { directCostsComplete: v.complete },
+      });
+      await audit(
+        tx,
+        `Direct cost completeness ${v.complete ? "attested" : "withdrawn"}`,
+        b.leadId,
+      );
+      return { message: "Cost completeness updated" };
+    });
+  }
+  if (action === "ad-coverage") {
+    requireOwner(a);
+    const v = z
+      .object({
+        from: z.string(),
+        to: z.string(),
+        source: z.string().max(100).default(""),
+        complete: z.boolean(),
+        revision: z.number().int().min(0),
+      })
+      .parse(input);
+    reportingWindow(v.from, v.to, agency.timezone);
+    if (!fullCalendarMonths(v.from, v.to))
+      throw new Error(
+        "Monthly spend coverage requires complete calendar months",
+      );
+    if (v.complete && v.to >= calendarDate(new Date(), agency.timezone))
+      throw new Error(
+        "Only closed historical calendar months can be declared complete",
+      );
+    return db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Agency" WHERE "id"=${a.agencyId} FOR UPDATE`;
+      const currentAgency = await tx.agency.findUniqueOrThrow({
+        where: { id: a.agencyId },
+      });
+      if (
+        currentAgency.adSpendRevision !== v.revision ||
+        currentAgency.timezone !== agency.timezone
+      )
+        throw new Error(
+          "Advertising data or timezone changed. Refresh before attesting.",
+        );
+      const key = {
+        agencyId: a.agencyId,
+        fromDate: v.from,
+        toDate: v.to,
+        source: v.source,
+        timezone: agency.timezone,
+        kind: "Advertising",
+      };
+      await tx.reportingCoverage.deleteMany({ where: key });
+      if (v.complete)
+        await tx.reportingCoverage.create({
+          data: { ...key, attestedBy: a.id },
+        });
+      await audit(
+        tx,
+        `Advertising coverage ${v.complete ? "attested" : "withdrawn"}: ${v.from} to ${v.to}; source ${v.source || "all"}`,
+      );
+      return { message: "Advertising coverage updated" };
+    });
+  }
   if (action === "package") {
     canManage(a);
     const v = packageSchema.parse(input);
@@ -135,20 +278,45 @@ export async function mutate(
     } else await db.package.create({ data: { ...v, agencyId: a.agencyId } });
     return { message: "Package saved" };
   }
+  if (action === "schedule-followup") {
+    const v = z.object({ id, date: dateValue }).parse(input);
+    return db.$transaction(async (tx) => {
+      const l = await leadAccess(tx, v.id);
+      if (["Won", "Lost"].includes(l.stage))
+        throw new Error("Choose an open enquiry");
+      await tx.lead.update({ where: { id: l.id }, data: { followUp: v.date } });
+      await audit(tx, "Internal follow-up scheduled; no message sent", l.id);
+      return { message: "Follow-up scheduled; no message sent" };
+    });
+  }
+  if (action === "approve-quote") {
+    const v = z.object({ id }).parse(input);
+    return db.$transaction(async (tx) => {
+      const q = await tx.quote.findFirst({
+        where: { id: v.id, agencyId: a.agencyId, lead: scope(a) },
+      });
+      if (!q || q.status !== "Draft")
+        throw new Error("Draft quotation unavailable");
+      await tx.quote.update({
+        where: { id: q.id },
+        data: { status: "Approved", approvedAt: new Date(), approvedBy: a.id },
+      });
+      await audit(tx, `Quotation ${q.id} reviewed and approved`, q.leadId);
+      return { message: "Quotation approved for sharing" };
+    });
+  }
   if (action === "quote") {
     const v = z
       .object({
         leadId: id,
         packageId: id,
+        proposal: z.string().max(12000).default(""),
+        pricingMode: z
+          .enum(["Recorded selling rate", "Cost plus markup", "Target margin"])
+          .default("Recorded selling rate"),
+        pricingPercent: taxRate.default(0),
         discount: amount,
-        tax: z.coerce
-          .number()
-          .min(0)
-          .max(100)
-          .refine(
-            (n) => Number.isInteger(n * 100),
-            "Tax supports two decimal places",
-          ),
+        tax: taxRate,
       })
       .parse(input);
     return db.$transaction(async (tx) => {
@@ -161,21 +329,42 @@ export async function mutate(
         where: { id: v.packageId, agencyId: a.agencyId },
       });
       if (!p) throw new Error("Package not found");
-      const taxBps = Math.round(v.tax * 100);
-      const total = quoteTotal(p.price, l.travellers, v.discount, taxBps);
+      if (a.role === "AGENT" && v.pricingMode !== "Recorded selling rate")
+        throw new HttpError(
+          403,
+          "Supplier-cost pricing requires manager permission",
+        );
+      const taxBps = v.tax;
+      const unitPrice = pricedUnit(
+        p.estimatedCost,
+        v.pricingMode,
+        v.pricingPercent,
+        p.price,
+      );
+      if (
+        unitPrice <= 0 ||
+        (v.pricingMode !== "Recorded selling rate" && p.estimatedCost <= 0)
+      )
+        throw new Error(
+          "Maintain a positive package rate/cost before quoting.",
+        );
+      const total = quoteTotal(unitPrice, l.travellers, v.discount, taxBps);
       quoteTotal(p.estimatedCost, l.travellers, 0, 0);
-      const last = await tx.quote.aggregate({
-        where: { agencyId: a.agencyId, leadId: l.id },
+      const previousVersion = await tx.quote.aggregate({
+        where: { leadId: l.id, agencyId: a.agencyId },
         _max: { version: true },
       });
       const q = await tx.quote.create({
         data: {
           agencyId: a.agencyId,
+          version: (previousVersion._max.version ?? 0) + 1,
+          proposal: v.proposal,
+          paymentTerms: p.paymentTerms,
+          cancellationTerms: p.cancellationTerms,
           leadId: l.id,
-          version: (last._max.version ?? 0) + 1,
           packageId: p.id,
           travellers: l.travellers,
-          unitPrice: p.price,
+          unitPrice,
           travelStart: l.travelStart,
           travelEnd: l.travelEnd,
           packageName: p.name,
@@ -193,8 +382,8 @@ export async function mutate(
         where: { id: l.id },
         data: {
           stage: "Quoted",
-          quotedPrice: p.price,
-          ...scoreLead({ ...l, quotedPrice: p.price }),
+          quotedPrice: unitPrice,
+          ...scoreLead({ ...l, quotedPrice: unitPrice }),
         },
       });
       await audit(tx, `Quotation ${q.id} created`, l.id);
@@ -209,7 +398,8 @@ export async function mutate(
           where: { id: v.id, agencyId: a.agencyId, lead: scope(a) },
         });
         if (!q) throw new Error("Quotation not found");
-        if (q.status !== "Draft") throw new Error("Quotation already accepted");
+        if (!["Draft", "Approved"].includes(q.status))
+          throw new Error("Quotation already accepted");
         const l = await leadAccess(tx, q.leadId);
         if (
           await tx.booking.findFirst({
@@ -231,7 +421,11 @@ export async function mutate(
           throw new Error("Reopen the enquiry before booking");
         await tx.quote.update({
           where: { id: q.id },
-          data: { status: "Accepted" },
+          data: {
+            status: "Accepted",
+            approvedAt: q.approvedAt || new Date(),
+            approvedBy: q.approvedBy || a.id,
+          },
         });
         const booking = await tx.booking.create({
           data: {
@@ -262,12 +456,16 @@ export async function mutate(
     const v = z
       .object({
         bookingId: id,
+        requestId: z.uuid({
+          error: "Refresh this page before recording a transaction.",
+        }),
         kind: z.enum([
           "Receipt",
           "Refund",
           "Expense",
           "Supplier payment",
           "Supplier credit",
+          "Supplier refund",
         ]),
         amount: amount,
         supplier: z.string().trim().max(100).default(""),
@@ -279,10 +477,20 @@ export async function mutate(
       })
       .parse(input);
     if (v.amount <= 0) throw new Error("Amount must be greater than zero");
-    if (["Expense", "Supplier payment", "Supplier credit"].includes(v.kind)) {
+    if (
+      [
+        "Expense",
+        "Supplier payment",
+        "Supplier credit",
+        "Supplier refund",
+      ].includes(v.kind)
+    ) {
       canManage(a);
       if (!v.supplier) throw new Error("Supplier name is required");
     }
+    const requestHash = createHash("sha256")
+      .update(JSON.stringify(v))
+      .digest("hex");
     return db.$transaction(
       async (tx) => {
         const b = await tx.booking.findFirst({
@@ -290,6 +498,25 @@ export async function mutate(
           include: { transactions: true },
         });
         if (!b) throw new Error("Booking not found");
+        const previous = await tx.transaction.findUnique({
+          where: {
+            agencyId_requestId: {
+              agencyId: a.agencyId,
+              requestId: v.requestId,
+            },
+          },
+        });
+        if (previous) {
+          if (previous.requestHash !== requestHash)
+            throw new HttpError(
+              409,
+              "This submission was already used for a different entry. Close the form and start a new entry.",
+            );
+          return {
+            message:
+              "This transaction was already recorded. No duplicate was added.",
+          };
+        }
         const bal = balances(b);
         if (v.kind === "Receipt" && v.amount > bal.customerDue)
           throw new Error(
@@ -297,19 +524,31 @@ export async function mutate(
           );
         if (v.kind === "Refund" && v.amount > bal.netCash)
           throw new Error("Refund cannot exceed unrefunded receipts");
-        if (["Supplier payment", "Supplier credit"].includes(v.kind)) {
+        if (
+          ["Supplier payment", "Supplier credit", "Supplier refund"].includes(
+            v.kind,
+          )
+        ) {
           const sup = balances({
             ...b,
             transactions: b.transactions.filter(
               (t) => t.supplier === v.supplier,
             ),
           });
-          if (v.amount > sup.supplierDue)
+          const available =
+            v.kind === "Supplier credit"
+              ? sup.supplierCost
+              : v.kind === "Supplier refund"
+                ? Math.max(0, -sup.supplierDue)
+                : Math.max(0, sup.supplierDue);
+          if (v.amount > available)
             throw new Error(
-              "Amount exceeds this supplier’s unpaid expense balance",
+              "Amount exceeds this supplier’s available expense/payment/refund balance",
             );
         }
-        await tx.transaction.create({ data: { ...v, agencyId: a.agencyId } });
+        await tx.transaction.create({
+          data: { ...v, requestHash, agencyId: a.agencyId },
+        });
         await audit(
           tx,
           `${v.kind} recorded: ${v.amount} paise; ${v.memo}`,
@@ -373,17 +612,29 @@ export async function mutate(
         memo: z.string().max(500).default(""),
       })
       .parse(input);
-    await db.spend.upsert({
-      where: {
-        agencyId_month_kind_channel: {
+    await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Agency" WHERE "id"=${a.agencyId} FOR UPDATE`;
+      await tx.reportingCoverage.deleteMany({
+        where: {
           agencyId: a.agencyId,
-          month: v.month,
-          kind: v.kind,
-          channel: v.channel,
+          kind: "Advertising",
+          fromDate: { lte: v.month + "-31" },
+          toDate: { gte: v.month + "-01" },
+          OR: [{ source: "" }, { source: v.channel }],
         },
-      },
-      create: { ...v, agencyId: a.agencyId },
-      update: v,
+      });
+      await tx.spend.upsert({
+        where: {
+          agencyId_month_kind_channel: {
+            agencyId: a.agencyId,
+            month: v.month,
+            kind: v.kind,
+            channel: v.channel,
+          },
+        },
+        create: { ...v, agencyId: a.agencyId },
+        update: v,
+      });
     });
     return {
       message:
@@ -394,6 +645,7 @@ export async function mutate(
     requireOwner(a);
     const v = z
       .object({
+        timezone: timezoneSchema.optional(),
         name: z.string().trim().min(2).max(100),
         logo: z.union([
           z.literal(""),
@@ -426,6 +678,10 @@ export async function mutate(
         where: { id: v.id, agencyId: a.agencyId },
       });
       if (!u) throw new Error("Team member not found");
+      if (u.disabled && !v.disabled) {
+        requireSubscription(agency);
+        await ensureSeat(tx, agency);
+      }
       await tx.user.update({
         where: { id: u.id },
         data: { role: v.role, disabled: v.disabled },
@@ -437,37 +693,6 @@ export async function mutate(
       );
     });
     return { message: "Team access saved" };
-  }
-  if (action === "team-create") {
-    requireOwner(a);
-    const v = z
-      .object({
-        name: z.string().min(2).max(100),
-        email: z.email(),
-        password: z.string().min(12).max(128),
-        role: z.enum(["MANAGER", "AGENT"]),
-      })
-      .parse(input);
-    const result = await auth.api.signUpEmail({
-      body: { name: v.name, email: v.email, password: v.password },
-    });
-    const fresh = await db.user.findUniqueOrThrow({
-      where: { id: result.user.id },
-    });
-    await db.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: fresh.id },
-        data: { agencyId: a.agencyId, role: v.role },
-      });
-      if (fresh.agencyId)
-        await tx.agency.delete({ where: { id: fresh.agencyId } });
-      await tx.session.deleteMany({ where: { userId: fresh.id } });
-      await audit(tx, `Team member added: ${v.name}, ${v.role}`);
-    });
-    return {
-      message:
-        "Team member created. Share the initial password securely; they can change it in Settings.",
-    };
   }
   throw new Error("Unknown action");
 }

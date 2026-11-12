@@ -10,6 +10,10 @@ test("sales journey explains stale, closed, unavailable and already-booked enqui
     },
     l = { ...q, stage: "Quoted" };
   assert.equal(bookingBlockReason(q, l, false), null);
+  assert.equal(
+    bookingBlockReason({ ...q, status: "Approved" }, l, false),
+    null,
+  );
   assert.match(bookingBlockReason(q, l, true)!, /already has a booking/);
   assert.match(bookingBlockReason(q, undefined, false)!, /unavailable/);
   assert.match(
@@ -34,7 +38,7 @@ test("sales journey explains stale, closed, unavailable and already-booked enqui
   );
   assert.match(
     bookingBlockReason({ ...q, status: "Accepted" }, l, false)!,
-    /no longer a draft/,
+    /no longer available for booking/,
   );
   assert.equal(
     bookingBlockReason(

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { db } from "../../src/lib/db";
 const key = "journey-" + Date.now(),
   email = key + "@test.invalid";

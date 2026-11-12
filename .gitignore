@@ -9,3 +9,11 @@ playwright-report/
 __pycache__/
 
 .local/
+.env.*
+!.env.example
+*.dump
+*.dump.enc
+*.dump.enc.json
+*.key
+*.p12
+*.pfx

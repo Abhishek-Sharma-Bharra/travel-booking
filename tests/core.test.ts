@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { paise, quoteTotal, balances } from "../src/lib/money";
-import { dateValue, leadSchema, safeCsv } from "../src/lib/validation";
+import { dateValue, leadSchema, safeCsv, taxRate } from "../src/lib/validation";
 import { predict, scoreLead } from "../src/lib/model";
 import parity from "../ml/parity.json";
 import { analyse, defaultFilters } from "../src/lib/analytics";
@@ -176,4 +176,12 @@ test("missing ML response input is not silently coerced to zero", () => {
     leadSchema.parse({ ...base, firstResponseHours: "0" }).firstResponseHours,
     0,
   );
+});
+
+test("fractional tax inputs use exact decimal parsing, not binary float rounding", () => {
+  assert.equal(taxRate.parse("8.03"), 803);
+  assert.equal(taxRate.parse(5), 500);
+  assert.equal(quoteTotal(10000, 1, 0, taxRate.parse("8.03")), 10803);
+  assert.equal(taxRate.safeParse("100.01").success, false);
+  assert.equal(taxRate.safeParse("8.031").success, false);
 });

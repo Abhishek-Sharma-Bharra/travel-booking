@@ -21,11 +21,26 @@ async function main() {
   glue.__wbg_set_wasm(instance.exports);
   (instance.exports.__wbindgen_start as CallableFunction)();
   const schema = await readFile("prisma/schema.prisma", "utf8");
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new pg.Pool({
+    connectionString:
+      process.env.MIGRATION_DATABASE_URL || process.env.DATABASE_URL,
+  });
+  const adapterFactory = new PrismaPg(pool);
+  const connect = adapterFactory.connect.bind(adapterFactory);
+  adapterFactory.connect = async () => {
+    const adapter = await connect();
+    // PrismaPg 7.10.1 naively splits scripts at every semicolon, including
+    // semicolons inside PL/pgSQL trigger bodies. Let PostgreSQL parse the
+    // entire trusted migration script instead; simple-query batches are atomic.
+    adapter.executeScript = async (script: string) => {
+      await adapter.underlyingDriver().query(script);
+    };
+    return adapter;
+  };
   const engine = await glue.SchemaEngine.new(
     { datamodels: [["schema.prisma", schema]] },
     () => {},
-    bindMigrationAwareSqlAdapterFactory(new PrismaPg(pool)),
+    bindMigrationAwareSqlAdapterFactory(adapterFactory),
   );
   try {
     if (process.argv.includes("--initial")) {

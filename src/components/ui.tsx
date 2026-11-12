@@ -1,4 +1,5 @@
 "use client";
+import { useRef, useEffect } from "react";
 import { X, Download } from "lucide-react";
 import { safeCsv } from "@/lib/validation";
 export type Field = {
@@ -21,6 +22,49 @@ export function Modal({
   children: React.ReactNode;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLElement>(null),
+    closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusables = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]',
+        ) ?? [],
+      ).filter((el) => el.getClientRects().length > 0);
+    (focusables()[0] ?? dialogRef.current)?.focus();
+    const keydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeRef.current();
+        return;
+      }
+      if (e.key === "Tab") {
+        const els = focusables(),
+          first = els[0],
+          last = els.at(-1);
+        if (!first) {
+          e.preventDefault();
+          dialogRef.current?.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      document.body.style.overflow = oldOverflow;
+      previous?.focus();
+    };
+  }, []);
   return (
     <div
       className="modal-backdrop"
@@ -30,6 +74,8 @@ export function Modal({
     >
       <section
         className="modal"
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={title}

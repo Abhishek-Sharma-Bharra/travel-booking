@@ -68,7 +68,7 @@ export function scoreLead(l: Scorable) {
     scoreReason: terms
       .map(
         (t) =>
-          `${t.name}: ${t.weight >= 0 ? "raises" : "lowers"} model score relative to synthetic average`,
+          `${({ budget_ratio: "Budget compared with quoted price", lead_days: "Time before travel", travellers: "Group size", first_response_hours: "Recorded response time", repeat_customer: "Repeat customer status", itinerary_requested: "Itinerary request" } as Record<string, string>)[t.name] || "Recorded travel information"}: ${t.weight >= 0 ? "increases" : "decreases"} this synthetic model output; not real-world evidence`,
       )
       .join("; "),
     modelVersion: model.version,
