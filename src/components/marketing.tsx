@@ -1,36 +1,58 @@
 import Link from "next/link";
-import { Compass, ArrowUpRight } from "lucide-react";
+import { Compass, ArrowUpRight, ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 const links = [
   ["/features", "Features"],
   ["/pricing", "Pricing"],
   ["/product-demo", "Demo"],
+  ["/guides/enquiry-to-booking", "Guides"],
   ["/contact", "Contact"],
 ];
 export function MarketingHeader({ path = "/" }: { path?: string }) {
   return (
-    <nav className="landing-nav marketing-nav" aria-label="Main navigation">
-      <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
-        <Compass size={32} />
-        <span>
-          vashisht<span className="brand-sub">TRAVELOS</span>
-        </span>
-      </Link>
-      <div className="marketing-links">
-        {links.map(([href, label]) => (
-          <Link
-            key={href}
-            href={href}
-            aria-current={path === href ? "page" : undefined}
-          >
-            {label}
+    <header className="public-header">
+      <nav className="landing-nav marketing-nav" aria-label="Main navigation">
+        <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
+          <Compass size={34} strokeWidth={1.7} />
+          <span>
+            vashisht<span className="brand-sub">TRAVELOS</span>
+          </span>
+        </Link>
+        <div className="marketing-links">
+          {links.map(([href, label]) => (
+            <Link
+              key={href}
+              href={href}
+              aria-current={path === href ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+        <div className="public-nav-actions">
+          <Link className="public-login" href="/login">
+            Sign in <ArrowUpRight size={16} />
           </Link>
-        ))}
+          <Link className="btn primary public-create" href="/login?signup=1">
+            Create workspace
+          </Link>
+        </div>
+      </nav>
+      <div className="public-product-bar">
+        <div className="public-container">
+          <Link href="/" className="public-product-name">
+            Travel agency software
+          </Link>
+          <nav aria-label="Product navigation">
+            <Link href="/">Overview</Link>
+            <Link href="/features">Capabilities</Link>
+            <Link href="/contact">
+              Talk to us <ArrowRight size={15} />
+            </Link>
+          </nav>
+        </div>
       </div>
-      <Link className="btn secondary" href="/login">
-        Sign in <ArrowUpRight size={16} />
-      </Link>
-    </nav>
+    </header>
   );
 }
 export function MarketingFooter() {
