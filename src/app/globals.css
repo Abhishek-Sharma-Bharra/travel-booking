@@ -4093,3 +4093,385 @@ summary:focus-visible {
     font-size: 11px;
   }
 }
+
+/* Compact workspace layout and contextual onboarding. Public pages are separate. */
+.app-shell {
+  --paper: #f3f5f8;
+  --line: #dce3eb;
+  background: #f3f5f8;
+}
+.app-shell .sidebar {
+  width: 218px;
+  padding: 22px 13px 0;
+}
+.app-shell .sidebar > .brand {
+  margin: 0 10px 22px;
+}
+.app-shell .workspace-switch {
+  margin-bottom: 12px;
+  padding: 10px 9px;
+}
+.app-shell .workspace-switch strong {
+  max-width: 137px;
+}
+.app-shell .nav-group {
+  margin: 15px 10px 7px;
+  letter-spacing: 1.2px;
+}
+.app-shell .nav-item {
+  padding: 9px 10px;
+  margin: 2px 0;
+  border-radius: 7px;
+}
+.app-shell .nav-item.active {
+  background: #30415b;
+  box-shadow: inset 3px 0 #c65d36;
+  color: #ffdabd;
+}
+.app-shell .help-card {
+  display: none;
+}
+.app-shell .user-box {
+  padding: 14px 4px;
+}
+.app-shell .main-area {
+  margin-left: 218px;
+}
+.app-shell .topbar {
+  height: 54px;
+  padding-inline: 24px;
+  background: #fff;
+}
+.app-shell .topbar-right {
+  gap: 15px;
+}
+.app-shell .page-content {
+  padding: 22px 24px 0;
+}
+.app-shell .page-heading {
+  background: #fff;
+  border: 1px solid #dce3eb;
+  border-radius: 11px;
+  padding: 17px 20px;
+  margin-bottom: 16px;
+  min-height: 88px;
+}
+.app-shell .page-heading .eyebrow {
+  display: none;
+}
+.app-shell .page-heading h1 {
+  font-size: 27px;
+  line-height: 1.25;
+  letter-spacing: -0.7px;
+}
+.app-shell .page-heading p {
+  margin-top: 5px;
+  line-height: 1.6;
+  font-size: 11px;
+}
+.app-shell .heading-actions {
+  padding-top: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.app-shell .heading-actions .btn {
+  min-height: 36px;
+  font-size: 10px;
+  padding: 9px 12px;
+}
+.app-shell .heading-actions .tour-trigger {
+  order: 10;
+  border-color: #ccd6e2;
+  background: #fff;
+  color: #34475e;
+}
+.app-shell .filter-bar {
+  margin-bottom: 17px;
+  border-color: #dce3eb;
+  border-radius: 9px;
+}
+.app-shell .section-label {
+  margin-block: 2px 10px;
+}
+.app-shell .dashboard-metrics {
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.app-shell .dashboard-metrics .metric {
+  position: relative;
+  min-height: 145px;
+  background: #fff;
+  color: #243247;
+  border-color: #dce3eb;
+  box-shadow: none;
+  padding: 18px 18px 19px;
+  overflow: hidden;
+}
+.app-shell .dashboard-metrics .metric::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: #587da8;
+}
+.app-shell .dashboard-metrics .metric:nth-child(2)::after {
+  background: #8d81b0;
+}
+.app-shell .dashboard-metrics .metric:nth-child(3)::after {
+  background: #c65d36;
+}
+.app-shell .dashboard-metrics .metric:nth-child(4)::after {
+  background: #b28a49;
+}
+.app-shell .dashboard-metrics .metric-top {
+  color: #53637a;
+  font-size: 11px;
+}
+.app-shell .dashboard-metrics .metric-top svg {
+  color: #8596aa;
+}
+.app-shell .dashboard-metrics .metric > strong {
+  font-size: 31px;
+  color: #243247;
+  margin: 14px 0 11px;
+  line-height: 1;
+}
+.app-shell .dashboard-metrics .metric > small {
+  color: #768499;
+  font-size: 9px;
+  border-top: 1px solid #edf0f5;
+  padding-top: 10px;
+  display: block;
+  line-height: 1.5;
+}
+.app-shell .dashboard-metric-note {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: #f8fafc;
+  border-color: #dce3eb;
+}
+.app-shell .dashboard-metric-note p {
+  margin: 0;
+  color: #69788b;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.app-shell .dashboard-metric-note .btn {
+  flex-shrink: 0;
+  font-size: 10px;
+  padding: 9px 11px;
+}
+.tour-layer.tour-anchored {
+  position: fixed;
+  inset: 0;
+  display: block;
+  padding: 0;
+  background: transparent;
+  z-index: 2000;
+  pointer-events: none;
+}
+.tour-shades > div,
+.tour-wait-shade {
+  position: fixed;
+  background: rgba(12, 20, 32, 0.59);
+  pointer-events: auto;
+}
+.tour-wait-shade {
+  inset: 0;
+}
+.tour-spotlight {
+  position: fixed;
+  border: 2px solid #ce784d;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(255, 225, 204, 0.25);
+  pointer-events: auto;
+}
+.tour-highlight {
+  outline: none;
+  outline-offset: 0;
+  background: inherit;
+  border-radius: 11px;
+  scroll-margin-top: 18px;
+}
+.tour-anchored .tour-card {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: min(328px, calc(100vw - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 20px;
+  background: #fff;
+  color: #243247;
+  border: 1px solid #d8e1eb;
+  border-radius: 12px;
+  box-shadow: 0 16px 50px #0d19263d;
+  pointer-events: auto;
+}
+.tour-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.tour-card .tour-card-top > p {
+  color: #a25131;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 0;
+}
+.tour-card-top .icon-button {
+  width: 24px;
+  height: 24px;
+  color: #7b8999;
+}
+.tour-context {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 10px;
+  color: #627185;
+}
+.tour-compass {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  background: #f6e9df;
+  color: #aa5433;
+  border-radius: 7px;
+}
+.tour-anchored .tour-card h2 {
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 15px 0 10px;
+  letter-spacing: -0.25px;
+}
+.tour-anchored .tour-card > p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #5f6d7e;
+  margin: 0;
+}
+.tour-screen-note {
+  font-size: 9px;
+  color: #7a8898;
+  margin-top: 13px;
+}
+.tour-screen-note span {
+  color: #7e634e;
+  letter-spacing: 0.5px;
+}
+.tour-progress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 22px;
+}
+.tour-progress > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 5px;
+  background: #d9e0e8;
+}
+.tour-progress > span.active {
+  width: 17px;
+  background: #c65d36;
+}
+.tour-anchored .tour-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 17px;
+}
+.tour-actions > span {
+  flex: 1;
+}
+.tour-anchored .tour-actions .btn {
+  padding: 9px 10px;
+  min-height: 35px;
+  font-size: 10px;
+}
+.tour-anchored .tour-actions .text-button {
+  font-size: 10px;
+  color: #6c7b8e;
+}
+@media (max-width: 1000px) {
+  .app-shell .page-heading {
+    align-items: flex-start;
+  }
+  .app-shell .heading-actions {
+    max-width: 310px;
+  }
+  .app-shell .dashboard-metric-note {
+    align-items: flex-start;
+  }
+}
+@media (max-width: 700px) {
+  .app-shell .sidebar {
+    width: 218px;
+  }
+  .app-shell .main-area {
+    margin-left: 0;
+  }
+  .app-shell .topbar {
+    padding-inline: 16px;
+  }
+  .app-shell .page-content {
+    padding: 16px 14px 0;
+  }
+  .app-shell .page-heading {
+    flex-direction: column;
+    padding: 16px;
+    gap: 13px;
+  }
+  .app-shell .page-heading h1 {
+    font-size: 24px;
+  }
+  .app-shell .heading-actions {
+    max-width: none;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 6px;
+  }
+  .app-shell .heading-actions .btn {
+    font-size: 9px;
+    padding: 9px 10px;
+  }
+  .app-shell .dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .app-shell .dashboard-metrics .metric {
+    min-height: 140px;
+    padding: 14px 12px 17px;
+  }
+  .app-shell .dashboard-metrics .metric > strong {
+    font-size: clamp(17px, 4.7vw, 24px);
+  }
+  .app-shell .dashboard-metrics .metric-top {
+    font-size: 10px;
+  }
+  .app-shell .dashboard-metric-note {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tour-anchored .tour-card {
+    padding: 18px;
+  }
+}
+@media (max-width: 380px) {
+  .app-shell .dashboard-metrics {
+    grid-template-columns: 1fr;
+  }
+  .app-shell .topbar-right .top-pill {
+    font-size: 8px;
+  }
+}

@@ -28,6 +28,25 @@ test("first login tour uses real screens, persists skip and completion, restarts
   });
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("OWNER");
+  const spotlight = page.locator(".tour-spotlight");
+  await expect(spotlight).toBeVisible();
+  const headingBox = await page
+    .locator('[data-tour-page="Overview"]')
+    .boundingBox();
+  const spotlightBox = await spotlight.boundingBox();
+  const cardBox = await dialog.boundingBox();
+  expect(headingBox).not.toBeNull();
+  expect(spotlightBox!.x).toBeLessThanOrEqual(headingBox!.x);
+  expect(spotlightBox!.y).toBeLessThanOrEqual(headingBox!.y);
+  expect(spotlightBox!.x + spotlightBox!.width).toBeGreaterThanOrEqual(
+    headingBox!.x + headingBox!.width - 1,
+  );
+  expect(cardBox!.y).toBeGreaterThanOrEqual(headingBox!.y + headingBox!.height);
+  expect(cardBox!.width).toBeLessThanOrEqual(340);
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe(
+    "hidden",
+  );
+
   await dialog.getByRole("button", { name: "Next step" }).click();
   await expect(page.locator('[data-tour-page="Enquiries"]')).toBeVisible();
   await expect(dialog).toContainText("Keep every enquiry moving");
@@ -39,6 +58,9 @@ test("first login tour uses real screens, persists skip and completion, restarts
   await expect(page.locator('[data-tour-page="Overview"]')).toBeVisible();
   await dialog.getByRole("button", { name: "Skip tour" }).click();
   await expect(dialog).toBeHidden();
+  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe(
+    "hidden",
+  );
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Every journey starts here." }),
@@ -56,6 +78,10 @@ test("first login tour uses real screens, persists skip and completion, restarts
   expect(
     await page.evaluate(() => Math.abs(window.scrollX)),
   ).toBeLessThanOrEqual(1);
+  const mobileCard = await dialog.boundingBox();
+  expect(mobileCard!.x).toBeGreaterThanOrEqual(0);
+  expect(mobileCard!.x + mobileCard!.width).toBeLessThanOrEqual(390);
+  expect(mobileCard!.y + mobileCard!.height).toBeLessThanOrEqual(845);
   await page.screenshot({ path: "test-results/tour-mobile.png" });
   for (let i = 0; i < 9; i++) {
     await dialog.getByRole("button", { name: "Next step" }).click();

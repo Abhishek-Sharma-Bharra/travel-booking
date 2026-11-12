@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ArrowRight, X, Compass, ChevronDown } from "lucide-react";
 import { tourSteps } from "@/lib/tour-steps";
 export default function GuidedTour({
   role,
@@ -16,6 +18,15 @@ export default function GuidedTour({
     [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const [placement, setPlacement] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+    cardTop: number;
+    cardLeft: number;
+    cardWidth: number;
+  } | null>(null);
   const panel = useRef<HTMLElement>(null),
     navigateRef = useRef(navigate),
     stepRef = useRef(step),
@@ -55,6 +66,8 @@ export default function GuidedTour({
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     panel.current?.querySelector<HTMLButtonElement>("button")?.focus();
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -81,6 +94,7 @@ export default function GuidedTour({
     document.addEventListener("keydown", key);
     return () => {
       document.removeEventListener("keydown", key);
+      document.body.style.overflow = overflow;
       previous?.focus();
     };
   }, [open]);
@@ -93,18 +107,75 @@ export default function GuidedTour({
     }
     autoPending.current = false;
     navigateRef.current(selected.page);
-    const timer = setTimeout(() => {
-      const target = document.querySelector<HTMLElement>(
+    setPlacement(null);
+    let frame = 0;
+    let searchFrame = 0;
+    let target: HTMLElement | null = null;
+    let observer: ResizeObserver | undefined;
+    let tries = 0;
+    const measure = () => {
+      if (!target) return;
+      const r = target.getBoundingClientRect();
+      const vw = document.documentElement.clientWidth,
+        vh = window.innerHeight;
+      const top = Math.max(6, r.top - 5),
+        left = Math.max(6, r.left - 5);
+      const width = Math.max(0, Math.min(vw - 6, r.right + 5) - left);
+      const height = Math.max(0, Math.min(vh - 6, r.bottom + 5) - top);
+      const cardWidth = Math.min(328, vw - 24),
+        cardHeight = panel.current?.offsetHeight ?? 350;
+      const cardLeft = Math.max(12, Math.min(left, vw - cardWidth - 12));
+      const below = top + height + 15;
+      const above = top - cardHeight - 15;
+      const cardTop =
+        vw < 700
+          ? Math.max(12, vh - cardHeight - 12)
+          : below + cardHeight <= vh - 12
+            ? below
+            : above >= 12
+              ? above
+              : Math.max(12, vh - cardHeight - 12);
+      setPlacement({ top, left, width, height, cardTop, cardLeft, cardWidth });
+    };
+    const schedule = () => {
+      if (!target) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    const findTarget = () => {
+      target = document.querySelector<HTMLElement>(
         `[data-tour-page="${selected.page}"]`,
       );
-      target?.classList.add("tour-highlight");
-      target?.scrollIntoView({ block: "start", behavior: "instant" });
-    }, 50);
+      if (!target) {
+        if (tries++ < 30) searchFrame = requestAnimationFrame(findTarget);
+        return;
+      }
+      target.classList.add("tour-highlight");
+      window.scrollTo({
+        top: Math.max(
+          0,
+          window.scrollY + target.getBoundingClientRect().top - 18,
+        ),
+        left: 0,
+        behavior: "instant",
+      });
+      measure();
+      observer = new ResizeObserver(schedule);
+      observer.observe(target);
+      if (panel.current) observer.observe(panel.current);
+    };
+    searchFrame = requestAnimationFrame(findTarget);
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
+    window.visualViewport?.addEventListener("resize", schedule);
     return () => {
-      clearTimeout(timer);
-      document
-        .querySelectorAll(".tour-highlight")
-        .forEach((x) => x.classList.remove("tour-highlight"));
+      cancelAnimationFrame(frame);
+      cancelAnimationFrame(searchFrame);
+      observer?.disconnect();
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
+      window.visualViewport?.removeEventListener("resize", schedule);
+      target?.classList.remove("tour-highlight");
     };
   }, [open, selected.page]);
   async function save(next: number, status: "ACTIVE" | "SKIPPED" | "COMPLETE") {
@@ -137,7 +208,7 @@ export default function GuidedTour({
   return (
     <>
       <button
-        className="btn"
+        className="btn tour-trigger"
         onClick={() => {
           autoPending.current = false;
           setStep(0);
@@ -146,63 +217,149 @@ export default function GuidedTour({
         }}
         disabled={open}
       >
-        Take a Tour
+        <Compass size={15} /> Take a Tour <ChevronDown size={13} />
       </button>
-      {open && (
-        <div className="tour-layer">
-          <section
-            className="tour-card"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Workspace tour"
-            ref={panel}
-            tabIndex={-1}
-          >
-            <p className="eyebrow">
-              TAKE A TOUR · {role} · {step + 1} / {steps.length}
-            </p>
-            <h2>{selected.title}</h2>
-            <p>{selected.text}</p>
-            <p className="muted">
-              Screen: {selected.page}. No business records are changed by this
-              walkthrough.
-            </p>
-            {error && (
-              <p role="alert" className="error-box">
-                {error}
-              </p>
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="tour-layer tour-anchored">
+            {placement ? (
+              <div className="tour-shades" aria-hidden="true">
+                <div
+                  style={{ top: 0, left: 0, right: 0, height: placement.top }}
+                />
+                <div
+                  style={{
+                    top: placement.top + placement.height,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                  }}
+                />
+                <div
+                  style={{
+                    top: placement.top,
+                    left: 0,
+                    width: placement.left,
+                    height: placement.height,
+                  }}
+                />
+                <div
+                  style={{
+                    top: placement.top,
+                    left: placement.left + placement.width,
+                    right: 0,
+                    height: placement.height,
+                  }}
+                />
+                <span
+                  className="tour-spotlight"
+                  style={{
+                    top: placement.top,
+                    left: placement.left,
+                    width: placement.width,
+                    height: placement.height,
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="tour-wait-shade" aria-hidden="true" />
             )}
-            <div className="tour-actions">
-              <button
-                className="btn"
-                disabled={busy}
-                onClick={() => void save(step, "SKIPPED")}
-              >
-                Skip tour
-              </button>
-              <button
-                className="btn"
-                disabled={busy || step === 0}
-                onClick={() => void save(step - 1, "ACTIVE")}
-              >
-                Back
-              </button>
-              <button
-                className="btn primary"
-                disabled={busy}
-                onClick={() =>
-                  void save(
-                    Math.min(step + 1, steps.length - 1),
-                    step === steps.length - 1 ? "COMPLETE" : "ACTIVE",
-                  )
-                }
-              >
-                {step === steps.length - 1 ? "Finish tour" : "Next step"}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+            <section
+              className="tour-card"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Workspace tour"
+              aria-describedby="workspace-tour-description"
+              ref={panel}
+              tabIndex={-1}
+              style={
+                placement
+                  ? {
+                      top: placement.cardTop,
+                      left: placement.cardLeft,
+                      width: placement.cardWidth,
+                    }
+                  : undefined
+              }
+            >
+              <div className="tour-card-top">
+                <p>
+                  STEP {step + 1} OF {steps.length}
+                </p>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label="Close tour"
+                  disabled={busy}
+                  onClick={() => void save(step, "SKIPPED")}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="tour-context">
+                <span className="tour-compass">
+                  <Compass size={18} />
+                </span>
+                <span>Welcome to TravelOS</span>
+              </div>
+              <h2>{selected.title}</h2>
+              <p id="workspace-tour-description">{selected.text}</p>
+              <div className="tour-screen-note">
+                <span>{role}</span> · {selected.page}
+              </div>
+              {error && (
+                <p role="alert" className="error-box">
+                  {error}
+                </p>
+              )}
+              <div className="tour-progress" aria-label="Tour progress">
+                {steps.map((s, i) => (
+                  <span
+                    key={s.page}
+                    className={i === step ? "active" : ""}
+                    aria-current={i === step ? "step" : undefined}
+                  >
+                    <span className="sr-only">
+                      Step {i + 1}: {s.title}
+                    </span>
+                  </span>
+                ))}
+              </div>
+              <div className="tour-actions">
+                <button
+                  className="text-button"
+                  disabled={busy}
+                  onClick={() => void save(step, "SKIPPED")}
+                >
+                  Skip tour
+                </button>
+                <span />
+                <button
+                  className="btn"
+                  disabled={busy || step === 0}
+                  onClick={() => void save(step - 1, "ACTIVE")}
+                >
+                  Back
+                </button>
+                <button
+                  className="btn primary"
+                  disabled={busy}
+                  onClick={() =>
+                    void save(
+                      Math.min(step + 1, steps.length - 1),
+                      step === steps.length - 1 ? "COMPLETE" : "ACTIVE",
+                    )
+                  }
+                >
+                  {step === steps.length - 1 ? "Finish tour" : "Next step"}
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
