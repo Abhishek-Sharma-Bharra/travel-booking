@@ -90,3 +90,5 @@ The in-app **Subscription** page shows plan, usage and expiry and lets owners re
 ### Phase 1 advanced KPI dashboard
 
 Open **Analytics** for tenant-scoped server aggregates, agency reporting timezones, comparisons, trends, paginated breakdowns and CSV. Manual receipts and verified-provider data are distinct; incomplete financial data stays unavailable. Owner advertising and manager direct-cost declarations are explicit and revision-protected. See [Phase 1 setup, metric definitions and staging limits](docs/phase-1/README.md). Render production has not been migrated.
+
+Open **BI Reports** for configurable metrics, period comparisons, line/bar trends, group drill-down, CSV exports and browser-local personal report views. See [BI usage, data definitions and limitations](docs/BI-REPORTS.md). No additional database migration is needed.

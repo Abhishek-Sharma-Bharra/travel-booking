@@ -20,6 +20,9 @@ const SubscriptionPage = dynamic(() => import("./subscription"), {
 const AdvancedAnalytics = dynamic(() => import("./advanced-analytics"), {
   loading: loadingPanel,
 });
+const BiReports = dynamic(() => import("./bi-reports"), {
+  loading: loadingPanel,
+});
 const Messaging = dynamic(() => import("./messaging"), {
   loading: loadingPanel,
 });
@@ -89,6 +92,7 @@ const navigation = [
     items: [
       ["Overview", LayoutDashboard],
       ["Analytics", BarChart3],
+      ["BI Reports", FileText],
       ["Enquiries", Users],
       ["Packages", Package],
       ["Quotations", FileText],
@@ -117,6 +121,8 @@ const navigation = [
   },
 ] as const;
 const subtitles: Record<string, string> = {
+  "BI Reports":
+    "Build, compare and save personal views of your recorded performance.",
   Analytics:
     "Precise server-calculated KPIs, clear coverage and reporting periods.",
   Overview:
@@ -1190,6 +1196,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             ![
               "Settings",
               "Analytics",
+              "BI Reports",
               "Integrations",
               "Messaging",
               "Automation",
@@ -1291,6 +1298,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           {(page === "Analytics" || (page === "Overview" && !manager)) && (
             <AdvancedAnalytics data={data} onChange={run} />
           )}
+          {page === "BI Reports" && <BiReports data={data} />}
           {page === "Enquiries" && (
             <AssistantPanel
               data={data}

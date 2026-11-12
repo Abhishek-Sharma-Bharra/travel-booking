@@ -5,7 +5,6 @@ const links = [
   ["/features", "Features"],
   ["/pricing", "Pricing"],
   ["/product-demo", "Demo"],
-  ["/guides/enquiry-to-booking", "Resources"],
   ["/contact", "Contact"],
 ];
 export function MarketingHeader({ path = "/" }: { path?: string }) {
@@ -28,15 +27,9 @@ export function MarketingHeader({ path = "/" }: { path?: string }) {
           </Link>
         ))}
       </div>
-      <div className="crm-header-actions">
-        <Link className="crm-login" href="/login">
-          Sign in
-        </Link>
-        <Link className="btn primary" href="/login?signup=1">
-          <span className="crm-signup-long">Create your agency</span>
-          <span className="crm-signup-short">Sign up</span>
-        </Link>
-      </div>
+      <Link className="btn secondary" href="/login">
+        Sign in <ArrowUpRight size={16} />
+      </Link>
     </nav>
   );
 }

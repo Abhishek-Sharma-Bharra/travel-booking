@@ -3357,576 +3357,126 @@ summary:focus-visible {
   }
 }
 
-/* Simple CRM public website, inspired by the supplied centered reference. */
-.landing {
-  --navy: #1d1d1f;
-  --ink: #242428;
-  --muted: #52545b;
-  --paper: #fff;
-  --line: #e2e4e9;
-  --copper: #dc2637;
-  --copper-strong: #bf1c2c;
-  padding: 0;
-  background: #fff;
-  color: #242428;
-}
-.crm-public-container {
-  width: min(1200px, calc(100% - 64px));
-  margin-inline: auto;
-}
-.landing .marketing-nav {
-  width: min(1400px, calc(100% - 64px));
-  height: 78px;
-  gap: 38px;
-  margin: auto;
-  border: 0;
-}
-.landing .brand {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  color: #15171b;
-}
-.landing .brand > svg {
-  color: #0674c9;
-}
-.landing .brand-sub {
-  color: #252930;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 2.4px;
-  margin-top: 4px;
-}
-.landing .marketing-links {
-  flex: 1;
-  justify-content: center;
-  gap: 33px;
-}
-.landing .marketing-links a {
-  color: #202126;
-  font-size: 15px;
-  font-weight: 400;
-  padding-block: 13px;
-}
-.landing .marketing-links a[aria-current="page"] {
-  color: #0966c2;
-  text-decoration-color: #0966c2;
-}
-.landing a:focus-visible,
-.landing button:focus-visible {
-  outline: 2px solid #0966c2;
-  outline-offset: 4px;
-}
-.crm-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-.crm-login {
-  font-size: 13px;
-  white-space: nowrap;
-}
-.landing .btn {
-  box-shadow: none;
-  border-radius: 3px;
-  min-height: 45px;
-  padding: 13px 22px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.landing .btn.primary {
-  background: #dc2637;
-  border-color: #dc2637;
-  color: white;
-}
-.landing .btn.primary:hover {
-  background: #bf1c2c;
-  border-color: #bf1c2c;
-}
-.landing .btn.secondary {
-  background: transparent;
-  border-color: #878b94;
-  color: #252930;
-}
-.landing .btn.secondary:hover {
-  background: #f1f3f7;
-}
-.crm-hero {
-  background: linear-gradient(#fff7eb 0%, #fffaf3 48%, #fff 100%);
-  border-top: 1px solid #e9e6e0;
-  padding: 90px 0 0;
-}
-.crm-hero > .crm-public-container {
-  text-align: center;
-}
-.crm-kicker {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.8px;
-  color: #6a5e50;
-  line-height: 1.6;
-}
-.crm-hero h1 {
-  font:
-    500 clamp(38px, 4.5vw, 66px)/1.16 Arial,
-    Helvetica,
-    sans-serif;
-  letter-spacing: -2px;
-  color: #202124;
-  margin: 24px 0;
-}
-.crm-hero-intro {
-  max-width: 1050px;
-  margin: 0 auto;
-  font-size: 20px;
-  line-height: 1.8;
-  color: #34363d;
-}
-.crm-hero .hero-actions {
-  justify-content: center;
-  gap: 14px;
-  margin-top: 28px;
-}
-.crm-demo-note {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  color: #73767d;
-  font-size: 10px;
-  margin-top: 17px;
-  line-height: 1.7;
-}
-.crm-preview-frame {
-  width: min(1200px, calc(100% - 64px));
-  margin: 54px auto 0;
-  padding: 26px 30px 30px;
-  background: #f0f3ff;
-  border-radius: 12px;
-}
-.crm-showcase {
-  min-width: 0;
-}
-.crm-preview-tabs {
-  display: flex;
-  gap: 28px;
-  margin: 0 0 20px;
-  border-bottom: 1px solid #d7dfef;
-}
-.crm-preview-tabs button {
-  font-size: 12px;
-  color: #5a6479;
-  background: transparent;
-  border: 0;
-  padding: 10px 3px 14px;
-  border-bottom: 2px solid transparent;
-}
-.crm-preview-tabs button[aria-selected="true"] {
-  color: #086ac5;
-  border-bottom-color: #086ac5;
-}
-.crm-preview-panel {
-  background: white;
-  border: 1px solid #dce3ee;
-  border-radius: 6px;
-  overflow: hidden;
-}
-.crm-preview-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 15px 20px;
-  font-size: 11px;
-  color: #303e55;
-  border-bottom: 1px solid #e6ebf2;
-}
-.crm-preview-bar span:last-child {
-  color: #78859a;
-  font-size: 8px;
-  letter-spacing: 1px;
-}
-.crm-preview-panel img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.crm-preview-panel > p {
-  padding: 16px 20px;
-  font-size: 12px;
-  line-height: 1.7;
-  color: #657087;
-  border-top: 1px solid #e6ebf2;
-}
-.crm-benefits {
-  padding-block: 90px 75px;
-  text-align: center;
-}
-.crm-benefits h2,
-.crm-workflow h2,
-.crm-last-call h2 {
-  font:
-    500 clamp(30px, 3.5vw, 45px)/1.2 Arial,
-    Helvetica,
-    sans-serif;
-  letter-spacing: -1.3px;
-  color: #202124;
-  margin: 18px 0;
-}
-.crm-benefits header > p:last-child {
-  font-size: 17px;
-  line-height: 1.8;
-  color: #5d626d;
-}
-.crm-benefit-grid {
+.bi-filter-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 38px;
-  text-align: left;
-  margin: 44px 0 28px;
+  gap: 16px;
+  margin: 22px 0;
 }
-.crm-benefit-grid article {
-  padding: 28px 0;
-  border-top: 2px solid #c8d6ee;
-}
-.crm-benefit-grid article > span {
-  font-size: 11px;
-  color: #086ac5;
-}
-.crm-benefit-grid h3 {
-  font-size: 21px;
-  font-weight: 500;
-  line-height: 1.4;
-  margin: 17px 0 13px;
-}
-.crm-benefit-grid p {
-  font-size: 14px;
-  line-height: 1.9;
-  color: #626976;
-}
-.crm-inline-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #086ac5;
-  font-size: 13px;
-  border-bottom: 1px solid #86b3dd;
-  padding-bottom: 6px;
-}
-.crm-workflow {
-  background: #f8faff;
-  padding-block: 70px;
-  border-block: 1px solid #e5eaf5;
-}
-.crm-workflow header {
-  text-align: center;
-}
-.crm-workflow header > p {
-  max-width: 700px;
-  margin: auto;
-  font-size: 17px;
-  line-height: 1.8;
-  color: #5d626d;
-}
-.crm-workflow ol {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 34px;
-  margin: 44px 0 30px;
-}
-.crm-workflow li > span {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  background: #e6edff;
-  color: #2065b5;
-  border-radius: 50%;
+.bi-reports label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
   font-size: 12px;
+  min-width: 0;
 }
-.crm-workflow h3 {
-  font-size: 19px;
-  font-weight: 500;
-  margin: 17px 0 12px;
+.bi-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 18px 0;
 }
-.crm-workflow li p {
-  font-size: 13px;
-  line-height: 1.85;
-  color: #626976;
+.bi-toolbar label {
+  min-width: 180px;
 }
-.crm-last-call {
-  padding-block: 75px;
-  text-align: center;
-}
-.crm-last-call > p {
-  max-width: 780px;
-  margin: auto;
-  font-size: 17px;
-  line-height: 1.8;
-  color: #5d626d;
-}
-.crm-last-call .hero-actions {
-  justify-content: center;
-  margin-top: 28px;
-}
-.landing .marketing-footer {
-  margin: 0;
-  padding: 32px max(32px, calc((100vw - 1200px) / 2));
-  border-top: 1px solid #e2e4e9;
-  background: #fff;
-  min-height: 125px;
-  align-items: center !important;
+.bi-toolbar > span {
+  align-self: center;
   font-size: 11px;
+  color: var(--muted);
 }
-.landing .marketing-footer strong {
-  font-size: 17px;
-  color: #252930;
-}
-.landing .marketing-footer p {
-  font-size: 10px;
-  color: #737985;
-}
-.landing .marketing-footer nav {
-  line-height: 1.8;
-  gap: 22px;
-}
-.marketing-page > .marketing-intro {
-  max-width: 1200px;
-  width: calc(100% - 64px);
-  margin: auto;
-  padding: 76px 0 46px;
-  text-align: center;
-}
-.marketing-page .marketing-intro h1 {
-  font:
-    500 clamp(36px, 4.3vw, 59px)/1.17 Arial,
-    Helvetica,
-    sans-serif;
-  letter-spacing: -1.8px;
-  color: #202124;
+.bi-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 15px;
   margin: 20px 0;
 }
-.marketing-page .marketing-intro .eyebrow {
-  color: #6a5e50;
-}
-.marketing-page .marketing-intro > p {
-  font-size: 18px;
-  line-height: 1.85;
-  margin: auto;
-}
-.marketing-page > .marketing-grid {
-  width: min(1200px, calc(100% - 64px));
-  margin-inline: auto;
-}
-.marketing-page .marketing-card {
-  border-radius: 7px;
-  padding: 30px;
+.bi-summary {
   background: #fff;
-  border: 1px solid #e1e5ec;
-  box-shadow: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 0;
 }
-.marketing-page .marketing-card h2 {
+.bi-summary h3 {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.bi-summary > strong {
+  display: block;
   font-size: 25px;
-  font-weight: 500;
-  line-height: 1.3;
+  margin: 17px 0;
+  overflow-wrap: anywhere;
 }
-.marketing-page .marketing-price {
-  color: #252930;
-  font-size: 22px;
+.bi-summary > p,
+.bi-summary > small {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
 }
-.marketing-page > .marketing-copy {
-  max-width: 1200px;
-  width: calc(100% - 64px);
-  margin-inline: auto;
-  padding-block: 32px 55px;
+.bi-summary details {
+  margin-top: 14px;
+  font-size: 11px;
+  line-height: 1.8;
 }
-.marketing-page > .marketing-copy > p {
-  max-width: 900px;
+.bi-summary summary {
+  cursor: pointer;
 }
-.marketing-page .marketing-copy h2 {
-  font-size: 28px;
-  font-weight: 500;
-  line-height: 1.35;
+.bi-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
 }
-.marketing-page > .marketing-callout {
-  width: min(1200px, calc(100% - 64px));
-  margin: 24px auto 64px;
+.bi-choice-grid label {
+  flex-direction: row;
+  align-items: flex-start;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.bi-choice-grid input {
+  width: 15px;
+  min-width: 15px;
+  margin-top: 2px;
+}
+.bi-chart {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  margin: 20px 0;
+  background: #fafbfd;
+  border: 1px solid #e8ecf3;
   border-radius: 8px;
-  background: #fff7eb;
-  border-color: #eee3d5;
-  padding: 40px;
 }
-.marketing-page .marketing-callout h2 {
-  font-size: 34px;
-  font-weight: 500;
-  line-height: 1.25;
+.bi-reports .table-scroll {
+  margin: 18px 0;
 }
-@media (max-width: 1000px) {
-  .landing .marketing-nav {
-    gap: 24px;
-  }
-  .landing .marketing-links {
-    gap: 23px;
-  }
-
-  .crm-hero {
-    padding-top: 65px;
-  }
+.bi-reports details > summary {
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.7;
 }
 @media (max-width: 800px) {
-  .crm-public-container {
-    width: calc(100% - 40px);
+  .bi-filter-grid,
+  .bi-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .landing .marketing-nav {
-    width: calc(100% - 40px);
-    height: auto;
-    min-height: 90px;
-    padding: 20px 0 14px;
-    flex-wrap: wrap;
-    gap: 18px;
-  }
-  .crm-header-actions {
-    margin-left: auto;
-  }
-  .landing .marketing-links {
-    flex-basis: 100%;
-    order: 3;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .landing .marketing-links a {
-    font-size: 12px;
-    padding: 9px 0;
-  }
-  .crm-hero {
-    padding-top: 42px;
-  }
-  .crm-hero h1 {
-    font-size: clamp(34px, 6vw, 49px);
-    letter-spacing: -1.1px;
-  }
-  .crm-hero-intro {
-    font-size: 16px;
-    line-height: 1.8;
-  }
-  .crm-hero .hero-actions {
-    flex-wrap: wrap;
-    gap: 11px;
-    margin-top: 23px;
-  }
-  .crm-demo-note {
-    font-size: 9px;
-  }
-  .crm-preview-frame {
-    width: calc(100% - 28px);
-    padding: 12px;
-    margin-top: 35px;
-    border-radius: 8px;
-  }
-  .crm-preview-tabs {
-    gap: 20px;
-    margin-bottom: 12px;
-  }
-  .crm-preview-tabs button {
-    font-size: 11px;
-  }
-  .crm-preview-bar {
-    padding: 10px;
-    font-size: 9px;
-    gap: 10px;
-  }
-  .crm-preview-bar span:last-child {
-    font-size: 7px;
-    letter-spacing: 0.5px;
-  }
-  .crm-preview-panel > p {
-    padding: 12px;
-    font-size: 10px;
-  }
-  .crm-benefits {
-    padding-block: 54px 45px;
-  }
-  .crm-benefit-grid {
-    grid-template-columns: 1fr;
-    gap: 6px;
-    margin-top: 30px;
-  }
-  .crm-benefits header > p:last-child,
-  .crm-workflow header > p,
-  .crm-last-call > p {
-    font-size: 15px;
-  }
-  .crm-workflow {
-    padding-block: 48px;
-  }
-  .crm-workflow ol {
-    grid-template-columns: 1fr 1fr;
-    gap: 30px 22px;
-  }
-  .crm-last-call {
-    padding-block: 50px;
-  }
-  .landing .marketing-footer {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 24px;
-    padding: 30px 20px;
-  }
-  .marketing-page > .marketing-intro,
-  .marketing-page > .marketing-grid,
-  .marketing-page > .marketing-copy,
-  .marketing-page > .marketing-callout {
-    width: calc(100% - 40px);
-  }
-  .marketing-page > .marketing-intro {
-    padding: 46px 0 30px;
-  }
-  .marketing-page .marketing-intro h1 {
-    letter-spacing: -1px;
-  }
-  .marketing-page .marketing-intro > p {
-    font-size: 16px;
-  }
-  .marketing-page > .marketing-callout {
-    padding: 26px;
+  .bi-toolbar label {
+    min-width: 0;
+    width: 100%;
+    flex: 1 1 100%;
   }
 }
-@media (max-width: 380px) {
-  .crm-hero .hero-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  .crm-workflow ol {
+@media (max-width: 480px) {
+  .bi-filter-grid,
+  .bi-choice-grid {
     grid-template-columns: 1fr;
   }
-  .landing .marketing-links {
-    gap: 8px;
+  .bi-summary-grid {
+    grid-template-columns: 1fr;
   }
-  .landing .marketing-links a {
-    font-size: 11px;
-  }
-}
-
-.crm-signup-short {
-  display: none;
-}
-@media (max-width: 800px) {
-  .crm-header-actions {
-    gap: 14px;
-  }
-  .crm-header-actions > .btn {
-    display: inline-flex;
-    font-size: 11px;
-    min-height: 36px;
-    padding: 9px 13px;
-  }
-  .crm-signup-short {
-    display: inline;
-  }
-  .crm-signup-long {
-    display: none;
+  .bi-reports .assistant-card {
+    padding: 18px;
   }
 }
