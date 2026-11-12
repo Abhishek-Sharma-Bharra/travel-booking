@@ -45,6 +45,7 @@ test("demo entry, filters, pipeline, search, printing, exports and read-only wri
     .getByRole("button", { name: "Enquiries", exact: false })
     .first()
     .click();
+  await page.getByLabel("From date").fill("2000-01-01");
   await page.getByLabel("Search enquiries").fill("VT-0001");
   await expect(
     page.getByRole("button", { name: "Demo Traveller 0001", exact: true }),

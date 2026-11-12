@@ -129,6 +129,7 @@ model Package {
   @@index([agencyId])
 }
 model Quote {
+  version Int @default(1)
   id String @id @default(cuid())
   agencyId String
   agency Agency @relation(fields:[agencyId],references:[id])
@@ -153,6 +154,7 @@ model Quote {
   createdAt DateTime @default(now())
   booking Booking?
   @@index([agencyId])
+  @@unique([agencyId,leadId,version])
 }
 model Booking {
   id String @id @default(cuid())

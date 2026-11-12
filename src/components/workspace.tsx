@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import Papa from "papaparse";
 import type { Dataset } from "@/lib/data";
+import { bookingBlockReason } from "@/lib/sales-flow";
 import { analyse, defaultFilters, Filters } from "@/lib/analytics";
 import { inr, indianDate, balances, indiaToday } from "@/lib/money";
 import { leadSchema, sources, stages } from "@/lib/validation";
@@ -125,6 +126,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     values?: Record<string, unknown>;
     extra?: Record<string, unknown>;
   } | null>(null);
+  const [salesFocus, setSalesFocus] = useState<string | null>(null);
   const [detail, setDetail] = useState<Lead | null>(null),
     [printQuote, setPrintQuote] = useState<Quote | null>(null),
     [printReport, setPrintReport] = useState(false),
@@ -141,7 +143,25 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     [calc, setCalc] = useState(["1", "30", "2", "4", "false", "true"]);
   const manager = data.actor.role !== "AGENT",
     owner = data.actor.role === "OWNER";
-  const a = useMemo(() => analyse(data, filters), [data, filters]);
+  const a = useMemo(
+    () =>
+      analyse(
+        salesFocus
+          ? { ...data, leads: data.leads.filter((l) => l.id === salesFocus) }
+          : data,
+        salesFocus
+          ? {
+              from: "0001-01-01",
+              to: "9999-12-31",
+              destination: "",
+              source: "",
+              salesperson: "",
+              search: "",
+            }
+          : filters,
+      ),
+    [data, filters, salesFocus],
+  );
   const userName = (id: string) =>
     data.users.find((u) => u.id === id)?.name ?? "Team member";
   const lead = (id: string) => data.leads.find((l) => l.id === id);
@@ -150,10 +170,18 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     setTimeout(() => setToast(""), 6000);
   };
   function changePage(p: string) {
+    setSalesFocus(null);
     setPage(p);
     setPageIndex(0);
     setMenu(false);
     if (p !== "Enquiries") setFilters((f) => ({ ...f, search: "" }));
+  }
+  function openSalesRecords(leadId: string, target: "Quotations" | "Bookings") {
+    setDetail(null);
+    setPage(target);
+    setPageIndex(0);
+    setMenu(false);
+    setSalesFocus(leadId);
   }
   function openForm(
     title: string,
@@ -165,7 +193,15 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     setFormError("");
     setForm({ title, action, fields, values, extra });
   }
-  async function run(action: string, input: Record<string, unknown>) {
+  async function run(
+    action: string,
+    input: Record<string, unknown>,
+    onSuccess?: (result: {
+      leadId?: string;
+      quoteId?: string;
+      bookingId?: string;
+    }) => void,
+  ) {
     if (data.demo) {
       setFormError(
         "This demo is read-only. Create an agency workspace to save your own records.",
@@ -187,6 +223,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         throw new Error("Your session expired. Please sign in again.");
       setData(await reload.json());
       notify(result.message);
+      onSuccess?.(result);
       return true;
     } catch (e) {
       setFormError((e as Error).message);
@@ -313,6 +350,36 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     );
   }
   function quotationForm(l?: Lead) {
+    if (
+      l &&
+      (data.bookings.some((b) => b.leadId === l.id) ||
+        ["Won", "Lost"].includes(l.stage))
+    ) {
+      notify("Choose an open enquiry without an existing booking.");
+      return;
+    }
+    if (
+      !data.leads.some(
+        (x) =>
+          !["Won", "Lost"].includes(x.stage) &&
+          !data.bookings.some((b) => b.leadId === x.id),
+      )
+    ) {
+      setDetail(null);
+      changePage("Enquiries");
+      notify("Create or reopen an enquiry before building a quotation.");
+      return;
+    }
+    if (!data.packages.length) {
+      setDetail(null);
+      changePage("Packages");
+      notify(
+        manager
+          ? "Add a package before building a quotation."
+          : "Ask your owner or manager to add a package before building a quotation.",
+      );
+      return;
+    }
     openForm(
       "Build a quotation",
       "quote",
@@ -321,7 +388,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           name: "leadId",
           label: "Enquiry",
           options: data.leads
-            .filter((x) => !["Won", "Lost"].includes(x.stage))
+            .filter(
+              (x) =>
+                !["Won", "Lost"].includes(x.stage) &&
+                !data.bookings.some((b) => b.leadId === x.id),
+            )
             .map((x) => ({
               value: x.id,
               label: `${x.externalId} · ${x.customer}`,
@@ -878,7 +949,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </button>
               )}
               {page === "Quotations" && (
-                <button className="btn primary" onClick={() => quotationForm()}>
+                <button
+                  className="btn primary"
+                  onClick={() =>
+                    quotationForm(salesFocus ? lead(salesFocus) : undefined)
+                  }
+                >
                   <Plus size={17} />
                   Build quotation
                 </button>
@@ -894,90 +970,113 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               )}
             </div>
           </div>
-          {![
-            "Settings",
-            "Demo guide",
-            "Lead intelligence",
-            "Packages",
-          ].includes(page) && (
-            <div className="filter-bar">
-              <span className="filter-title">
-                <Filter size={15} />
-                Filters
-              </span>
-              {page !== "Monthly report" ? (
-                <div className="date-range">
-                  <input
-                    aria-label="From date"
-                    type="date"
-                    value={filters.from}
-                    onChange={(e) => dateFilter({ from: e.target.value })}
-                  />
-                  <span>—</span>
-                  <input
-                    aria-label="To date"
-                    type="date"
-                    value={filters.to}
-                    onChange={(e) => dateFilter({ to: e.target.value })}
-                  />
-                </div>
-              ) : (
-                <input
-                  aria-label="Report month"
-                  type="month"
-                  value={reportMonth}
-                  onChange={(e) => {
-                    if (e.target.value) setReportMonth(e.target.value);
-                  }}
-                />
-              )}
-              <select
-                aria-label="Destination filter"
-                value={filters.destination}
-                onChange={(e) => dateFilter({ destination: e.target.value })}
-              >
-                <option value="">All destinations</option>
-                {[...new Set(data.leads.map((l) => l.destination))]
-                  .sort()
-                  .map((d) => (
-                    <option key={d}>{d}</option>
-                  ))}
-              </select>
-              <select
-                aria-label="Source filter"
-                value={filters.source}
-                onChange={(e) => dateFilter({ source: e.target.value })}
-              >
-                <option value="">All sources</option>
-                {sources.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-              <select
-                aria-label="Salesperson filter"
-                value={filters.salesperson}
-                onChange={(e) => dateFilter({ salesperson: e.target.value })}
-              >
-                <option value="">All salespeople</option>
-                {data.users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
+          {salesFocus && (
+            <section className="sales-focus" aria-label="Enquiry focus">
+              <div>
+                <strong>
+                  {lead(salesFocus)?.externalId} · {lead(salesFocus)?.customer}
+                </strong>
+                <p>
+                  Showing this enquiry’s {page.toLowerCase()} across all dates.
+                  Your previous filters are retained.
+                </p>
+              </div>
               <button
-                className="text-button reset"
+                className="btn secondary"
                 onClick={() => {
-                  setFilters(defaultFilters());
-                  setStage("");
+                  setSalesFocus(null);
                   setPageIndex(0);
                 }}
               >
-                Reset
+                Return to filtered list
               </button>
-            </div>
+            </section>
           )}
-          {filters.from > filters.to && (
+          {!salesFocus &&
+            ![
+              "Settings",
+              "Demo guide",
+              "Lead intelligence",
+              "Packages",
+            ].includes(page) && (
+              <div className="filter-bar">
+                <span className="filter-title">
+                  <Filter size={15} />
+                  Filters
+                </span>
+                {page !== "Monthly report" ? (
+                  <div className="date-range">
+                    <input
+                      aria-label="From date"
+                      type="date"
+                      value={filters.from}
+                      onChange={(e) => dateFilter({ from: e.target.value })}
+                    />
+                    <span>—</span>
+                    <input
+                      aria-label="To date"
+                      type="date"
+                      value={filters.to}
+                      onChange={(e) => dateFilter({ to: e.target.value })}
+                    />
+                  </div>
+                ) : (
+                  <input
+                    aria-label="Report month"
+                    type="month"
+                    value={reportMonth}
+                    onChange={(e) => {
+                      if (e.target.value) setReportMonth(e.target.value);
+                    }}
+                  />
+                )}
+                <select
+                  aria-label="Destination filter"
+                  value={filters.destination}
+                  onChange={(e) => dateFilter({ destination: e.target.value })}
+                >
+                  <option value="">All destinations</option>
+                  {[...new Set(data.leads.map((l) => l.destination))]
+                    .sort()
+                    .map((d) => (
+                      <option key={d}>{d}</option>
+                    ))}
+                </select>
+                <select
+                  aria-label="Source filter"
+                  value={filters.source}
+                  onChange={(e) => dateFilter({ source: e.target.value })}
+                >
+                  <option value="">All sources</option>
+                  {sources.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+                <select
+                  aria-label="Salesperson filter"
+                  value={filters.salesperson}
+                  onChange={(e) => dateFilter({ salesperson: e.target.value })}
+                >
+                  <option value="">All salespeople</option>
+                  {data.users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="text-button reset"
+                  onClick={() => {
+                    setFilters(defaultFilters());
+                    setStage("");
+                    setPageIndex(0);
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+            )}
+          {!salesFocus && filters.from > filters.to && (
             <p className="error-box" role="alert">
               The start date must be before the end date.
             </p>
@@ -1552,58 +1651,92 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     {data.quotes
                       .filter((q) => a.leads.some((l) => l.id === q.leadId))
                       .slice(0, (pageIndex + 1) * 25)
-                      .map((q) => (
-                        <tr key={q.id}>
-                          <td>
-                            {q.id.slice(-10)}
-                            <small>{indianDate(q.createdAt)}</small>
-                          </td>
-                          <td>{lead(q.leadId)?.customer}</td>
-                          <td>{q.packageName}</td>
-                          <td>{q.travellers}</td>
-                          <td>{inr(q.total)}</td>
-                          <td>
-                            <Badge value={q.status} />
-                          </td>
-                          <td>
-                            <div className="row-actions">
+                      .map((q) => {
+                        const enquiry = lead(q.leadId),
+                          existingBooking = data.bookings.find(
+                            (b) => b.leadId === q.leadId,
+                          ),
+                          blocked = bookingBlockReason(
+                            q,
+                            enquiry,
+                            !!existingBooking,
+                          );
+                        return (
+                          <tr key={q.id}>
+                            <td>
+                              {q.id.slice(-10)}
+                            <small>Version {q.version}</small>
+                              <small>{indianDate(q.createdAt)}</small>
+                            </td>
+                            <td>
                               <button
                                 className="text-button"
-                                onClick={() => setPrintQuote(q)}
+                                onClick={() => enquiry && setDetail(enquiry)}
                               >
-                                <Printer size={14} />
-                                Print / view
+                                {enquiry?.customer}
                               </button>
-                              {q.status === "Draft" && (
+                            </td>
+                            <td>{q.packageName}</td>
+                            <td>{q.travellers}</td>
+                            <td>{inr(q.total)}</td>
+                            <td>
+                              <Badge value={q.status} />
+                            </td>
+                            <td>
+                              <div className="row-actions">
                                 <button
-                                  className="btn secondary small"
-                                  onClick={() =>
-                                    openForm(
-                                      "Accept quotation & create booking",
-                                      "accept",
-                                      [
-                                        {
-                                          name: "dueDate",
-                                          label: "Customer balance due date",
-                                          type: "date",
-                                        },
-                                      ],
-                                      {
-                                        dueDate: lead(
-                                          q.leadId,
-                                        )?.travelStart.slice(0, 10),
-                                      },
-                                      { id: q.id },
-                                    )
-                                  }
+                                  className="text-button"
+                                  onClick={() => setPrintQuote(q)}
                                 >
-                                  Accept & book
+                                  <Printer size={14} />
+                                  Print / view
                                 </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                                {q.status === "Draft" && !blocked && (
+                                  <button
+                                    className="btn secondary small"
+                                    onClick={() =>
+                                      openForm(
+                                        "Accept quotation & create booking",
+                                        "accept",
+                                        [
+                                          {
+                                            name: "dueDate",
+                                            label: "Customer balance due date",
+                                            type: "date",
+                                          },
+                                        ],
+                                        {
+                                          dueDate: lead(
+                                            q.leadId,
+                                          )?.travelStart.slice(0, 10),
+                                        },
+                                        { id: q.id },
+                                      )
+                                    }
+                                  >
+                                    Accept & book
+                                  </button>
+                                )}
+                                {existingBooking && (
+                                  <button
+                                    className="btn secondary small"
+                                    onClick={() =>
+                                      openSalesRecords(q.leadId, "Bookings")
+                                    }
+                                  >
+                                    Open booking
+                                  </button>
+                                )}
+                                {q.status === "Draft" && blocked && (
+                                  <small className="sales-blocked">
+                                    {blocked}
+                                  </small>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -1713,7 +1846,15 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                           return (
                             <tr key={b.id}>
                               <td>
-                                <strong>{lead(b.leadId)?.customer}</strong>
+                                <button
+                                  className="text-button"
+                                  onClick={() => {
+                                    const l = lead(b.leadId);
+                                    if (l) setDetail(l);
+                                  }}
+                                >
+                                  {lead(b.leadId)?.customer}
+                                </button>
                                 <small>{b.id.slice(-10)}</small>
                               </td>
                               <td>
@@ -2868,7 +3009,19 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 input = { lead: values, ...form.extra };
               if (form.action === "team")
                 input.disabled = values.disabled === "true";
-              if (await run(form.action, input)) setForm(null);
+              if (
+                await run(form.action, input, (result) => {
+                  if (
+                    result.leadId &&
+                    (form.action === "quote" || form.action === "accept")
+                  )
+                    openSalesRecords(
+                      result.leadId,
+                      form.action === "quote" ? "Quotations" : "Bookings",
+                    );
+                })
+              )
+                setForm(null);
             }}
           >
             <Fields fields={form.fields} values={form.values} />
@@ -3005,6 +3158,72 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   : String(detail.itineraryRequested)}
               </p>
             </details>
+          </section>
+          <section className="sales-journey" aria-label="Enquiry to booking">
+            <h3>Enquiry to booking</h3>
+            <p className="method-note">
+              Follow this enquiry’s quotations and booking without changing its
+              history.
+            </p>
+            <ol className="sales-steps">
+              <li>
+                <strong>1. Enquiry</strong>
+                <span>
+                  {detail.externalId} · {detail.stage}
+                </span>
+              </li>
+              <li>
+                <strong>2. Quotations</strong>
+                <span>
+                  {data.quotes.filter((q) => q.leadId === detail.id).length}{" "}
+                  saved
+                </span>
+              </li>
+              <li>
+                <strong>3. Booking</strong>
+                <span>
+                  {data.bookings.find((b) => b.leadId === detail.id)?.status ??
+                    "Not booked"}
+                </span>
+              </li>
+            </ol>
+            {data.quotes.filter((q) => q.leadId === detail.id).length > 0 && (
+              <button
+                className="btn secondary"
+                onClick={() => openSalesRecords(detail.id, "Quotations")}
+              >
+                View enquiry quotations
+              </button>
+            )}
+            {data.bookings
+              .filter((b) => b.leadId === detail.id)
+              .map((b) => (
+                <div className="sales-booking" key={b.id}>
+                  <p>
+                    <strong>Booking {b.id.slice(-10)}</strong> · {b.status} ·{" "}
+                    {inr(b.total)}
+                  </p>
+                  <p>
+                    Customer balance: {inr(balances(b).customerDue)} · Due{" "}
+                    {indianDate(b.dueDate)}
+                  </p>
+                  <button
+                    className="btn primary"
+                    onClick={() => openSalesRecords(detail.id, "Bookings")}
+                  >
+                    View enquiry booking
+                  </button>
+                </div>
+              ))}
+            {!data.quotes.some((q) => q.leadId === detail.id) &&
+              !["Won", "Lost"].includes(detail.stage) && (
+                <p>No quotation yet. Use Build quotation below to start.</p>
+              )}
+            {detail.stage === "Lost" && (
+              <p>
+                Reopen this enquiry before building or accepting a quotation.
+              </p>
+            )}
           </section>
           <h3>Activity history</h3>
           <div className="audit-list">

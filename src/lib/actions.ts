@@ -7,7 +7,17 @@ import { leadSchema, packageSchema, amount, dateValue } from "./validation";
 import { balances, quoteTotal } from "./money";
 import { scoreLead } from "./model";
 const id = z.string().min(1).max(100);
-export async function mutate(a: Actor, action: string, input: unknown) {
+export type MutationResult = {
+  message: string;
+  leadId?: string;
+  quoteId?: string;
+  bookingId?: string;
+};
+export async function mutate(
+  a: Actor,
+  action: string,
+  input: unknown,
+): Promise<MutationResult> {
   writable(a);
   const agency = await db.agency.findUniqueOrThrow({
     where: { id: a.agencyId },
@@ -142,6 +152,8 @@ export async function mutate(a: Actor, action: string, input: unknown) {
       })
       .parse(input);
     return db.$transaction(async (tx) => {
+      await leadAccess(tx, v.leadId);
+      await tx.$queryRaw`SELECT id FROM "Lead" WHERE id=${v.leadId} AND "agencyId"=${a.agencyId} FOR UPDATE`;
       const l = await leadAccess(tx, v.leadId);
       if (["Won", "Lost"].includes(l.stage))
         throw new Error("Choose an open enquiry");
@@ -152,10 +164,15 @@ export async function mutate(a: Actor, action: string, input: unknown) {
       const taxBps = Math.round(v.tax * 100);
       const total = quoteTotal(p.price, l.travellers, v.discount, taxBps);
       quoteTotal(p.estimatedCost, l.travellers, 0, 0);
+      const last = await tx.quote.aggregate({
+        where: { agencyId: a.agencyId, leadId: l.id },
+        _max: { version: true },
+      });
       const q = await tx.quote.create({
         data: {
           agencyId: a.agencyId,
           leadId: l.id,
+          version: (last._max.version ?? 0) + 1,
           packageId: p.id,
           travellers: l.travellers,
           unitPrice: p.price,
@@ -181,7 +198,7 @@ export async function mutate(a: Actor, action: string, input: unknown) {
         },
       });
       await audit(tx, `Quotation ${q.id} created`, l.id);
-      return { message: "Quotation created" };
+      return { message: "Quotation created", leadId: l.id, quoteId: q.id };
     });
   }
   if (action === "accept") {
@@ -194,6 +211,14 @@ export async function mutate(a: Actor, action: string, input: unknown) {
         if (!q) throw new Error("Quotation not found");
         if (q.status !== "Draft") throw new Error("Quotation already accepted");
         const l = await leadAccess(tx, q.leadId);
+        if (
+          await tx.booking.findFirst({
+            where: { leadId: l.id, agencyId: a.agencyId },
+          })
+        )
+          throw new Error(
+            "This enquiry already has a booking. Open the existing booking instead.",
+          );
         if (
           q.travellers !== l.travellers ||
           +q.travelStart !== +l.travelStart ||
@@ -208,7 +233,7 @@ export async function mutate(a: Actor, action: string, input: unknown) {
           where: { id: q.id },
           data: { status: "Accepted" },
         });
-        await tx.booking.create({
+        const booking = await tx.booking.create({
           data: {
             agencyId: a.agencyId,
             leadId: l.id,
@@ -224,7 +249,11 @@ export async function mutate(a: Actor, action: string, input: unknown) {
           data: { stage: "Won", followUp: null },
         });
         await audit(tx, "Quotation accepted and booking confirmed", l.id);
-        return { message: "Booking created without duplicating the enquiry" };
+        return {
+          message: "Booking created without duplicating the enquiry",
+          leadId: l.id,
+          bookingId: booking.id,
+        };
       },
       { isolationLevel: "Serializable" },
     );

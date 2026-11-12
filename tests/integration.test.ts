@@ -169,15 +169,52 @@ test("server workflow, cross-agency and role attacks", async (t) => {
     },
   );
   await t.test(
+    "parallel quotation creation assigns distinct versions without losing either draft",
+    async () => {
+      await mutate(a, "lead", { lead: leadInput("VERSIONS") });
+      const l = await db.lead.findFirstOrThrow({
+        where: { agencyId: a.agencyId, externalId: "VERSIONS" },
+      });
+      const results = await Promise.all([
+        mutate(a, "quote", {
+          leadId: l.id,
+          packageId,
+          discount: "0",
+          tax: "0",
+        }),
+        mutate(a, "quote", {
+          leadId: l.id,
+          packageId,
+          discount: "0",
+          tax: "0",
+        }),
+      ]);
+      assert.ok(results[0].quoteId);
+      assert.ok(results[1].quoteId);
+      assert.notEqual(results[0].quoteId, results[1].quoteId);
+      const versions = await db.quote.findMany({
+        where: { leadId: l.id, agencyId: a.agencyId },
+        orderBy: { version: "asc" },
+      });
+      assert.deepEqual(
+        versions.map((q) => q.version),
+        [1, 2],
+      );
+    },
+  );
+  await t.test(
     "quotation total and conversion preserve one lead and snapshot price",
     async () => {
-      await mutate(a, "quote", {
+      const quoteResult = await mutate(a, "quote", {
         leadId,
         packageId,
         discount: "1000",
         tax: "5",
       });
+      assert.ok(quoteResult.quoteId);
       const q = await db.quote.findFirstOrThrow({ where: { leadId } });
+      assert.equal(quoteResult.leadId, leadId);
+      assert.equal(quoteResult.quoteId, q.id);
       assert.equal(q.total, 4305000);
       assert.equal(q.estimatedCost, 3000000);
       await mutate(a, "package", {
@@ -191,6 +228,7 @@ test("server workflow, cross-agency and role attacks", async (t) => {
         exclusions: "New exclusion",
       });
       const saved = await db.quote.findUniqueOrThrow({ where: { id: q.id } });
+      assert.equal(saved.version, 1);
       assert.equal(saved.packageName, "Test Kerala");
       assert.equal(saved.destination, "Kerala");
       assert.equal(saved.inclusions, "Hotel");
@@ -199,9 +237,42 @@ test("server workflow, cross-agency and role attacks", async (t) => {
         mutate(b, "accept", { id: q.id, dueDate: "2026-02-25" }),
         /not found/,
       );
-      await mutate(a, "accept", { id: q.id, dueDate: "2026-02-25" });
+      const otherQuote = await mutate(a, "quote", {
+        leadId,
+        packageId,
+        discount: "0",
+        tax: "0",
+      });
+      assert.ok(otherQuote.quoteId);
+      const accepted = await mutate(a, "accept", {
+        id: q.id,
+        dueDate: "2026-02-25",
+      });
       bookingId = (await db.booking.findUniqueOrThrow({ where: { leadId } }))
         .id;
+      assert.equal(
+        (
+          await db.quote.findUniqueOrThrow({
+            where: { id: otherQuote.quoteId },
+          })
+        ).version,
+        2,
+      );
+      assert.equal(accepted.leadId, leadId);
+      assert.equal(accepted.bookingId, bookingId);
+      await assert.rejects(
+        mutate(a, "accept", { id: otherQuote.quoteId, dueDate: "2026-02-25" }),
+        /already has a booking/,
+      );
+      assert.equal(await db.booking.count({ where: { leadId } }), 1);
+      assert.equal(
+        (
+          await db.quote.findUniqueOrThrow({
+            where: { id: otherQuote.quoteId },
+          })
+        ).status,
+        "Draft",
+      );
       await assert.rejects(
         mutate(a, "accept", { id: q.id, dueDate: "2026-02-25" }),
         /already accepted/,
