@@ -3204,3 +3204,155 @@ summary:focus-visible {
     padding: 7px;
   }
 }
+
+/* Public marketing pages stay independent of the authenticated workspace. */
+.marketing-nav {
+  gap: 24px;
+}
+.marketing-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+.marketing-links a {
+  font-size: 14px;
+  padding: 10px 0;
+}
+.marketing-links a[aria-current="page"] {
+  color: var(--copper-strong);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+.hero-product-category {
+  font-size: 14px !important;
+  color: var(--navy);
+  margin: 22px 0 12px;
+}
+.marketing-intro {
+  padding: 70px 0 45px;
+  max-width: 900px;
+}
+.marketing-intro h1 {
+  font:
+    clamp(36px, 5vw, 62px)/1.15 Georgia,
+    serif;
+  color: var(--navy);
+  margin: 20px 0;
+  letter-spacing: -1px;
+}
+.marketing-intro > p {
+  line-height: 1.8;
+  max-width: 760px;
+  color: var(--muted);
+}
+.marketing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+.marketing-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  background: white;
+}
+.marketing-card h2 {
+  font-size: 23px;
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+.marketing-card p,
+.marketing-copy p,
+.marketing-steps li {
+  line-height: 1.85;
+  margin: 16px 0;
+}
+.marketing-card ul {
+  padding-left: 20px;
+  line-height: 2;
+  margin: 20px 0 28px;
+}
+.marketing-price {
+  font-size: 22px;
+  color: var(--navy);
+  font-weight: 600;
+}
+.marketing-copy {
+  max-width: 900px;
+  padding: 48px 0;
+}
+.marketing-copy h2 {
+  font-size: 26px;
+  line-height: 1.4;
+  margin-top: 28px;
+}
+.marketing-copy a,
+.marketing-footer a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.marketing-steps {
+  padding-left: 22px;
+}
+.marketing-callout {
+  padding: 40px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  margin: 20px 0 60px;
+}
+.marketing-callout h2 {
+  font-size: 30px;
+  line-height: 1.4;
+}
+.marketing-callout p {
+  line-height: 1.8;
+  margin: 16px 0;
+}
+.marketing-footer {
+  align-items: start !important;
+  gap: 24px;
+}
+.marketing-footer p {
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.marketing-footer nav {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.contact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-bottom: 60px;
+}
+.contact-email {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+@media (max-width: 850px) {
+  .marketing-nav {
+    height: auto;
+    min-height: 112px;
+    padding: 20px 0;
+    flex-wrap: wrap;
+  }
+  .marketing-links {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .marketing-grid {
+    grid-template-columns: 1fr;
+  }
+  .marketing-intro {
+    padding: 45px 0 30px;
+  }
+  .marketing-callout {
+    padding: 24px;
+  }
+  .marketing-footer {
+    flex-direction: column;
+  }
+}

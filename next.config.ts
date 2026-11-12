@@ -1,8 +1,24 @@
 import type { NextConfig } from "next";
+import { privatePaths, indexingEnabled } from "./src/lib/seo";
 const config: NextConfig = {
   serverExternalPackages: ["pg"],
   async headers() {
     return [
+      ...(!indexingEnabled()
+        ? [
+            {
+              source: "/:path*",
+              headers: [
+                { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+              ],
+            },
+          ]
+        : privatePaths.map((path) => ({
+            source: `${path}/:path*`,
+            headers: [
+              { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+            ],
+          }))),
       {
         source: "/:path*",
         headers: [
