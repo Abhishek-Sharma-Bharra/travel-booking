@@ -1,18 +1,37 @@
 "use client";
 import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   AssistantPanel,
   PrioritiesPanel,
   FollowUpPanel,
 } from "./travel-assistant";
-import SubscriptionPage from "./subscription";
-import AdvancedAnalytics from "./advanced-analytics";
-import Messaging from "./messaging";
-import Automation from "./automation";
+
 import GuidedTour from "./guided-tour";
-import Integrations from "./integrations";
-import SecuritySettings from "./security-settings";
+const loadingPanel = () => (
+  <p role="status" aria-live="polite">
+    Loading this section…
+  </p>
+);
+const SubscriptionPage = dynamic(() => import("./subscription"), {
+  loading: loadingPanel,
+});
+const AdvancedAnalytics = dynamic(() => import("./advanced-analytics"), {
+  loading: loadingPanel,
+});
+const Messaging = dynamic(() => import("./messaging"), {
+  loading: loadingPanel,
+});
+const Automation = dynamic(() => import("./automation"), {
+  loading: loadingPanel,
+});
+const Integrations = dynamic(() => import("./integrations"), {
+  loading: loadingPanel,
+});
+const SecuritySettings = dynamic(() => import("./security-settings"), {
+  loading: loadingPanel,
+});
 import {
   Compass,
   LayoutDashboard,
@@ -169,6 +188,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         .slice(0, 7),
     ),
     [calc, setCalc] = useState(["1", "30", "2", "4", "false", "true"]);
+  const analysisDay = today();
   const manager = data.actor.role !== "AGENT",
     owner = data.actor.role === "OWNER";
   const a = useMemo(
@@ -188,7 +208,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             }
           : filters,
       ),
-    [data, filters, salesFocus],
+    [data, filters, salesFocus, analysisDay],
   );
   const userName = (id: string) =>
     data.users.find((u) => u.id === id)?.name ?? "Team member";
@@ -643,10 +663,30 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       search: "",
     };
   };
-  const report = analyse(data, reportFilters(reportMonth));
+  const report = useMemo(
+    () => analyse(data, reportFilters(reportMonth)),
+    [
+      data,
+      reportMonth,
+      filters.destination,
+      filters.source,
+      filters.salesperson,
+      analysisDay,
+    ],
+  );
   const [ry, rm] = reportMonth.split("-").map(Number);
   const prevMonth = new Date(Date.UTC(ry, rm - 2, 1)).toISOString().slice(0, 7),
-    prev = analyse(data, reportFilters(prevMonth));
+    prev = useMemo(
+      () => analyse(data, reportFilters(prevMonth)),
+      [
+        data,
+        prevMonth,
+        filters.destination,
+        filters.source,
+        filters.salesperson,
+        analysisDay,
+      ],
+    );
   const hasPrevious = data.leads.some((l) =>
     l.enquiryDate.startsWith(prevMonth),
   );

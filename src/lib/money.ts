@@ -56,28 +56,31 @@ export function balances(b: {
     contribution: sales - costs + credits,
   };
 }
-export const inr = (n: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(n / 100);
-export const indianDate = (d: string | Date) =>
-  new Date(d).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Kolkata",
-  });
-
-export const indiaToday = () =>
-  new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+// Reuse immutable locale formatters; values and today's date remain fresh.
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+const dateFormatter = new Intl.DateTimeFormat("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "Asia/Kolkata",
+});
+const todayFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+export const inr = (n: number) => currencyFormatter.format(n / 100);
+export const indianDate = (d: string | Date) => {
+  const date = new Date(d);
+  return Number.isNaN(+date) ? "Invalid Date" : dateFormatter.format(date);
+};
+export const indiaToday = () => todayFormatter.format(new Date());
 
 // Markup is a percentage of cost; margin is a percentage of selling price.
 export function pricedUnit(

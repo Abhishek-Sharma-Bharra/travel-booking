@@ -6,49 +6,73 @@ import { db } from "./db";
 import { Actor, scope } from "./access";
 export async function workspaceData(a: Actor) {
   const leadWhere = scope(a);
-  const [agency, users, leads, packages, quotes, bookings, spends, activities] =
-    await Promise.all([
-      db.agency.findUniqueOrThrow({ where: { id: a.agencyId } }),
-      db.user.findMany({
-        where: { agencyId: a.agencyId },
-        select: {
-          id: true,
-          name: true,
-          role: true,
-          disabled: true,
-          ...(a.role === "OWNER" ? { email: true } : {}),
-        },
-        orderBy: { name: "asc" },
-      }),
-      db.lead.findMany({ where: leadWhere, orderBy: { enquiryDate: "desc" } }),
-      db.package.findMany({
-        where: { agencyId: a.agencyId },
-        orderBy: { name: "asc" },
-      }),
-      db.quote.findMany({
-        where: { agencyId: a.agencyId, lead: leadWhere },
-        include: { package: true },
-        orderBy: { createdAt: "desc" },
-      }),
-      db.booking.findMany({
-        where: { agencyId: a.agencyId, lead: leadWhere },
-        include: { transactions: true, quote: { include: { package: true } } },
-        orderBy: { createdAt: "desc" },
-      }),
-      a.role === "AGENT"
-        ? []
-        : db.spend.findMany({
-            where: { agencyId: a.agencyId },
-            orderBy: { month: "desc" },
-          }),
-      db.activity.findMany({
-        where: {
-          agencyId: a.agencyId,
-          ...(a.role === "AGENT" ? { lead: { is: leadWhere } } : {}),
-        },
-        orderBy: { createdAt: "desc" },
-      }),
-    ]);
+  const [
+    agency,
+    users,
+    leads,
+    packages,
+    quotes,
+    bookings,
+    spends,
+    activities,
+    enquiryCount,
+    invitations,
+  ] = await Promise.all([
+    db.agency.findUniqueOrThrow({ where: { id: a.agencyId } }),
+    db.user.findMany({
+      where: { agencyId: a.agencyId },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        disabled: true,
+        ...(a.role === "OWNER" ? { email: true } : {}),
+      },
+      orderBy: { name: "asc" },
+    }),
+    db.lead.findMany({ where: leadWhere, orderBy: { enquiryDate: "desc" } }),
+    db.package.findMany({
+      where: { agencyId: a.agencyId },
+      orderBy: { name: "asc" },
+    }),
+    db.quote.findMany({
+      where: { agencyId: a.agencyId, lead: leadWhere },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.booking.findMany({
+      where: { agencyId: a.agencyId, lead: leadWhere },
+      include: { transactions: true, quote: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    a.role === "AGENT"
+      ? []
+      : db.spend.findMany({
+          where: { agencyId: a.agencyId },
+          orderBy: { month: "desc" },
+        }),
+    db.activity.findMany({
+      where: {
+        agencyId: a.agencyId,
+        ...(a.role === "AGENT" ? { lead: { is: leadWhere } } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.lead.count({ where: { agencyId: a.agencyId } }),
+    a.role === "OWNER"
+      ? db.invitation.findMany({
+          where: { agencyId: a.agencyId },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            status: true,
+            expiresAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        })
+      : [],
+  ]);
   const payload = {
     refreshedAt: new Date().toISOString(),
     billing: {
@@ -56,7 +80,7 @@ export async function workspaceData(a: Actor) {
         name,
         ...limits,
       })),
-      enquiryCount: await db.lead.count({ where: { agencyId: a.agencyId } }),
+      enquiryCount,
       supportEmail: process.env.SUPPORT_EMAIL || "",
       requests:
         a.role === "OWNER"
@@ -77,21 +101,7 @@ export async function workspaceData(a: Actor) {
       emailConfigured: mailReady(),
       emailVerificationRequired: verificationRequired(),
     },
-    invitations:
-      a.role === "OWNER"
-        ? await db.invitation.findMany({
-            where: { agencyId: a.agencyId },
-            select: {
-              id: true,
-              email: true,
-              role: true,
-              status: true,
-              expiresAt: true,
-            },
-            orderBy: { createdAt: "desc" },
-            take: 50,
-          })
-        : [],
+    invitations,
     agency,
     users,
     leads,

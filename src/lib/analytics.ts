@@ -22,6 +22,7 @@ export function defaultFilters(): Filters {
   };
 }
 export function analyse(data: Dataset, f: Filters) {
+  const today = indiaToday();
   const within = (date: string) =>
     date.slice(0, 10) >= f.from && date.slice(0, 10) <= f.to;
   const dimension = (l: Dataset["leads"][number]) =>
@@ -57,7 +58,7 @@ export function analyse(data: Dataset, f: Filters) {
     (l) =>
       !["Won", "Lost"].includes(l.stage) &&
       l.followUp &&
-      l.followUp.slice(0, 10) < indiaToday(),
+      l.followUp.slice(0, 10) < today,
   );
   const ad = data.spends.filter(
     (s) =>
