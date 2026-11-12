@@ -23,11 +23,11 @@ export default function ProductShowcase() {
   const id = useId();
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   return (
-    <div className="premium-showcase">
+    <div className="crm-showcase">
       <div
         role="tablist"
         aria-label="Explore TravelOS screens"
-        className="premium-tabs"
+        className="crm-preview-tabs"
       >
         {views.map((view, i) => (
           <button
@@ -67,11 +67,11 @@ export default function ProductShowcase() {
           aria-labelledby={`${id}-tab-${i}`}
           tabIndex={0}
           hidden={active !== i}
-          className="premium-tab-panel"
+          className="crm-preview-panel"
         >
           {active === i && (
             <>
-              <div className="premium-browser-bar">
+              <div className="crm-preview-bar">
                 <span>Vashisht TravelOS / {view.label}</span>
                 <span>FICTIONAL DEMO</span>
               </div>

@@ -1062,6 +1062,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <strong>{page}</strong>
           </div>
           <div className="topbar-right">
+            <GuidedTour
+              role={data.actor.role}
+              demo={data.demo}
+              navigate={changePage}
+              canAutoStart={() => manualNavigation.current === 0}
+            />
             <span className="today">
               <CalendarDays size={15} />
               {indianDate(new Date())}
@@ -1101,13 +1107,6 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               <p>{subtitles[page]}</p>
             </div>
             <div className="heading-actions">
-              <GuidedTour
-                key="workspace-tour"
-                role={data.actor.role}
-                demo={data.demo}
-                navigate={changePage}
-                canAutoStart={() => manualNavigation.current === 0}
-              />
               {page === "Overview" && (
                 <>
                   {manager && <ExportButton rows={summaryExport} />}
@@ -1300,16 +1299,50 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           )}
           {page === "Overview" && manager && (
             <>
+              <section className="assistant-card">
+                <p>
+                  The overview below retains legacy current-state/manual-report
+                  definitions. For timezone-aware KPIs, verified/manual
+                  distinctions and cost-completeness controls use Advanced
+                  Analytics.
+                </p>
+                <button
+                  className="btn primary"
+                  onClick={() => changePage("Analytics")}
+                >
+                  Open advanced analytics
+                </button>
+              </section>
+              <PrioritiesPanel
+                data={data}
+                onOpen={setDetail}
+                onRecord={(kind, id, leadId) => {
+                  if (kind === "Quotation follow-up") {
+                    setPrintQuote(data.quotes.find((q) => q.id === id) || null);
+                    return;
+                  }
+                  if (
+                    kind === "Customer payment due" ||
+                    kind === "Departure task"
+                  ) {
+                    changePage("Bookings");
+                    setFilters({
+                      ...defaultFilters(),
+                      from: "2000-01-01",
+                      search: lead(leadId)?.externalId || "",
+                    });
+                    return;
+                  }
+                  setDetail(lead(leadId) || null);
+                }}
+              />
               <div className="section-label">
                 <span>PERFORMANCE SNAPSHOT</span>
                 <span>
                   <span className="live-dot" /> Current booking balances · INR
                 </span>
               </div>
-              <div
-                className="metric-grid dashboard-metrics"
-                aria-label="Performance snapshot"
-              >
+              <div className="metric-grid">
                 {[
                   {
                     label: "Total enquiries",
@@ -1349,43 +1382,6 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   </article>
                 ))}
               </div>
-              <section className="assistant-card dashboard-metric-note">
-                <p>
-                  The overview below retains legacy current-state/manual-report
-                  definitions. For timezone-aware KPIs, verified/manual
-                  distinctions and cost-completeness controls use Advanced
-                  Analytics.
-                </p>
-                <button
-                  className="btn primary"
-                  onClick={() => changePage("Analytics")}
-                >
-                  Open advanced analytics
-                </button>
-              </section>
-              <PrioritiesPanel
-                data={data}
-                onOpen={setDetail}
-                onRecord={(kind, id, leadId) => {
-                  if (kind === "Quotation follow-up") {
-                    setPrintQuote(data.quotes.find((q) => q.id === id) || null);
-                    return;
-                  }
-                  if (
-                    kind === "Customer payment due" ||
-                    kind === "Departure task"
-                  ) {
-                    changePage("Bookings");
-                    setFilters({
-                      ...defaultFilters(),
-                      from: "2000-01-01",
-                      search: lead(leadId)?.externalId || "",
-                    });
-                    return;
-                  }
-                  setDetail(lead(leadId) || null);
-                }}
-              />
               <div className="overview-grid">
                 <section className="panel sales-panel">
                   <div className="panel-heading">

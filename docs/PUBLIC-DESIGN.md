@@ -1,25 +1,28 @@
-# Premium Travel public website — 12 November 2026
+# Centered CRM public website — 12 November 2026
 
-This draft replaces the unpublished corporate-blue design after owner feedback. It stays in the existing repository on main and keeps the current Render production application available until approval.
+This draft follows the latest supplied CRM reference: a white header, cream hero background, centered black sans-serif headline and description, red calls to action and a large pale-blue product preview frame. TravelOS branding, truthful content and real product routes stay in place. The previous unpublished corporate, scenic-premium and dashboard-tour redesigns are superseded.
 
-## Visual direction
+## What changes
 
-Warm ivory, deep navy and restrained gold, a simple single-row desktop header, large editorial serif headlines and generous space. The hero says "Your agency. Every journey. In control." and keeps the business-software purpose explicit. The scenic image sits beside the copy; the product preview appears lower on the page. Features, pricing, contact and the guide use the same public-site treatment.
+- Public header: Features, Pricing, Demo, Resources, Contact, sign-in and agency signup. Mobile retains both sign-in and a compact Sign up action.
+- Centered headline: "Keep your enquiries moving. Keep your business connected."
+- Actual demo screenshots in keyboard-accessible Enquiries / Quotations / Bookings tabs. Only the selected image mounts; all ARIA-controlled panels exist. Screenshot records are fictional, labeled accordingly and do not query live customer data.
+- Straightforward benefit, workflow and contact sections. Public Features, Pricing, Contact and guide pages share the typography and colors.
+- No scenic imagery, new fonts, extra animation library, fake testimonial or unimplemented AI/anomaly feature claim. The previously generated scenic visual is removed from the application tree.
 
-The hero scenic visual is generated, not an authenticated photograph of a named destination. External photo downloads were unavailable in this workspace. It is illustrative, carries no supplier availability/location claim and can be replaced with an owner-supplied licensed photograph. The source remains in `/workspace/generated_images`; the application copy is `public/website/premium-landscape.png`. Next Image serves responsive optimized variants with reserved dimensions. The source PNG is about 2.7 MB in the repository; browsers request optimized sizes rather than the original PNG. A browser check requires the delivered hero variant to stay under 700 KB.
+The private workspace, guided tour and associated tour test are restored exactly to the existing `e60befc` version. The rejected dashboard changes will not be published as part of the final tree. The speed optimizations and existing CRM behavior remain in that base. No database/schema, financial, provider or authorization changes are required.
 
-## Functional preview
+## Validation
 
-The Enquiries / Quotations / Bookings tabs show actual screenshots captured from the existing local fictional read-only demo. They do not query or expose real customer records. Only the active panel mounts its image. Each tab controls an existing panel, supports click, Left/Right, Home/End and keyboard focus, with visible selection and a fictional-demo label.
+Production build with TypeScript passed. Production browser checks cover preview keyboard/click behavior and optimized image delivery, public SEO/mobile pages, sitemap/no-index/auth boundaries, original guided tour and enquiry → quote → booking → receipt flow. All **8** targeted production-browser tests passed (23.0 seconds).
 
-No external fonts, carousel library, fake testimonials, customer counts, ratings or automatic chat widget are added. Existing feature claims, prices-on-request, manual billing and provider setup requirements remain accurate. The CSS is scoped to the public `.landing` area; private CRM permissions, transactions, data and database schema are preserved.
+Desktop homepage, first screen, mobile homepage and mobile pricing were visually reviewed. Homepage checked at 320, 390, 768, 820, 1024 and 1440 pixel widths with no horizontal overflow. Existing canonical metadata, Search Console support, contact email and prices-on-request are preserved.
 
-## Verification
+Review captures are ignored by Git:
 
-- Production build with TypeScript passed.
-- 6 production-browser checks passed: product tab interactions and optimized hero; public SEO/mobile pages; sitemap/no-index/auth boundaries; demo entry/exports; enquiry → quote → booking → receipt; tenant/role checks.
-- Homepage visually reviewed on desktop and mobile; pricing visually reviewed on mobile. No horizontal overflow at 320, 390, 768, 1024 and 1440 pixel widths.
-- Final tab accessibility refinement keeps all referenced panels present while mounting only the selected image; followed by another build and targeted product preview check.
-- Whitespace checks passed. No migration, live message, payment or hosting change is required/performed.
+- `.local/design/crm-reference-first-screen.png`
+- `.local/design/crm-reference-desktop.png`
+- `.local/design/crm-reference-mobile.png`
+- `.local/design/crm-reference-pricing-mobile.png`
 
-Review captures are in ignored `.local/design/premium-home-desktop.png`, `premium-home-mobile.png` and `premium-pricing-mobile.png`. This is a local draft, not a verified live deployment. Publishing main can trigger Render auto-deploy; obtain the owner's design/release approval first. After Live, verify the hero image, tab switching, public links, sign-in and demo entry. Keep the previous Render deployment for rollback.
+This is a local draft in the existing repository/main. Nothing was deployed or connected to a new hosting service. Publishing main requires owner approval and can trigger Render auto-deploy. After Live, check the homepage, public links, signup/sign-in, product tabs and the original dashboard. No migration is needed; the previous Render release remains the rollback option.

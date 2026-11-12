@@ -1,44 +1,43 @@
 import Link from "next/link";
-import { Compass, ArrowUpRight, ArrowRight } from "lucide-react";
+import { Compass, ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 const links = [
   ["/features", "Features"],
   ["/pricing", "Pricing"],
   ["/product-demo", "Demo"],
-  ["/guides/enquiry-to-booking", "Guides"],
+  ["/guides/enquiry-to-booking", "Resources"],
   ["/contact", "Contact"],
 ];
 export function MarketingHeader({ path = "/" }: { path?: string }) {
   return (
-    <header className="public-header">
-      <nav className="landing-nav marketing-nav" aria-label="Main navigation">
-        <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
-          <Compass size={34} strokeWidth={1.7} />
-          <span>
-            vashisht<span className="brand-sub">TRAVELOS</span>
-          </span>
+    <nav className="landing-nav marketing-nav" aria-label="Main navigation">
+      <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
+        <Compass size={32} />
+        <span>
+          vashisht<span className="brand-sub">TRAVELOS</span>
+        </span>
+      </Link>
+      <div className="marketing-links">
+        {links.map(([href, label]) => (
+          <Link
+            key={href}
+            href={href}
+            aria-current={path === href ? "page" : undefined}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+      <div className="crm-header-actions">
+        <Link className="crm-login" href="/login">
+          Sign in
         </Link>
-        <div className="marketing-links">
-          {links.map(([href, label]) => (
-            <Link
-              key={href}
-              href={href}
-              aria-current={path === href ? "page" : undefined}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-        <div className="public-nav-actions">
-          <Link className="public-login" href="/login">
-            Sign in <ArrowUpRight size={16} />
-          </Link>
-          <Link className="btn primary public-create" href="/contact">
-            Book a demo
-          </Link>
-        </div>
-      </nav>
-    </header>
+        <Link className="btn primary" href="/login?signup=1">
+          <span className="crm-signup-long">Create your agency</span>
+          <span className="crm-signup-short">Sign up</span>
+        </Link>
+      </div>
+    </nav>
   );
 }
 export function MarketingFooter() {

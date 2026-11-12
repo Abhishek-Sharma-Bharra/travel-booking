@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
-test("premium product preview tabs work with mouse and keyboard, and hero is optimized", async ({
+test("CRM product preview tabs work with mouse and keyboard, and preview image is optimized", async ({
   page,
   request,
 }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Your agency.",
+    "Keep your enquiries moving.",
   );
-  const hero = page.locator(".premium-travel-image img");
+  const hero = page.getByRole("tabpanel").getByRole("img");
+  await hero.scrollIntoViewIfNeeded();
   await expect(hero).toBeVisible();
   await expect
     .poll(() =>
