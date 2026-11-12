@@ -33,25 +33,11 @@ export function MarketingHeader({ path = "/" }: { path?: string }) {
           <Link className="public-login" href="/login">
             Sign in <ArrowUpRight size={16} />
           </Link>
-          <Link className="btn primary public-create" href="/login?signup=1">
-            Create workspace
+          <Link className="btn primary public-create" href="/contact">
+            Book a demo
           </Link>
         </div>
       </nav>
-      <div className="public-product-bar">
-        <div className="public-container">
-          <Link href="/" className="public-product-name">
-            Travel agency software
-          </Link>
-          <nav aria-label="Product navigation">
-            <Link href="/">Overview</Link>
-            <Link href="/features">Capabilities</Link>
-            <Link href="/contact">
-              Talk to us <ArrowRight size={15} />
-            </Link>
-          </nav>
-        </div>
-      </div>
     </header>
   );
 }
