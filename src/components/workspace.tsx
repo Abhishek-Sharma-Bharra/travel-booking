@@ -962,7 +962,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             </small>
           </div>
         </div>
-        <nav>
+        <nav aria-label="Workspace navigation">
           {navigation.map((g) => (
             <div key={g.group}>
               <p className="nav-group">{g.group}</p>
@@ -980,6 +980,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 .map(([name, Icon]) => (
                   <button
                     key={name}
+                    aria-current={page === name ? "page" : undefined}
                     onClick={() => changePage(name)}
                     className={page === name ? "nav-item active" : "nav-item"}
                   >
@@ -996,12 +997,8 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         </nav>
         <div className="sidebar-bottom">
           <div className="help-card">
-            <span className="eyebrow">A BETTER WAY TO TRAVEL</span>
-            <p>
-              Your next great journey
-              <br />
-              starts with a clear view.
-            </p>
+            <span className="eyebrow">WORKSPACE GUIDE</span>
+            <p>A little guidance. A smoother day.</p>
             <button
               className="text-button"
               onClick={() => changePage("Demo guide")}
