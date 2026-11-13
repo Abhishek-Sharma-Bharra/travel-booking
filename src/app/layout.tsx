@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./premium.css";
 import { publicOrigin } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(publicOrigin()),
@@ -18,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-IN">
-      <body>{children}</body>
+      <body className="premium-theme">{children}</body>
     </html>
   );
 }

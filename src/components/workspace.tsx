@@ -958,7 +958,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     ].includes(page);
 
   return (
-    <div className="app-shell studio-workspace">
+    <div className="app-shell studio-workspace premium-workspace">
       <aside className={`sidebar ${menu ? "open" : ""}`}>
         <Link href="/" className="brand">
           <Compass size={34} />
@@ -1015,13 +1015,11 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         </nav>
         <div className="sidebar-bottom">
           <div className="help-card">
-            <span className="eyebrow">WORKSPACE GUIDE</span>
-            <p>A little guidance. A smoother day.</p>
             <button
               className="text-button"
               onClick={() => changePage("Demo guide")}
             >
-              Explore the workspace <ArrowUpRight size={14} />
+              <BookOpen size={16} /> Workspace guide <ArrowUpRight size={14} />
             </button>
           </div>
           <div className="user-box">
