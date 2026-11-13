@@ -3955,10 +3955,7 @@ summary:focus-visible {
   background: #e0eff5;
   border-color: #9fc7d8;
 }
-.studio-workspace
-  .pipeline
-  > section[data-stage="Contacted"]
-  .pipeline-title {
+.studio-workspace .pipeline > section[data-stage="Contacted"] .pipeline-title {
   background: #f8eddd;
   border-color: #d8bc91;
 }
@@ -4004,5 +4001,123 @@ summary:focus-visible {
 @media (max-width: 700px) {
   .studio-workspace .studio-command {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Readable CRM typography: bold record titles with clear supporting details. */
+.studio-workspace {
+  font-family: Arial, "Segoe UI", Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.studio-workspace .nav-item,
+.studio-workspace .workspace-switch strong,
+.studio-workspace .studio-create {
+  font-size: 14px;
+}
+.studio-workspace .nav-item {
+  min-height: 44px;
+}
+.studio-workspace .nav-group,
+.studio-workspace .workspace-switch small {
+  font-size: 10px;
+}
+.studio-workspace .workspace-switch strong {
+  max-width: 154px;
+}
+.studio-workspace .btn,
+.studio-workspace .text-button,
+.studio-workspace .filter-bar,
+.studio-workspace .filter-bar input,
+.studio-workspace .filter-bar select,
+.studio-workspace .toolbar input,
+.studio-workspace .toolbar select {
+  font-size: 13px;
+}
+.studio-workspace .filter-bar {
+  flex-wrap: wrap;
+}
+.studio-workspace .pipeline-title .badge {
+  font-size: 14px;
+  font-weight: 600;
+}
+.studio-workspace .pipeline-title strong {
+  font-size: 12px;
+}
+.studio-workspace .pipeline-card {
+  gap: 6px;
+  padding: 15px;
+  line-height: 1.5;
+}
+.studio-workspace .pipeline-card > strong {
+  font-size: 15px;
+  font-weight: 700;
+  color: #3e4653;
+  line-height: 1.45;
+}
+.studio-workspace .pipeline-card > span {
+  font-size: 14px;
+  color: #4e5765;
+  line-height: 1.5;
+}
+.studio-workspace .pipeline-card > small {
+  font-size: 12px;
+  color: #677181;
+}
+.studio-workspace .pipeline-card > div {
+  font-size: 13px;
+  color: #4e5765;
+  margin-top: 6px;
+}
+.studio-workspace table {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.studio-workspace th {
+  font-size: 12px;
+  color: #586476;
+}
+.studio-workspace td small {
+  font-size: 12px;
+  color: #677181;
+  line-height: 1.6;
+}
+.studio-workspace .table-link {
+  font-size: 14px;
+  font-weight: 600;
+}
+.studio-workspace .page-heading p,
+.studio-workspace .panel-heading p {
+  font-size: 13px;
+}
+.studio-workspace .panel-heading h2 {
+  font-size: 16px;
+}
+.studio-workspace .metric-top {
+  font-size: 13px;
+}
+.studio-workspace .metric > small {
+  font-size: 12px;
+}
+.studio-workspace .studio-command strong {
+  font-size: 14px;
+}
+.studio-workspace .studio-command small,
+.studio-workspace .studio-command-intro p {
+  font-size: 12px;
+}
+.studio-workspace .table-link,
+.studio-workspace .pipeline-card > strong {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .studio-workspace .pipeline > section {
+    min-width: 260px;
+  }
+  .studio-workspace .filter-bar .date-range {
+    max-width: 100%;
+  }
+  .studio-workspace .studio-command > button {
+    min-width: 0;
   }
 }
