@@ -41,7 +41,7 @@ test("first login tour uses real screens, persists skip and completion, restarts
   await expect(dialog).toBeHidden();
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Every journey starts here." }),
+    page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
   await expect(dialog).toBeHidden();
   await page.setViewportSize({ width: 390, height: 844 });

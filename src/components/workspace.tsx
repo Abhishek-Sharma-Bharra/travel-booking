@@ -942,6 +942,21 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     );
   }
   const chartMax = Math.max(...a.monthly.map((m) => m.sales), 1);
+  const showWorkspaceFilters =
+    !salesFocus &&
+    ![
+      "Settings",
+      "Analytics",
+      "BI Reports",
+      "Integrations",
+      "Messaging",
+      "Automation",
+      "Subscription",
+      "Demo guide",
+      "Lead intelligence",
+      "Packages",
+    ].includes(page);
+
   return (
     <div className="app-shell studio-workspace">
       <aside className={`sidebar ${menu ? "open" : ""}`}>
@@ -1107,9 +1122,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     ? "THOUGHTFUL TECHNOLOGY"
                     : "VASHISHT TRAVELOS"}
               </span>
-              <h1>
-                {page === "Overview" ? "Every journey starts here." : page}
-              </h1>
+              <h1>{page}</h1>
               <p>{subtitles[page]}</p>
             </div>
             <div className="heading-actions">
@@ -1170,42 +1183,6 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               )}
             </div>
           </div>
-          {page === "Overview" && (
-            <section
-              className="studio-command"
-              aria-label="Workspace shortcuts"
-            >
-              <div className="studio-command-intro">
-                <span className="eyebrow">YOUR DAILY WORKSPACE</span>
-                <h2>From first hello to final itinerary.</h2>
-                <p>Keep your team, travellers and next steps together.</p>
-              </div>
-              <button onClick={() => changePage("Enquiries")}>
-                <Users size={21} />
-                <span>
-                  <strong>Sales pipeline</strong>
-                  <small>Manage conversations</small>
-                </span>
-                <ArrowUpRight size={17} />
-              </button>
-              <button onClick={() => changePage("Quotations")}>
-                <FileText size={21} />
-                <span>
-                  <strong>Quotations</strong>
-                  <small>Build the next journey</small>
-                </span>
-                <ArrowUpRight size={17} />
-              </button>
-              <button onClick={() => changePage("Bookings")}>
-                <Plane size={21} />
-                <span>
-                  <strong>Bookings</strong>
-                  <small>Keep every trip on track</small>
-                </span>
-                <ArrowUpRight size={17} />
-              </button>
-            </section>
-          )}
           {salesFocus && (
             <section className="sales-focus" aria-label="Enquiry focus">
               <div>
@@ -1228,2209 +1205,2327 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </button>
             </section>
           )}
-          {!salesFocus &&
-            ![
-              "Settings",
-              "Analytics",
-              "BI Reports",
-              "Integrations",
-              "Messaging",
-              "Automation",
-              "Subscription",
-              "Demo guide",
-              "Lead intelligence",
-              "Packages",
-            ].includes(page) && (
-              <div className="filter-bar">
-                <span className="filter-title">
-                  <Filter size={15} />
-                  Filters
-                </span>
-                {page !== "Monthly report" ? (
-                  <div className="date-range">
-                    <input
-                      aria-label="From date"
-                      type="date"
-                      value={filters.from}
-                      onChange={(e) => dateFilter({ from: e.target.value })}
-                    />
-                    <span>—</span>
-                    <input
-                      aria-label="To date"
-                      type="date"
-                      value={filters.to}
-                      onChange={(e) => dateFilter({ to: e.target.value })}
-                    />
-                  </div>
-                ) : (
-                  <input
-                    aria-label="Report month"
-                    type="month"
-                    value={reportMonth}
-                    onChange={(e) => {
-                      if (e.target.value) setReportMonth(e.target.value);
-                    }}
-                  />
-                )}
-                <select
-                  aria-label="Destination filter"
-                  value={filters.destination}
-                  onChange={(e) => dateFilter({ destination: e.target.value })}
-                >
-                  <option value="">All destinations</option>
-                  {[...new Set(data.leads.map((l) => l.destination))]
-                    .sort()
-                    .map((d) => (
-                      <option key={d}>{d}</option>
-                    ))}
-                </select>
-                <select
-                  aria-label="Source filter"
-                  value={filters.source}
-                  onChange={(e) => dateFilter({ source: e.target.value })}
-                >
-                  <option value="">All sources</option>
-                  {sources.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-                <select
-                  aria-label="Salesperson filter"
-                  value={filters.salesperson}
-                  onChange={(e) => dateFilter({ salesperson: e.target.value })}
-                >
-                  <option value="">All salespeople</option>
-                  {data.users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="text-button reset"
-                  onClick={() => {
-                    setFilters(defaultFilters());
-                    setStage("");
-                    setPageIndex(0);
-                  }}
-                >
-                  Reset
-                </button>
-              </div>
-            )}
-          {formError && !form && !detail && !printQuote && !importOpen && (
-            <p className="error-box" role="alert">
-              {formError}
-            </p>
-          )}
-          {!salesFocus && filters.from > filters.to && (
-            <p className="error-box" role="alert">
-              The start date must be before the end date.
-            </p>
-          )}
-          {page === "Overview" && !manager && (
-            <PrioritiesPanel data={data} onOpen={setDetail} />
-          )}
-          {(page === "Analytics" || (page === "Overview" && !manager)) && (
-            <AdvancedAnalytics data={data} onChange={run} />
-          )}
-          {page === "BI Reports" && <BiReports data={data} />}
-          {page === "Enquiries" && (
-            <AssistantPanel
-              data={data}
-              onReview={(draft) => enquiryForm(undefined, draft)}
-            />
-          )}
-          {page === "Overview" && manager && (
-            <>
-              <div className="studio-insight-note">
-                <BarChart3 size={17} />
-                <p>
-                  Operational snapshot · recorded booking values and manual
-                  payments. For verified collections and complete financial
-                  definitions, use Analytics.
-                </p>
-                <button
-                  className="text-button"
-                  onClick={() => changePage("Analytics")}
-                >
-                  Open advanced analytics <ArrowUpRight size={14} />
-                </button>
-              </div>
-              <div className="section-label">
-                <span>PERFORMANCE SNAPSHOT</span>
-                <span>
-                  <span className="live-dot" /> Current booking balances · INR
-                </span>
-              </div>
-              <div className="metric-grid">
-                {[
-                  {
-                    label: "Total enquiries",
-                    value: a.leads.length.toLocaleString("en-IN"),
-                    detail: "Enquiries received in this period",
-                    icon: Users,
-                  },
-                  {
-                    label: "Active bookings",
-                    value: a.valid.length.toLocaleString("en-IN"),
-                    detail: `${a.bookings.length - a.valid.length} cancellations tracked separately`,
-                    icon: Plane,
-                  },
-                  {
-                    label: "Booked sales value",
-                    value: inr(a.sales),
-                    detail: "Includes retained cancellation fees",
-                    icon: Wallet,
-                  },
-                  {
-                    label: "Enquiry conversion",
-                    value: (a.conversion * 100).toFixed(1) + "%",
-                    detail: "Selected enquiry cohort → active bookings",
-                    icon: ArrowUpRight,
-                  },
-                ].map((m, i) => (
-                  <article
-                    className={`metric ${i === 2 ? "highlight" : ""}`}
-                    key={m.label}
-                  >
-                    <div className="metric-top">
-                      <span>{m.label}</span>
-                      <m.icon size={18} />
-                    </div>
-                    <strong>{m.value}</strong>
-                    <small>{m.detail}</small>
-                  </article>
-                ))}
-              </div>
-              <div className="overview-grid">
-                <section className="panel sales-panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>A little perspective on growth</h2>
-                      <p>
-                        Booked value and contribution by booking creation month
-                      </p>
-                    </div>
-                    <span className="subtle-tag">INR</span>
-                  </div>
-                  <div className="chart-legend">
-                    <span>
-                      <i />
-                      Booked sales value
-                    </span>
-                    <span>
-                      <i className="gold-dot" />
-                      Booking contribution
-                    </span>
-                  </div>
-                  {a.monthly.length ? (
-                    <div className="sales-chart">
-                      <div className="chart-y">
-                        <span>{inr(chartMax)}</span>
-                        <span>{inr(chartMax / 2)}</span>
-                        <span>₹0</span>
-                      </div>
-                      <div className="chart-plot">
-                        <div className="grid-lines">
-                          <i />
-                          <i />
-                          <i />
-                        </div>
-                        {a.monthly.map((m) => (
-                          <div className="chart-column" key={m.month}>
-                            <div className="bar-pair">
-                              <div
-                                title={`${m.month}: ${inr(m.sales)} booked`}
-                                style={{
-                                  height: `${Math.max(1, (m.sales / chartMax) * 100)}%`,
-                                }}
-                              />
-                              <div
-                                title={`${m.month}: ${inr(m.contribution)} contribution`}
-                                className="contribution-bar"
-                                style={{
-                                  height: `${Math.max(1, (m.contribution / chartMax) * 100)}%`,
-                                }}
-                              />
-                            </div>
-                            <span>
-                              {new Date(m.month + "-02").toLocaleDateString(
-                                "en-IN",
-                                { month: "short" },
-                              )}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+          <div
+            className={
+              showWorkspaceFilters
+                ? "workspace-board with-filters"
+                : "workspace-board"
+            }
+          >
+            {showWorkspaceFilters && (
+              <aside
+                className="workspace-filter-rail"
+                aria-label="Workspace filters"
+              >
+                <div className="filter-bar">
+                  <span className="filter-title">
+                    <Filter size={15} />
+                    Filters
+                  </span>
+                  {page !== "Monthly report" ? (
+                    <div className="date-range">
+                      <input
+                        aria-label="From date"
+                        type="date"
+                        value={filters.from}
+                        onChange={(e) => dateFilter({ from: e.target.value })}
+                      />
+                      <span>—</span>
+                      <input
+                        aria-label="To date"
+                        type="date"
+                        value={filters.to}
+                        onChange={(e) => dateFilter({ to: e.target.value })}
+                      />
                     </div>
                   ) : (
-                    <Empty
-                      title="Your story starts here"
-                      detail="Create an enquiry and convert a quotation into your first booking."
-                    />
-                  )}
-                  <div className="chart-footer">
-                    <span>
-                      Contribution before marketing & operating expenses
-                    </span>
-                    <strong>{inr(a.contribution)}</strong>
-                  </div>
-                </section>
-                <section className="panel funnel-panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>Conversations to journeys</h2>
-                      <p>Your selected enquiry cohort, by current stage</p>
-                    </div>
-                  </div>
-                  <MiniBars
-                    items={stages.map((s) => ({
-                      label: s,
-                      value: a.leads.filter((l) => l.stage === s).length,
-                    }))}
-                  />
-                  <button
-                    className="text-button"
-                    onClick={() => changePage("Enquiries")}
-                  >
-                    Open sales pipeline <ArrowRight size={15} />
-                  </button>
-                </section>
-              </div>
-              <PrioritiesPanel
-                data={data}
-                onOpen={setDetail}
-                onRecord={(kind, id, leadId) => {
-                  if (kind === "Quotation follow-up") {
-                    setPrintQuote(data.quotes.find((q) => q.id === id) || null);
-                    return;
-                  }
-                  if (
-                    kind === "Customer payment due" ||
-                    kind === "Departure task"
-                  ) {
-                    changePage("Bookings");
-                    setFilters({
-                      ...defaultFilters(),
-                      from: "2000-01-01",
-                      search: lead(leadId)?.externalId || "",
-                    });
-                    return;
-                  }
-                  setDetail(lead(leadId) || null);
-                }}
-              />
-              <div className="secondary-metrics">
-                <div>
-                  <span className="icon-box">
-                    <Wallet size={20} />
-                  </span>
-                  <div>
-                    <small>Net cash collected</small>
-                    <strong>{inr(a.collected)}</strong>
-                    <span>Receipts less refunds, by transaction date</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="icon-box gold">
-                    <Clock3 size={20} />
-                  </span>
-                  <div>
-                    <small>Outstanding customer balances</small>
-                    <strong>{inr(a.due)}</strong>
-                    <span>Current amount due on selected bookings</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="icon-box rose">
-                    <CalendarDays size={20} />
-                  </span>
-                  <div>
-                    <small>Follow-ups needing attention</small>
-                    <strong>{a.overdue.length}</strong>
-                    <button
-                      className="text-button"
-                      onClick={() => {
-                        changePage("Enquiries");
-                        setFilters({
-                          ...filters,
-                          from: "2000-01-01",
-                          to: today(),
-                        });
-                        setStage("");
+                    <input
+                      aria-label="Report month"
+                      type="month"
+                      value={reportMonth}
+                      onChange={(e) => {
+                        if (e.target.value) setReportMonth(e.target.value);
                       }}
-                    >
-                      Review open enquiries <ArrowRight size={13} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="bottom-grid">
-                <section className="panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>Where your travellers want to go</h2>
-                      <p>Enquiries by destination</p>
-                    </div>
-                    <Compass size={20} className="muted" />
-                  </div>
-                  <MiniBars
-                    items={[...new Set(a.leads.map((l) => l.destination))]
-                      .map((d) => ({
-                        label: d,
-                        value: a.leads.filter((l) => l.destination === d)
-                          .length,
-                      }))
-                      .sort((x, y) => y.value - x.value)
-                      .slice(0, 6)}
-                  />
-                </section>
-                <section className="panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>The next conversation matters</h2>
-                      <p>Oldest overdue follow-ups · all dates</p>
-                    </div>
-                    <button
-                      className="text-button"
-                      onClick={() => changePage("Enquiries")}
-                    >
-                      View all <ArrowUpRight size={14} />
-                    </button>
-                  </div>
-                  {a.overdue.length ? (
-                    <div className="followup-list">
-                      {[...a.overdue]
-                        .sort((x, y) =>
-                          (x.followUp ?? "").localeCompare(y.followUp ?? ""),
-                        )
-                        .slice(0, 4)
-                        .map((l) => (
-                          <button key={l.id} onClick={() => setDetail(l)}>
-                            <span className="traveller-avatar">
-                              {l.customer
-                                .split(" ")
-                                .map((n) => n[0])
-                                .slice(0, 2)
-                                .join("")}
-                            </span>
-                            <div>
-                              <strong>{l.customer}</strong>
-                              <small>
-                                {l.destination} · {userName(l.assignedId)}
-                              </small>
-                            </div>
-                            <span className="due-tag">
-                              {indianDate(l.followUp!)}
-                            </span>
-                            <ChevronRight size={16} />
-                          </button>
-                        ))}
-                    </div>
-                  ) : (
-                    <Empty
-                      title="All caught up"
-                      detail="There are no overdue follow-ups in this selection."
                     />
                   )}
-                </section>
-              </div>
-            </>
-          )}
-          {page === "Enquiries" && (
-            <>
-              <div className="panel toolbar">
-                <div className="search-input">
-                  <Search size={16} />
-                  <input
-                    aria-label="Search enquiries"
-                    placeholder="Search customer, lead ID or destination…"
-                    value={filters.search}
-                    onChange={(e) => dateFilter({ search: e.target.value })}
-                  />
-                </div>
-                <select
-                  aria-label="Stage filter"
-                  value={stage}
-                  onChange={(e) => {
-                    setStage(e.target.value);
-                    setPageIndex(0);
-                  }}
-                >
-                  <option value="">All stages</option>
-                  {stages.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-                <div className="view-toggle">
-                  <button
-                    aria-label="List view"
-                    className={view === "list" ? "selected" : ""}
-                    onClick={() => setView("list")}
+                  <select
+                    aria-label="Destination filter"
+                    value={filters.destination}
+                    onChange={(e) =>
+                      dateFilter({ destination: e.target.value })
+                    }
                   >
-                    <List size={17} />
-                  </button>
-                  <button
-                    aria-label="Pipeline view"
-                    className={view === "pipeline" ? "selected" : ""}
-                    onClick={() => setView("pipeline")}
+                    <option value="">All destinations</option>
+                    {[...new Set(data.leads.map((l) => l.destination))]
+                      .sort()
+                      .map((d) => (
+                        <option key={d}>{d}</option>
+                      ))}
+                  </select>
+                  <select
+                    aria-label="Source filter"
+                    value={filters.source}
+                    onChange={(e) => dateFilter({ source: e.target.value })}
                   >
-                    <Columns3 size={17} />
-                  </button>
-                </div>
-                <ExportButton
-                  rows={summaryExport.filter(
-                    (r) => !stage || r.stage === stage,
-                  )}
-                  name="enquiries"
-                />
-              </div>
-              {!filteredLeads.length ? (
-                <Empty
-                  title="No enquiries in this view"
-                  detail="Try a wider date range or add your first enquiry."
-                >
-                  <button className="btn primary" onClick={() => enquiryForm()}>
-                    New enquiry
-                  </button>
-                </Empty>
-              ) : view === "pipeline" ? (
-                <div className="pipeline">
-                  {stages
-                    .filter((s) => !stage || s === stage)
-                    .map((s) => (
-                      <section key={s} data-stage={s}>
-                        <div className="pipeline-title">
-                          <Badge value={s} />
-                          <strong>
-                            {filteredLeads.filter((l) => l.stage === s).length}
-                          </strong>
-                        </div>
-                        {filteredLeads
-                          .filter((l) => l.stage === s)
-                          .slice(0, 30)
-                          .map((l) => (
-                            <button
-                              className="pipeline-card"
-                              key={l.id}
-                              onClick={() => setDetail(l)}
-                            >
-                              <small>{l.externalId}</small>
-                              <strong>{l.customer}</strong>
-                              <span>
-                                {l.destination} · {l.travellers} travellers
-                              </span>
-                              <div>
-                                <span>{inr(l.budget)} / person</span>
-                                <ChevronRight size={15} />
-                              </div>
-                            </button>
-                          ))}
-                        {filteredLeads.filter((l) => l.stage === s).length >
-                          30 && (
-                          <small>
-                            Showing first 30. Use search or list view for all.
-                          </small>
-                        )}
-                      </section>
+                    <option value="">All sources</option>
+                    {sources.map((s) => (
+                      <option key={s}>{s}</option>
                     ))}
+                  </select>
+                  <select
+                    aria-label="Salesperson filter"
+                    value={filters.salesperson}
+                    onChange={(e) =>
+                      dateFilter({ salesperson: e.target.value })
+                    }
+                  >
+                    <option value="">All salespeople</option>
+                    {data.users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="text-button reset"
+                    onClick={() => {
+                      setFilters(defaultFilters());
+                      setStage("");
+                      setPageIndex(0);
+                    }}
+                  >
+                    Reset
+                  </button>
                 </div>
-              ) : (
-                <section className="panel table-panel">
-                  <div className="table-scroll">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Customer / lead ID</th>
-                          <th>Destination</th>
-                          <th>Travel date</th>
-                          <th>Source</th>
-                          <th>Salesperson</th>
-                          <th>Stage</th>
-                          <th>Follow-up</th>
-                          <th>Priority</th>
-                          <th />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pageLeads.map((l) => (
-                          <tr key={l.id}>
-                            <td>
-                              <button
-                                className="table-link"
-                                onClick={() => setDetail(l)}
-                              >
-                                {l.customer}
-                              </button>
-                              <small>{l.externalId}</small>
-                            </td>
-                            <td>
-                              {l.destination}
-                              <small>
-                                {l.travellers} travellers · {inr(l.budget)} /
-                                person
-                              </small>
-                            </td>
-                            <td>{indianDate(l.travelStart)}</td>
-                            <td>{l.source}</td>
-                            <td>{userName(l.assignedId)}</td>
-                            <td>
-                              <Badge value={l.stage} />
-                            </td>
-                            <td
-                              className={
-                                l.followUp && l.followUp.slice(0, 10) < today()
-                                  ? "negative"
-                                  : ""
-                              }
-                            >
-                              {l.followUp ? indianDate(l.followUp) : "—"}
-                            </td>
-                            <td>
-                              {["Won", "Lost"].includes(l.stage) ? (
-                                <span className="muted">
-                                  Closed · historical score in details
-                                </span>
-                              ) : l.score === null ? (
-                                <span className="muted" title={l.scoreReason}>
-                                  Not scored
-                                </span>
-                              ) : (
-                                <span title={l.scoreReason}>
-                                  <Badge
-                                    value={
-                                      l.score >= 0.65
-                                        ? "High"
-                                        : l.score >= 0.35
-                                          ? "Medium"
-                                          : "Low"
-                                    }
-                                  />{" "}
-                                  <small>
-                                    {(l.score * 100).toFixed(0)}% · Demo model
-                                  </small>
-                                </span>
-                              )}
-                            </td>
-                            <td>
-                              <button
-                                className="icon-button"
-                                aria-label={`Edit ${l.customer}`}
-                                onClick={() => enquiryForm(l)}
-                              >
-                                <ArrowUpRight size={17} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="table-footer">
-                    <span>
-                      {pageIndex * 20 + 1}–
-                      {Math.min((pageIndex + 1) * 20, filteredLeads.length)} of{" "}
-                      {filteredLeads.length.toLocaleString("en-IN")} enquiries
-                    </span>
-                    <div>
-                      <button
-                        className="icon-button"
-                        aria-label="Previous page"
-                        disabled={pageIndex === 0}
-                        onClick={() => setPageIndex(pageIndex - 1)}
-                      >
-                        <ChevronLeft size={18} />
-                      </button>
-                      <span>Page {pageIndex + 1}</span>
-                      <button
-                        className="icon-button"
-                        aria-label="Next page"
-                        disabled={(pageIndex + 1) * 20 >= filteredLeads.length}
-                        onClick={() => setPageIndex(pageIndex + 1)}
-                      >
-                        <ChevronRight size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </section>
+              </aside>
+            )}
+            <div className="workspace-records">
+              {formError && !form && !detail && !printQuote && !importOpen && (
+                <p className="error-box" role="alert">
+                  {formError}
+                </p>
               )}
-              <p className="method-note">
-                Probability is a synthetic demo model output, not a validated
-                forecast. Open an enquiry to see inputs, explanation, version
-                and scoring date.
-              </p>
-            </>
-          )}
-          {page === "Packages" && (
-            <>
-              <p className="method-note">
-                Package catalogue is agency-wide. Global filters apply to
-                performance views; this catalogue shows all packages.
-              </p>
-              <div className="package-grid">
-                {data.packages.map((p, i) => (
-                  <article className="package-card panel" key={p.id}>
-                    <div className={`destination-art art-${i % 6}`}>
-                      <Compass size={100} strokeWidth={0.6} />
-                      <span>{p.destination}</span>
-                      <small>{p.days} DAYS OF DISCOVERY</small>
-                    </div>
-                    <div className="package-body">
-                      <h2>{p.name}</h2>
-                      <div className="package-price">
-                        <strong>{inr(p.price)}</strong>
-                        <span>/ person</span>
-                      </div>
-                      <p>
-                        <CheckCircle2 size={14} />
-                        {p.inclusions}
-                      </p>
-                      <details>
-                        <summary>
-                          {manager
-                            ? "Exclusions & cost estimate"
-                            : "Exclusions"}
-                        </summary>
-                        <p>{p.exclusions}</p>
-                        {manager && (
-                          <p>
-                            Estimated supplier cost: {inr(p.estimatedCost)} /
-                            person. Actual expenses are recorded separately on
-                            the booking.
-                          </p>
-                        )}
-                      </details>
-                      <div className="package-actions">
-                        <button
-                          className="btn secondary small"
-                          onClick={() => {
-                            quotationForm();
-                            setForm((f) =>
-                              f
-                                ? {
-                                    ...f,
-                                    values: { ...f.values, packageId: p.id },
-                                  }
-                                : f,
-                            );
-                          }}
-                        >
-                          Build quotation <ArrowUpRight size={15} />
-                        </button>
-                        {manager && (
-                          <button
-                            className="text-button"
-                            onClick={() => packageForm(p)}
-                          >
-                            Edit package
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              {!data.packages.length && (
-                <Empty
-                  title="Your next itinerary starts here"
-                  detail="Add a package with a selling price and estimated supplier cost."
+              {!salesFocus && filters.from > filters.to && (
+                <p className="error-box" role="alert">
+                  The start date must be before the end date.
+                </p>
+              )}
+              {page === "Overview" && !manager && (
+                <PrioritiesPanel data={data} onOpen={setDetail} />
+              )}
+              {(page === "Analytics" || (page === "Overview" && !manager)) && (
+                <AdvancedAnalytics data={data} onChange={run} />
+              )}
+              {page === "BI Reports" && <BiReports data={data} />}
+              {page === "Enquiries" && (
+                <AssistantPanel
+                  data={data}
+                  onReview={(draft) => enquiryForm(undefined, draft)}
                 />
               )}
-            </>
-          )}
-          {page === "Quotations" && (
-            <section className="panel table-panel">
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Quotation</th>
-                      <th>Customer</th>
-                      <th>Package</th>
-                      <th>Travellers</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.quotes
-                      .filter((q) => a.leads.some((l) => l.id === q.leadId))
-                      .slice(0, (pageIndex + 1) * 25)
-                      .map((q) => {
-                        const enquiry = lead(q.leadId),
-                          existingBooking = data.bookings.find(
-                            (b) => b.leadId === q.leadId,
-                          ),
-                          blocked = bookingBlockReason(
-                            q,
-                            enquiry,
-                            !!existingBooking,
-                          );
+              {page === "Overview" && manager && (
+                <>
+                  <div className="studio-insight-note">
+                    <BarChart3 size={17} />
+                    <p>
+                      Operational snapshot · recorded booking values and manual
+                      payments. For verified collections and complete financial
+                      definitions, use Analytics.
+                    </p>
+                    <button
+                      className="text-button"
+                      onClick={() => changePage("Analytics")}
+                    >
+                      Open advanced analytics <ArrowUpRight size={14} />
+                    </button>
+                  </div>
+                  <div className="section-label">
+                    <span>PERFORMANCE SNAPSHOT</span>
+                    <span>
+                      <span className="live-dot" /> Current booking balances ·
+                      INR
+                    </span>
+                  </div>
+                  <div className="metric-grid">
+                    {[
+                      {
+                        label: "Total enquiries",
+                        value: a.leads.length.toLocaleString("en-IN"),
+                        detail: "Enquiries received in this period",
+                        icon: Users,
+                      },
+                      {
+                        label: "Active bookings",
+                        value: a.valid.length.toLocaleString("en-IN"),
+                        detail: `${a.bookings.length - a.valid.length} cancellations tracked separately`,
+                        icon: Plane,
+                      },
+                      {
+                        label: "Booked sales value",
+                        value: inr(a.sales),
+                        detail: "Includes retained cancellation fees",
+                        icon: Wallet,
+                      },
+                      {
+                        label: "Enquiry conversion",
+                        value: (a.conversion * 100).toFixed(1) + "%",
+                        detail: "Selected enquiry cohort → active bookings",
+                        icon: ArrowUpRight,
+                      },
+                    ].map((m, i) => (
+                      <article
+                        className={`metric ${i === 2 ? "highlight" : ""}`}
+                        key={m.label}
+                      >
+                        <div className="metric-top">
+                          <span>{m.label}</span>
+                          <m.icon size={18} />
+                        </div>
+                        <strong>{m.value}</strong>
+                        <small>{m.detail}</small>
+                      </article>
+                    ))}
+                  </div>
+                  <section
+                    className="overview-pipeline"
+                    aria-label="Selected enquiry stages"
+                  >
+                    <div className="overview-pipeline-heading">
+                      <div>
+                        <h2>Enquiry board</h2>
+                        <p>
+                          New, qualified and quoted enquiries in the selected
+                          period · up to 3 per stage
+                        </p>
+                      </div>
+                      <button
+                        className="text-button"
+                        onClick={() => changePage("Enquiries")}
+                      >
+                        Open all enquiries <ArrowUpRight size={15} />
+                      </button>
+                    </div>
+                    <div className="overview-lanes">
+                      {(["New", "Qualified", "Quoted"] as const).map((lane) => {
+                        const records = a.leads.filter((l) => l.stage === lane);
                         return (
-                          <tr key={q.id}>
-                            <td>
-                              {q.id.slice(-10)}
-                              <small>Version {q.version}</small>
-                              <small>{indianDate(q.createdAt)}</small>
-                            </td>
-                            <td>
-                              <button
-                                className="text-button"
-                                onClick={() => enquiry && setDetail(enquiry)}
-                              >
-                                {enquiry?.customer}
-                              </button>
-                            </td>
-                            <td>{q.packageName}</td>
-                            <td>{q.travellers}</td>
-                            <td>{inr(q.total)}</td>
-                            <td>
-                              <Badge value={q.status} />
-                            </td>
-                            <td>
-                              <div className="row-actions">
-                                <button
-                                  className="text-button"
-                                  onClick={() => setPrintQuote(q)}
-                                >
-                                  <Printer size={14} />
-                                  Print / view
+                          <section key={lane} data-stage={lane}>
+                            <header>
+                              <strong>{lane}</strong>
+                              <span>{records.length}</span>
+                            </header>
+                            <div>
+                              {records.slice(0, 3).map((l) => (
+                                <button key={l.id} onClick={() => setDetail(l)}>
+                                  <strong>{l.customer}</strong>
+                                  <span>{l.destination}</span>
+                                  <small>{indianDate(l.travelStart)}</small>
                                 </button>
-                                {["Draft", "Approved"].includes(q.status) &&
-                                  !blocked && (
-                                    <button
-                                      className="btn secondary small"
-                                      onClick={() =>
-                                        openForm(
-                                          "Accept quotation & create booking",
-                                          "accept",
-                                          [
-                                            {
-                                              name: "dueDate",
-                                              label:
-                                                "Customer balance due date",
-                                              type: "date",
-                                            },
-                                          ],
-                                          {
-                                            dueDate: lead(
-                                              q.leadId,
-                                            )?.travelStart.slice(0, 10),
-                                          },
-                                          { id: q.id },
-                                        )
-                                      }
-                                    >
-                                      Accept & book
-                                    </button>
-                                  )}
-                                {existingBooking && (
-                                  <button
-                                    className="btn secondary small"
-                                    onClick={() =>
-                                      openSalesRecords(q.leadId, "Bookings")
-                                    }
-                                  >
-                                    Open booking
-                                  </button>
-                                )}
-                                {["Draft", "Approved"].includes(q.status) &&
-                                  blocked && (
-                                    <small className="sales-blocked">
-                                      {blocked}
-                                    </small>
-                                  )}
-                              </div>
-                            </td>
-                          </tr>
+                              ))}
+                              {!records.length && (
+                                <p className="lane-empty">
+                                  No enquiries in this stage.
+                                </p>
+                              )}
+                            </div>
+                          </section>
                         );
                       })}
-                  </tbody>
-                </table>
-              </div>
-              {!data.quotes.some((q) =>
-                a.leads.some((l) => l.id === q.leadId),
-              ) && (
-                <Empty
-                  title="Ready to put it in writing?"
-                  detail="Build a quotation from an open enquiry and a package."
-                />
-              )}
-              <div className="table-footer">
-                <span>
-                  Quotations for enquiries received in the selected period
-                </span>
-                <button
-                  className="text-button"
-                  onClick={() => setPageIndex(pageIndex + 1)}
-                  disabled={
-                    data.quotes.filter((q) =>
-                      a.leads.some((l) => l.id === q.leadId),
-                    ).length <=
-                    (pageIndex + 1) * 25
-                  }
-                >
-                  Show more
-                </button>
-              </div>
-            </section>
-          )}
-          {page === "Bookings" && (
-            <>
-              <div className="secondary-metrics compact">
-                <div>
-                  <div>
-                    <small>Current customer balances</small>
-                    <strong>{inr(a.due)}</strong>
-                  </div>
-                </div>
-                <div>
-                  <div>
-                    <small>
-                      {manager
-                        ? "Supplier net balance"
-                        : "Supplier financials restricted"}
-                    </small>
-                    <strong>
-                      {manager
-                        ? inr(
-                            a.bookings.reduce(
-                              (s, b) => s + balances(b).supplierDue,
-                              0,
-                            ),
-                          )
-                        : "Restricted"}
-                    </strong>
-                  </div>
-                </div>
-                <div>
-                  <div>
-                    <small>Refunds still due on cancellations</small>
-                    <strong>
-                      {inr(
-                        a.bookings
-                          .filter((b) => b.status === "Cancelled")
-                          .reduce((s, b) => s + balances(b).refundable, 0),
-                      )}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-              <section className="panel table-panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Journey register</h2>
-                    <p>Bookings created in the selected period</p>
-                  </div>
-                  <ExportButton
-                    name="bookings"
-                    rows={a.bookings.map((b) => ({
-                      bookingId: b.id,
-                      customer: lead(b.leadId)?.customer,
-                      status: b.status,
-                      travelStart: b.travelStart.slice(0, 10),
-                      travelEnd: b.travelEnd.slice(0, 10),
-                      salesINR: balances(b).sales / 100,
-                      cashReceivedNetINR: balances(b).netCash / 100,
-                      customerDueINR: balances(b).customerDue / 100,
-                      ...(manager
-                        ? {
-                            supplierDueINR: balances(b).supplierDue / 100,
-                            contributionINR: balances(b).contribution / 100,
-                          }
-                        : {}),
-                    }))}
-                  />
-                </div>
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Customer / booking</th>
-                        <th>Journey</th>
-                        <th>Status</th>
-                        <th>Supplier</th>
-                        <th>Sales value</th>
-                        <th>Customer due</th>
-                        <th>Supplier due</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {a.bookings
-                        .slice(pageIndex * 20, pageIndex * 20 + 20)
-                        .map((b) => {
-                          const bal = balances(b);
-                          return (
-                            <tr key={b.id}>
-                              <td>
-                                <button
-                                  className="text-button"
-                                  onClick={() => {
-                                    const l = lead(b.leadId);
-                                    if (l) setDetail(l);
-                                  }}
-                                >
-                                  {lead(b.leadId)?.customer}
-                                </button>
-                                <small>{b.id.slice(-10)}</small>
-                              </td>
-                              <td>
-                                {b.quote.destination}
-                                <small>
-                                  {indianDate(b.travelStart)} —{" "}
-                                  {indianDate(b.travelEnd)}
-                                </small>
-                              </td>
-                              <td>
-                                <Badge value={b.status} />
-                              </td>
-                              <td>
-                                <Badge value={b.supplierStatus} />
-                              </td>
-                              <td>
-                                {inr(bal.sales)}
-                                {manager && (
-                                  <small>
-                                    Estimate: {inr(b.quote.estimatedCost)} cost
-                                  </small>
-                                )}
-                              </td>
-                              <td
-                                className={
-                                  b.dueDate.slice(0, 10) < today() &&
-                                  bal.customerDue
-                                    ? "negative"
-                                    : ""
-                                }
-                              >
-                                {inr(bal.customerDue)}
-                                <small>Due {indianDate(b.dueDate)}</small>
-                                {bal.refundable > 0 && (
-                                  <small>
-                                    Refund due {inr(bal.refundable)}
-                                  </small>
-                                )}
-                              </td>
-                              <td>
-                                {manager ? inr(bal.supplierDue) : "Restricted"}
-                                {manager && (
-                                  <>
-                                    <small>
-                                      Actual cost {inr(bal.supplierCost)}
-                                    </small>
-                                    {bal.supplierDue < 0 && (
-                                      <small>
-                                        Supplier refund owed{" "}
-                                        {inr(-bal.supplierDue)}
-                                      </small>
-                                    )}
-                                  </>
-                                )}
-                              </td>
-                              <td>
-                                {manager && (
-                                  <button
-                                    className="btn secondary small"
-                                    disabled={data.demo || busy}
-                                    onClick={async () => {
-                                      if (
-                                        !window.confirm(
-                                          b.directCostsComplete
-                                            ? "Withdraw direct cost completeness?"
-                                            : "Confirm all supplier expenses/credits for this booking have been reconciled. This is not a net-profit certification.",
-                                        )
-                                      )
-                                        return;
-                                      await run("cost-coverage", {
-                                        id: b.id,
-                                        complete: !b.directCostsComplete,
-                                        revision: b.costRevision,
-                                      });
+                    </div>
+                  </section>
+                  <div className="overview-grid">
+                    <section className="panel sales-panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>A little perspective on growth</h2>
+                          <p>
+                            Booked value and contribution by booking creation
+                            month
+                          </p>
+                        </div>
+                        <span className="subtle-tag">INR</span>
+                      </div>
+                      <div className="chart-legend">
+                        <span>
+                          <i />
+                          Booked sales value
+                        </span>
+                        <span>
+                          <i className="gold-dot" />
+                          Booking contribution
+                        </span>
+                      </div>
+                      {a.monthly.length ? (
+                        <div className="sales-chart">
+                          <div className="chart-y">
+                            <span>{inr(chartMax)}</span>
+                            <span>{inr(chartMax / 2)}</span>
+                            <span>₹0</span>
+                          </div>
+                          <div className="chart-plot">
+                            <div className="grid-lines">
+                              <i />
+                              <i />
+                              <i />
+                            </div>
+                            {a.monthly.map((m) => (
+                              <div className="chart-column" key={m.month}>
+                                <div className="bar-pair">
+                                  <div
+                                    title={`${m.month}: ${inr(m.sales)} booked`}
+                                    style={{
+                                      height: `${Math.max(1, (m.sales / chartMax) * 100)}%`,
                                     }}
-                                  >
-                                    {b.directCostsComplete
-                                      ? "Costs complete · withdraw"
-                                      : "Attest direct costs complete"}
-                                  </button>
-                                )}
-                                <div className="row-actions">
-                                  <button
-                                    className="text-button"
-                                    onClick={() => transactionForm(b)}
-                                  >
-                                    Record entry
-                                  </button>
-                                  {manager && (
-                                    <button
-                                      className="text-button"
-                                      onClick={() =>
-                                        openForm(
-                                          "Update booking",
-                                          "booking",
-                                          [
-                                            {
-                                              name: "status",
-                                              label: "Booking status",
-                                              options: options([
-                                                "Confirmed",
-                                                "Completed",
-                                                "Cancelled",
-                                              ]),
-                                            },
-                                            {
-                                              name: "supplierStatus",
-                                              label: "Supplier confirmation",
-                                              options: options([
-                                                "Pending",
-                                                "Part confirmed",
-                                                "Confirmed",
-                                              ]),
-                                            },
-                                            numField(
-                                              "cancellationFee",
-                                              "Retained cancellation fee (₹)",
-                                            ),
-                                          ],
-                                          {
-                                            status: b.status,
-                                            supplierStatus: b.supplierStatus,
-                                            cancellationFee: moneyInput(
-                                              b.cancellationFee,
-                                            ),
-                                          },
-                                          { id: b.id },
-                                        )
-                                      }
-                                    >
-                                      Update status
-                                    </button>
-                                  )}
+                                  />
+                                  <div
+                                    title={`${m.month}: ${inr(m.contribution)} contribution`}
+                                    className="contribution-bar"
+                                    style={{
+                                      height: `${Math.max(1, (m.contribution / chartMax) * 100)}%`,
+                                    }}
+                                  />
                                 </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                    </tbody>
-                  </table>
-                </div>
-                {!a.bookings.length && (
-                  <Empty
-                    title="The journey is just beginning"
-                    detail="Accept a quotation to create a booking and track its collections."
-                  />
-                )}
-                <div className="table-footer">
-                  <span>{a.bookings.length} bookings</span>
-                  <div>
-                    <button
-                      className="icon-button"
-                      aria-label="Previous bookings"
-                      disabled={pageIndex === 0}
-                      onClick={() => setPageIndex(pageIndex - 1)}
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <span>Page {pageIndex + 1}</span>
-                    <button
-                      className="icon-button"
-                      aria-label="Next bookings"
-                      disabled={(pageIndex + 1) * 20 >= a.bookings.length}
-                      onClick={() => setPageIndex(pageIndex + 1)}
-                    >
-                      <ChevronRight size={18} />
-                    </button>
+                                <span>
+                                  {new Date(m.month + "-02").toLocaleDateString(
+                                    "en-IN",
+                                    { month: "short" },
+                                  )}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <Empty
+                          title="Your story starts here"
+                          detail="Create an enquiry and convert a quotation into your first booking."
+                        />
+                      )}
+                      <div className="chart-footer">
+                        <span>
+                          Contribution before marketing & operating expenses
+                        </span>
+                        <strong>{inr(a.contribution)}</strong>
+                      </div>
+                    </section>
+                    <section className="panel funnel-panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>Conversations to journeys</h2>
+                          <p>Your selected enquiry cohort, by current stage</p>
+                        </div>
+                      </div>
+                      <MiniBars
+                        items={stages.map((s) => ({
+                          label: s,
+                          value: a.leads.filter((l) => l.stage === s).length,
+                        }))}
+                      />
+                      <button
+                        className="text-button"
+                        onClick={() => changePage("Enquiries")}
+                      >
+                        Open sales pipeline <ArrowRight size={15} />
+                      </button>
+                    </section>
                   </div>
-                </div>
-              </section>
-              <p className="method-note">
-                Cancellation replaces booked value with the retained fee. Record
-                any refund and supplier credit explicitly; cancelling does not
-                move cash. Quotes preserve cost estimates. Contribution uses
-                actual supplier expenses less credits, whether or not paid.
-              </p>
-            </>
-          )}
-          {page === "Transactions" &&
-            (() => {
-              const ids = new Set(
-                data.leads
-                  .filter(
-                    (l) =>
-                      (!filters.destination ||
-                        l.destination === filters.destination) &&
-                      (!filters.source || l.source === filters.source) &&
-                      (!filters.salesperson ||
-                        l.assignedId === filters.salesperson),
-                  )
-                  .map((l) => l.id),
-              );
-              const entries = data.bookings
-                .filter((b) => ids.has(b.leadId))
-                .flatMap((b) =>
-                  b.transactions.map((t) => ({
-                    ...t,
-                    customer: lead(b.leadId)?.customer ?? "",
-                  })),
-                )
-                .filter(
-                  (t) =>
-                    t.date.slice(0, 10) >= filters.from &&
-                    t.date.slice(0, 10) <= filters.to,
-                )
-                .sort((x, y) => y.date.localeCompare(x.date));
-              return (
-                <section className="panel table-panel">
-                  <div className="panel-heading">
+                  <PrioritiesPanel
+                    data={data}
+                    onOpen={setDetail}
+                    onRecord={(kind, id, leadId) => {
+                      if (kind === "Quotation follow-up") {
+                        setPrintQuote(
+                          data.quotes.find((q) => q.id === id) || null,
+                        );
+                        return;
+                      }
+                      if (
+                        kind === "Customer payment due" ||
+                        kind === "Departure task"
+                      ) {
+                        changePage("Bookings");
+                        setFilters({
+                          ...defaultFilters(),
+                          from: "2000-01-01",
+                          search: lead(leadId)?.externalId || "",
+                        });
+                        return;
+                      }
+                      setDetail(lead(leadId) || null);
+                    }}
+                  />
+                  <div className="secondary-metrics">
                     <div>
-                      <h2>Manual transaction ledger</h2>
-                      <p>
-                        This product records entries. It does not process
-                        payments.
-                      </p>
+                      <span className="icon-box">
+                        <Wallet size={20} />
+                      </span>
+                      <div>
+                        <small>Net cash collected</small>
+                        <strong>{inr(a.collected)}</strong>
+                        <span>Receipts less refunds, by transaction date</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="icon-box gold">
+                        <Clock3 size={20} />
+                      </span>
+                      <div>
+                        <small>Outstanding customer balances</small>
+                        <strong>{inr(a.due)}</strong>
+                        <span>Current amount due on selected bookings</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="icon-box rose">
+                        <CalendarDays size={20} />
+                      </span>
+                      <div>
+                        <small>Follow-ups needing attention</small>
+                        <strong>{a.overdue.length}</strong>
+                        <button
+                          className="text-button"
+                          onClick={() => {
+                            changePage("Enquiries");
+                            setFilters({
+                              ...filters,
+                              from: "2000-01-01",
+                              to: today(),
+                            });
+                            setStage("");
+                          }}
+                        >
+                          Review open enquiries <ArrowRight size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bottom-grid">
+                    <section className="panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>Where your travellers want to go</h2>
+                          <p>Enquiries by destination</p>
+                        </div>
+                        <Compass size={20} className="muted" />
+                      </div>
+                      <MiniBars
+                        items={[...new Set(a.leads.map((l) => l.destination))]
+                          .map((d) => ({
+                            label: d,
+                            value: a.leads.filter((l) => l.destination === d)
+                              .length,
+                          }))
+                          .sort((x, y) => y.value - x.value)
+                          .slice(0, 6)}
+                      />
+                    </section>
+                    <section className="panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>The next conversation matters</h2>
+                          <p>Oldest overdue follow-ups · all dates</p>
+                        </div>
+                        <button
+                          className="text-button"
+                          onClick={() => changePage("Enquiries")}
+                        >
+                          View all <ArrowUpRight size={14} />
+                        </button>
+                      </div>
+                      {a.overdue.length ? (
+                        <div className="followup-list">
+                          {[...a.overdue]
+                            .sort((x, y) =>
+                              (x.followUp ?? "").localeCompare(
+                                y.followUp ?? "",
+                              ),
+                            )
+                            .slice(0, 4)
+                            .map((l) => (
+                              <button key={l.id} onClick={() => setDetail(l)}>
+                                <span className="traveller-avatar">
+                                  {l.customer
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .slice(0, 2)
+                                    .join("")}
+                                </span>
+                                <div>
+                                  <strong>{l.customer}</strong>
+                                  <small>
+                                    {l.destination} · {userName(l.assignedId)}
+                                  </small>
+                                </div>
+                                <span className="due-tag">
+                                  {indianDate(l.followUp!)}
+                                </span>
+                                <ChevronRight size={16} />
+                              </button>
+                            ))}
+                        </div>
+                      ) : (
+                        <Empty
+                          title="All caught up"
+                          detail="There are no overdue follow-ups in this selection."
+                        />
+                      )}
+                    </section>
+                  </div>
+                </>
+              )}
+              {page === "Enquiries" && (
+                <>
+                  <div className="panel toolbar">
+                    <div className="search-input">
+                      <Search size={16} />
+                      <input
+                        aria-label="Search enquiries"
+                        placeholder="Search customer, lead ID or destination…"
+                        value={filters.search}
+                        onChange={(e) => dateFilter({ search: e.target.value })}
+                      />
+                    </div>
+                    <select
+                      aria-label="Stage filter"
+                      value={stage}
+                      onChange={(e) => {
+                        setStage(e.target.value);
+                        setPageIndex(0);
+                      }}
+                    >
+                      <option value="">All stages</option>
+                      {stages.map((s) => (
+                        <option key={s}>{s}</option>
+                      ))}
+                    </select>
+                    <div className="view-toggle">
+                      <button
+                        aria-label="List view"
+                        className={view === "list" ? "selected" : ""}
+                        onClick={() => setView("list")}
+                      >
+                        <List size={17} />
+                      </button>
+                      <button
+                        aria-label="Pipeline view"
+                        className={view === "pipeline" ? "selected" : ""}
+                        onClick={() => setView("pipeline")}
+                      >
+                        <Columns3 size={17} />
+                      </button>
                     </div>
                     <ExportButton
-                      name="transactions"
-                      rows={entries.map((t) => ({
-                        transactionId: t.id,
-                        bookingId: t.bookingId,
-                        customer: t.customer,
-                        kind: t.kind,
-                        amountINR: t.amount / 100,
-                        date: t.date.slice(0, 10),
-                        supplier: t.supplier,
-                        memo: t.memo,
-                        dueDate: t.dueDate?.slice(0, 10) ?? "",
-                      }))}
+                      rows={summaryExport.filter(
+                        (r) => !stage || r.stage === stage,
+                      )}
+                      name="enquiries"
                     />
                   </div>
+                  {!filteredLeads.length ? (
+                    <Empty
+                      title="No enquiries in this view"
+                      detail="Try a wider date range or add your first enquiry."
+                    >
+                      <button
+                        className="btn primary"
+                        onClick={() => enquiryForm()}
+                      >
+                        New enquiry
+                      </button>
+                    </Empty>
+                  ) : view === "pipeline" ? (
+                    <div className="pipeline">
+                      {stages
+                        .filter((s) => !stage || s === stage)
+                        .map((s) => (
+                          <section key={s} data-stage={s}>
+                            <div className="pipeline-title">
+                              <Badge value={s} />
+                              <strong>
+                                {
+                                  filteredLeads.filter((l) => l.stage === s)
+                                    .length
+                                }
+                              </strong>
+                            </div>
+                            {filteredLeads
+                              .filter((l) => l.stage === s)
+                              .slice(0, 30)
+                              .map((l) => (
+                                <button
+                                  className="pipeline-card"
+                                  key={l.id}
+                                  onClick={() => setDetail(l)}
+                                >
+                                  <small>{l.externalId}</small>
+                                  <strong>{l.customer}</strong>
+                                  <span>
+                                    {l.destination} · {l.travellers} travellers
+                                  </span>
+                                  <div>
+                                    <span>{inr(l.budget)} / person</span>
+                                    <ChevronRight size={15} />
+                                  </div>
+                                </button>
+                              ))}
+                            {filteredLeads.filter((l) => l.stage === s).length >
+                              30 && (
+                              <small>
+                                Showing first 30. Use search or list view for
+                                all.
+                              </small>
+                            )}
+                          </section>
+                        ))}
+                    </div>
+                  ) : (
+                    <section className="panel table-panel">
+                      <div className="table-scroll">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Customer / lead ID</th>
+                              <th>Destination</th>
+                              <th>Travel date</th>
+                              <th>Source</th>
+                              <th>Salesperson</th>
+                              <th>Stage</th>
+                              <th>Follow-up</th>
+                              <th>Priority</th>
+                              <th />
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pageLeads.map((l) => (
+                              <tr key={l.id}>
+                                <td>
+                                  <button
+                                    className="table-link"
+                                    onClick={() => setDetail(l)}
+                                  >
+                                    {l.customer}
+                                  </button>
+                                  <small>{l.externalId}</small>
+                                </td>
+                                <td>
+                                  {l.destination}
+                                  <small>
+                                    {l.travellers} travellers · {inr(l.budget)}{" "}
+                                    / person
+                                  </small>
+                                </td>
+                                <td>{indianDate(l.travelStart)}</td>
+                                <td>{l.source}</td>
+                                <td>{userName(l.assignedId)}</td>
+                                <td>
+                                  <Badge value={l.stage} />
+                                </td>
+                                <td
+                                  className={
+                                    l.followUp &&
+                                    l.followUp.slice(0, 10) < today()
+                                      ? "negative"
+                                      : ""
+                                  }
+                                >
+                                  {l.followUp ? indianDate(l.followUp) : "—"}
+                                </td>
+                                <td>
+                                  {["Won", "Lost"].includes(l.stage) ? (
+                                    <span className="muted">
+                                      Closed · historical score in details
+                                    </span>
+                                  ) : l.score === null ? (
+                                    <span
+                                      className="muted"
+                                      title={l.scoreReason}
+                                    >
+                                      Not scored
+                                    </span>
+                                  ) : (
+                                    <span title={l.scoreReason}>
+                                      <Badge
+                                        value={
+                                          l.score >= 0.65
+                                            ? "High"
+                                            : l.score >= 0.35
+                                              ? "Medium"
+                                              : "Low"
+                                        }
+                                      />{" "}
+                                      <small>
+                                        {(l.score * 100).toFixed(0)}% · Demo
+                                        model
+                                      </small>
+                                    </span>
+                                  )}
+                                </td>
+                                <td>
+                                  <button
+                                    className="icon-button"
+                                    aria-label={`Edit ${l.customer}`}
+                                    onClick={() => enquiryForm(l)}
+                                  >
+                                    <ArrowUpRight size={17} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="table-footer">
+                        <span>
+                          {pageIndex * 20 + 1}–
+                          {Math.min((pageIndex + 1) * 20, filteredLeads.length)}{" "}
+                          of {filteredLeads.length.toLocaleString("en-IN")}{" "}
+                          enquiries
+                        </span>
+                        <div>
+                          <button
+                            className="icon-button"
+                            aria-label="Previous page"
+                            disabled={pageIndex === 0}
+                            onClick={() => setPageIndex(pageIndex - 1)}
+                          >
+                            <ChevronLeft size={18} />
+                          </button>
+                          <span>Page {pageIndex + 1}</span>
+                          <button
+                            className="icon-button"
+                            aria-label="Next page"
+                            disabled={
+                              (pageIndex + 1) * 20 >= filteredLeads.length
+                            }
+                            onClick={() => setPageIndex(pageIndex + 1)}
+                          >
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </section>
+                  )}
+                  <p className="method-note">
+                    Probability is a synthetic demo model output, not a
+                    validated forecast. Open an enquiry to see inputs,
+                    explanation, version and scoring date.
+                  </p>
+                </>
+              )}
+              {page === "Packages" && (
+                <>
+                  <p className="method-note">
+                    Package catalogue is agency-wide. Global filters apply to
+                    performance views; this catalogue shows all packages.
+                  </p>
+                  <div className="package-grid">
+                    {data.packages.map((p, i) => (
+                      <article className="package-card panel" key={p.id}>
+                        <div className={`destination-art art-${i % 6}`}>
+                          <Compass size={100} strokeWidth={0.6} />
+                          <span>{p.destination}</span>
+                          <small>{p.days} DAYS OF DISCOVERY</small>
+                        </div>
+                        <div className="package-body">
+                          <h2>{p.name}</h2>
+                          <div className="package-price">
+                            <strong>{inr(p.price)}</strong>
+                            <span>/ person</span>
+                          </div>
+                          <p>
+                            <CheckCircle2 size={14} />
+                            {p.inclusions}
+                          </p>
+                          <details>
+                            <summary>
+                              {manager
+                                ? "Exclusions & cost estimate"
+                                : "Exclusions"}
+                            </summary>
+                            <p>{p.exclusions}</p>
+                            {manager && (
+                              <p>
+                                Estimated supplier cost: {inr(p.estimatedCost)}{" "}
+                                / person. Actual expenses are recorded
+                                separately on the booking.
+                              </p>
+                            )}
+                          </details>
+                          <div className="package-actions">
+                            <button
+                              className="btn secondary small"
+                              onClick={() => {
+                                quotationForm();
+                                setForm((f) =>
+                                  f
+                                    ? {
+                                        ...f,
+                                        values: {
+                                          ...f.values,
+                                          packageId: p.id,
+                                        },
+                                      }
+                                    : f,
+                                );
+                              }}
+                            >
+                              Build quotation <ArrowUpRight size={15} />
+                            </button>
+                            {manager && (
+                              <button
+                                className="text-button"
+                                onClick={() => packageForm(p)}
+                              >
+                                Edit package
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                  {!data.packages.length && (
+                    <Empty
+                      title="Your next itinerary starts here"
+                      detail="Add a package with a selling price and estimated supplier cost."
+                    />
+                  )}
+                </>
+              )}
+              {page === "Quotations" && (
+                <section className="panel table-panel">
                   <div className="table-scroll">
                     <table>
                       <thead>
                         <tr>
-                          <th>Date</th>
+                          <th>Quotation</th>
                           <th>Customer</th>
-                          <th>Type</th>
-                          <th>Amount</th>
-                          <th>Supplier</th>
-                          <th>Due date</th>
-                          <th>Reference / reason</th>
+                          <th>Package</th>
+                          <th>Travellers</th>
+                          <th>Total</th>
+                          <th>Status</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {entries
-                          .slice(pageIndex * 25, pageIndex * 25 + 25)
-                          .map((t) => (
-                            <tr key={t.id}>
-                              <td>{indianDate(t.date)}</td>
-                              <td>
-                                {t.customer}
-                                <small>{t.bookingId.slice(-10)}</small>
-                              </td>
-                              <td>
-                                <Badge value={t.kind} />
-                              </td>
-                              <td>{inr(t.amount)}</td>
-                              <td>{t.supplier || "—"}</td>
-                              <td>{t.dueDate ? indianDate(t.dueDate) : "—"}</td>
-                              <td>{t.memo}</td>
-                            </tr>
-                          ))}
+                        {data.quotes
+                          .filter((q) => a.leads.some((l) => l.id === q.leadId))
+                          .slice(0, (pageIndex + 1) * 25)
+                          .map((q) => {
+                            const enquiry = lead(q.leadId),
+                              existingBooking = data.bookings.find(
+                                (b) => b.leadId === q.leadId,
+                              ),
+                              blocked = bookingBlockReason(
+                                q,
+                                enquiry,
+                                !!existingBooking,
+                              );
+                            return (
+                              <tr key={q.id}>
+                                <td>
+                                  {q.id.slice(-10)}
+                                  <small>Version {q.version}</small>
+                                  <small>{indianDate(q.createdAt)}</small>
+                                </td>
+                                <td>
+                                  <button
+                                    className="text-button"
+                                    onClick={() =>
+                                      enquiry && setDetail(enquiry)
+                                    }
+                                  >
+                                    {enquiry?.customer}
+                                  </button>
+                                </td>
+                                <td>{q.packageName}</td>
+                                <td>{q.travellers}</td>
+                                <td>{inr(q.total)}</td>
+                                <td>
+                                  <Badge value={q.status} />
+                                </td>
+                                <td>
+                                  <div className="row-actions">
+                                    <button
+                                      className="text-button"
+                                      onClick={() => setPrintQuote(q)}
+                                    >
+                                      <Printer size={14} />
+                                      Print / view
+                                    </button>
+                                    {["Draft", "Approved"].includes(q.status) &&
+                                      !blocked && (
+                                        <button
+                                          className="btn secondary small"
+                                          onClick={() =>
+                                            openForm(
+                                              "Accept quotation & create booking",
+                                              "accept",
+                                              [
+                                                {
+                                                  name: "dueDate",
+                                                  label:
+                                                    "Customer balance due date",
+                                                  type: "date",
+                                                },
+                                              ],
+                                              {
+                                                dueDate: lead(
+                                                  q.leadId,
+                                                )?.travelStart.slice(0, 10),
+                                              },
+                                              { id: q.id },
+                                            )
+                                          }
+                                        >
+                                          Accept & book
+                                        </button>
+                                      )}
+                                    {existingBooking && (
+                                      <button
+                                        className="btn secondary small"
+                                        onClick={() =>
+                                          openSalesRecords(q.leadId, "Bookings")
+                                        }
+                                      >
+                                        Open booking
+                                      </button>
+                                    )}
+                                    {["Draft", "Approved"].includes(q.status) &&
+                                      blocked && (
+                                        <small className="sales-blocked">
+                                          {blocked}
+                                        </small>
+                                      )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                       </tbody>
                     </table>
                   </div>
-                  {!entries.length && (
+                  {!data.quotes.some((q) =>
+                    a.leads.some((l) => l.id === q.leadId),
+                  ) && (
                     <Empty
-                      title="A clear record of every rupee"
-                      detail="Record a receipt or expense against a booking to begin."
+                      title="Ready to put it in writing?"
+                      detail="Build a quotation from an open enquiry and a package."
                     />
                   )}
                   <div className="table-footer">
                     <span>
-                      {entries.length} entries · transaction-date filter
+                      Quotations for enquiries received in the selected period
                     </span>
-                    <div>
-                      <button
-                        className="icon-button"
-                        aria-label="Previous transactions"
-                        disabled={!pageIndex}
-                        onClick={() => setPageIndex(pageIndex - 1)}
-                      >
-                        <ChevronLeft size={18} />
-                      </button>
-                      <span>Page {pageIndex + 1}</span>
-                      <button
-                        className="icon-button"
-                        aria-label="Next transactions"
-                        disabled={(pageIndex + 1) * 25 >= entries.length}
-                        onClick={() => setPageIndex(pageIndex + 1)}
-                      >
-                        <ChevronRight size={18} />
-                      </button>
-                    </div>
+                    <button
+                      className="text-button"
+                      onClick={() => setPageIndex(pageIndex + 1)}
+                      disabled={
+                        data.quotes.filter((q) =>
+                          a.leads.some((l) => l.id === q.leadId),
+                        ).length <=
+                        (pageIndex + 1) * 25
+                      }
+                    >
+                      Show more
+                    </button>
                   </div>
                 </section>
-              );
-            })()}
-          {page === "Marketing" && manager && (
-            <>
-              <div className="secondary-metrics compact">
-                <div>
-                  <div>
-                    <small>Advertising spend</small>
-                    <strong>{inr(a.adSpend)}</strong>
-                    <span>Full calendar months overlapping the date range</span>
-                  </div>
-                </div>
-                <div>
-                  <div>
-                    <small>Operating expenses</small>
-                    <strong>{inr(a.ops)}</strong>
-                    <span>Agency-wide · shown separately</span>
-                  </div>
-                </div>
-                <div>
-                  <div>
-                    <small>Booking contribution</small>
-                    <strong>{inr(a.contribution)}</strong>
-                    <span>Before marketing and operating expenses</span>
-                  </div>
-                </div>
-              </div>
-              <section className="panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Every source has a story</h2>
-                    <p>First-touch source attribution · enquiry cohort</p>
-                  </div>
-                  <ExportButton
-                    name="marketing"
-                    rows={a.sourceStats.map((s) => ({
-                      ...s,
-                      sales: s.sales / 100,
-                      spend: s.spend / 100,
-                      cpl: s.cpl === null ? "" : s.cpl / 100,
-                      cac: s.cac === null ? "" : s.cac / 100,
-                      roas: s.roas ?? "",
-                    }))}
-                  />
-                </div>
-                {sourceTable(a.sourceStats)}
-                <p className="method-note">
-                  ¹ First-touch attribution assigns 100% of an active booking’s
-                  sales value to the source stored on its enquiry. The cohort is
-                  enquiries received in the selected period, including their
-                  current bookings. ROAS = attributed active booked value ÷
-                  channel advertising spend. It is booked-value ROAS, not cash
-                  ROAS or proof of advertising impact. Spend is monthly and
-                  cannot be allocated by destination or salesperson; CPL, cost
-                  per booking and ROAS are unavailable for those slices.
-                </p>
-              </section>
-              <section className="panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Marketing & operating spend</h2>
-                    <p>
-                      Manual monthly totals; saving the same month, kind and
-                      channel replaces its total
-                    </p>
-                  </div>
-                  <button
-                    className="btn primary small"
-                    onClick={() =>
-                      openForm(
-                        "Record monthly spend",
-                        "spend",
-                        [
-                          { name: "month", label: "Month", type: "month" },
-                          {
-                            name: "kind",
-                            label: "Category",
-                            options: options(["Advertising", "Operating"]),
-                          },
-                          {
-                            name: "channel",
-                            label: "Channel / expense category",
-                            hint: "For advertising use Meta Ads or Google Ads to match attribution.",
-                          },
-                          numField("amount", "Monthly total (₹)"),
-                          {
-                            name: "memo",
-                            label: "Notes",
-                            type: "textarea",
-                            required: false,
-                          },
-                        ],
-                        {
-                          month: reportMonth,
-                          kind: "Advertising",
-                          channel: "Meta Ads",
-                        },
-                      )
-                    }
-                  >
-                    <Plus size={16} />
-                    Record spend
-                  </button>
-                </div>
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Month</th>
-                        <th>Kind</th>
-                        <th>Channel</th>
-                        <th>Amount</th>
-                        <th>Note</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.spends
-                        .filter(
-                          (s) =>
-                            s.month >= filters.from.slice(0, 7) &&
-                            s.month <= filters.to.slice(0, 7) &&
-                            (!filters.source ||
-                              s.kind === "Operating" ||
-                              s.channel === filters.source),
-                        )
-                        .map((s) => (
-                          <tr key={s.id}>
-                            <td>{s.month}</td>
-                            <td>{s.kind}</td>
-                            <td>{s.channel}</td>
-                            <td>{inr(s.amount)}</td>
-                            <td>{s.memo}</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-              <section className="panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Contribution by package & destination</h2>
-                    <p>
-                      Actual supplier expense entries, independent of payment
-                      timing
-                    </p>
-                  </div>
-                  <ExportButton
-                    name="package-contribution"
-                    rows={a.packages.map((p) => ({
-                      ...p,
-                      salesINR: p.sales / 100,
-                      costINR: p.cost / 100,
-                      contributionINR: p.contribution / 100,
-                    }))}
-                  />
-                </div>
-                {packageTable(a.packages)}
-              </section>
-            </>
-          )}
-          {page === "Monthly report" && (
-            <>
-              <div className="report-actions">
-                <span className="subtle-tag">
-                  A practical review, built from your records
-                </span>
-                <button
-                  className="btn primary"
-                  onClick={() => setPrintReport(true)}
-                >
-                  <Printer size={16} />
-                  Print / save PDF
-                </button>
-                <ExportButton
-                  name={`monthly-report-${reportMonth}`}
-                  rows={report.sourceStats.map((s) => ({
-                    ...s,
-                    month: reportMonth,
-                    salesINR: s.sales / 100,
-                    spendINR: s.spend / 100,
-                  }))}
-                />
-              </div>
-              {reportContent()}
-            </>
-          )}
-          {page === "Lead intelligence" && (
-            <>
-              <div className="model-banner">
-                <span className="icon-box gold">
-                  <Sparkles size={24} />
-                </span>
-                <div>
-                  <h2>Demo model — not validated on your agency</h2>
-                  <p>
-                    A reproducible logistic regression trained on synthetic
-                    data. Use it to explore prioritisation, with human
-                    judgement.
-                  </p>
-                </div>
-              </div>
-              <div className="report-columns">
-                <section className="panel">
-                  <div className="panel-heading">
+              )}
+              {page === "Bookings" && (
+                <>
+                  <div className="secondary-metrics compact">
                     <div>
-                      <h2>Try a scenario</h2>
-                      <p>
-                        This calculator runs in memory. No enquiry is changed.
-                      </p>
+                      <div>
+                        <small>Current customer balances</small>
+                        <strong>{inr(a.due)}</strong>
+                      </div>
                     </div>
-                  </div>
-                  <div className="form-grid">
-                    {[
-                      {
-                        label: "Budget fit (budget ÷ quote)",
-                        min: 0.25,
-                        max: 2,
-                        step: 0.01,
-                      },
-                      {
-                        label: "Days to departure at enquiry",
-                        min: 0,
-                        max: 365,
-                        step: 1,
-                      },
-                      { label: "Travellers", min: 1, max: 20, step: 1 },
-                      {
-                        label: "First response hours",
-                        min: 0,
-                        max: 168,
-                        step: 0.1,
-                      },
-                    ].map((f, i) => (
-                      <label key={f.label}>
-                        {f.label}
-                        <input
-                          aria-label={f.label}
-                          type="number"
-                          min={f.min}
-                          max={f.max}
-                          step={f.step}
-                          value={calc[i]}
-                          onChange={(e) =>
-                            setCalc(
-                              calc.map((v, j) =>
-                                i === j ? e.target.value : v,
-                              ),
-                            )
-                          }
-                        />
-                      </label>
-                    ))}
-                    {["Repeat customer", "Itinerary requested"].map(
-                      (label, i) => (
-                        <label key={label}>
-                          {label}
-                          <select
-                            value={calc[i + 4]}
-                            onChange={(e) =>
-                              setCalc(
-                                calc.map((v, j) =>
-                                  j === i + 4 ? e.target.value : v,
+                    <div>
+                      <div>
+                        <small>
+                          {manager
+                            ? "Supplier net balance"
+                            : "Supplier financials restricted"}
+                        </small>
+                        <strong>
+                          {manager
+                            ? inr(
+                                a.bookings.reduce(
+                                  (s, b) => s + balances(b).supplierDue,
+                                  0,
                                 ),
                               )
-                            }
-                          >
-                            <option value="false">No</option>
-                            <option value="true">Yes</option>
-                          </select>
-                        </label>
-                      ),
-                    )}
-                  </div>
-                  {(() => {
-                    try {
-                      if (calc.slice(0, 4).some((v) => v === ""))
-                        throw new Error("Complete every input");
-                      const inputs = calc.map((v, i) =>
-                        i < 4 ? Number(v) : Number(v === "true"),
-                      );
-                      if (
-                        !Number.isInteger(inputs[1]) ||
-                        !Number.isInteger(inputs[2])
-                      )
-                        throw new Error(
-                          "Days and travellers must be whole numbers",
-                        );
-                      const p = predict(inputs);
-                      return (
-                        <div className="score-result">
-                          <span>SYNTHETIC MODEL OUTPUT</span>
-                          <strong>
-                            {(p * 100).toFixed(1)}
-                            <small>%</small>
-                          </strong>
-                          <Badge
-                            value={
-                              p >= 0.65 ? "High" : p >= 0.35 ? "Medium" : "Low"
-                            }
-                          />
-                          <p>
-                            Synthetic model output · not validated booking
-                            probability
-                          </p>
-                        </div>
-                      );
-                    } catch (e) {
-                      return (
-                        <p className="error-box">
-                          Not scored: {(e as Error).message}
-                        </p>
-                      );
-                    }
-                  })()}
-                </section>
-                <section className="panel prose">
-                  <h2>Useful context. Clear limits.</h2>
-                  <p>
-                    Eligible enquiries are scored when created, imported, edited
-                    or quoted. Missing inputs and values outside the supported
-                    ranges produce “Not scored”.
-                  </p>
-                  <details>
-                    <summary>Technical model details</summary>
-                    <ul>
-                      <li>
-                        Budget fit: 0.25–2.0; departure: 0–365 days from
-                        enquiry.
-                      </li>
-                      <li>Travellers: 1–20; first response: 0–168 hours.</li>
-                      <li>
-                        Repeat-customer and itinerary-request status must be
-                        explicitly supplied.
-                      </li>
-                      <li>
-                        Synthetic score bands: high ≥65%; medium 35–65%; low
-                        below 35%. These are not operational priorities.
-                      </li>
-                      <li>
-                        Explanations describe how recorded inputs affect this
-                        demonstration model. They are not evidence of real
-                        customer intent.
-                      </li>
-                    </ul>
-                    <p>
-                      <strong>Version:</strong> {modelInfo.version}
-                    </p>
-                    <p>
-                      Python trains on 6,000 synthetic rows and evaluates on a
-                      separate 2,000-row holdout. Evaluation and limitations are
-                      in <code>ml/evaluation.json</code> and{" "}
-                      <code>ml/README.md</code>. Those results do not establish
-                      real-world accuracy.
-                    </p>
-                    <p>
-                      No uploaded records are used for retraining. Lead stage,
-                      receipts and booking outcome are excluded from model
-                      inputs.
-                    </p>
-                  </details>
-                </section>
-              </div>
-              <section className="panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Open enquiries · synthetic model context</h2>
-                    <p>All dates · your permitted records only</p>
-                  </div>
-                </div>
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Enquiry</th>
-                        <th>Synthetic model output</th>
-                        <th>Explanation / reason</th>
-                        <th>Scored at</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.leads
-                        .filter((l) => !["Won", "Lost"].includes(l.stage))
-                        .sort((x, y) => (y.score ?? -1) - (x.score ?? -1))
-                        .slice(0, 25)
-                        .map((l) => (
-                          <tr key={l.id}>
-                            <td>
-                              <button
-                                className="table-link"
-                                onClick={() => setDetail(l)}
-                              >
-                                {l.customer}
-                              </button>
-                              <small>{l.destination}</small>
-                            </td>
-                            <td>
-                              {l.score === null
-                                ? "Not scored"
-                                : (l.score * 100).toFixed(1) + "%"}
-                            </td>
-                            <td>
-                              {l.scoreReason}
-                              <small>{l.modelVersion ?? "No model run"}</small>
-                            </td>
-                            <td>{l.scoredAt ? indianDate(l.scoredAt) : "—"}</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            </>
-          )}
-          {!data.demo && !data.access.canWrite && (
-            <div className="info-box">
-              Your trial or subscription is inactive. You can view and export
-              existing records. Contact support to renew before changing
-              business records.
-            </div>
-          )}
-          {page === "Automation" && <Automation data={data} />}
-          {page === "Messaging" && <Messaging data={data} />}
-          {page === "Integrations" && <Integrations data={data} />}
-          {page === "Subscription" && (
-            <SubscriptionPage
-              data={data}
-              onRequest={async (input) => run("subscription-request", input)}
-              error={formError}
-              busy={busy}
-            />
-          )}
-          {page === "Settings" && (
-            <>
-              <div className="report-columns">
-                <section className="panel prose">
-                  <h2>Agency profile</h2>
-                  <p>
-                    <strong>{data.agency.name}</strong>
-                    <br />
-                    {data.agency.contact || "Add your agency contact details."}
-                  </p>
-                  <p>{data.agency.footer}</p>
-                  <div className="status-line">
-                    <Badge value={data.agency.plan} />
-                    <Badge value={data.agency.subscription} />
-                    <span>Manually managed subscription</span>
-                    <span>
-                      {data.users.filter((u) => !u.disabled).length} /{" "}
-                      {data.access.limits.seats} active users
-                    </span>
-                  </div>
-                  {owner && (
-                    <button
-                      className="btn primary"
-                      onClick={() =>
-                        openForm(
-                          "Agency settings",
-                          "settings",
-                          [
-                            { name: "name", label: "Agency name" },
-                            {
-                              name: "timezone",
-                              label: "Reporting timezone (IANA)",
-                              hint: "For example Asia/Kolkata or America/New_York. Historical events are not rewritten.",
-                            },
-                            {
-                              name: "logo",
-                              label: "Logo URL (HTTPS)",
-                              type: "url",
-                              required: false,
-                            },
-                            {
-                              name: "contact",
-                              label: "Contact details",
-                              type: "textarea",
-                              required: false,
-                            },
-                            {
-                              name: "footer",
-                              label: "Quotation footer",
-                              type: "textarea",
-                              required: false,
-                            },
-                          ],
-                          { ...data.agency },
-                        )
-                      }
-                    >
-                      Edit agency profile
-                    </button>
-                  )}
-                  <p className="method-note">
-                    {data.agency.subscription === "Trial"
-                      ? `Trial ends ${indianDate(data.agency.trialEndsAt)}.`
-                      : data.agency.subscriptionExpiresAt
-                        ? `Subscription ends ${indianDate(data.agency.subscriptionExpiresAt)}.`
-                        : "Subscription dates are managed by the service administrator."}{" "}
-                    Plan limits are enforced on the server. No money is charged
-                    automatically.
-                  </p>
-                  {owner && !data.access.emailConfigured && (
-                    <p className="info-box">
-                      Email invitations and password recovery need to be enabled
-                      by the service administrator before client onboarding.
-                    </p>
-                  )}
-                  {owner && !data.access.emailVerificationRequired && (
-                    <p className="info-box">
-                      Required email verification is not enabled yet. Complete
-                      the launch checklist before onboarding real clients.
-                    </p>
-                  )}
-                </section>
-                <section className="panel prose">
-                  <h2>Owner onboarding checklist</h2>
-                  <ul className="checklist">
-                    {[
-                      [true, "Create your agency workspace"],
-                      [!!data.agency.contact, "Add agency contact details"],
-                      [data.users.length > 1, "Add your sales team"],
-                      [data.packages.length > 0, "Create your first package"],
-                      [data.leads.length > 0, "Add an enquiry"],
-                      [
-                        data.bookings.length > 0,
-                        "Convert a quotation into a booking",
-                      ],
-                    ].map(([done, label]) => (
-                      <li key={String(label)}>
-                        <CheckCircle2
-                          size={18}
-                          className={done ? "positive" : "muted"}
-                        />
-                        {String(label)}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              </div>
-              <section className="panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Your people</h2>
-                    <p>
-                      Owners manage team membership. Agents see only assigned
-                      enquiries and their related records.
-                    </p>
-                  </div>
-                  {owner && (
-                    <button
-                      className="btn primary small"
-                      onClick={() =>
-                        openForm("Invite team member", "invite", [
-                          { name: "email", label: "Email", type: "email" },
-                          {
-                            name: "role",
-                            label: "Role",
-                            options: options(["AGENT", "MANAGER"]),
-                          },
-                        ])
-                      }
-                    >
-                      <Plus size={16} />
-                      Invite member
-                    </button>
-                  )}
-                </div>
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        {owner && <th>Email</th>}
-                        <th>Role</th>
-                        <th>Status</th>
-                        {owner && <th>Access</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.users.map((u) => (
-                        <tr key={u.id}>
-                          <td>{u.name}</td>
-                          {owner && (
-                            <td>{"email" in u ? String(u.email) : "—"}</td>
+                            : "Restricted"}
+                        </strong>
+                      </div>
+                    </div>
+                    <div>
+                      <div>
+                        <small>Refunds still due on cancellations</small>
+                        <strong>
+                          {inr(
+                            a.bookings
+                              .filter((b) => b.status === "Cancelled")
+                              .reduce((s, b) => s + balances(b).refundable, 0),
                           )}
-                          <td>{u.role}</td>
-                          <td>
-                            <Badge value={u.disabled ? "Disabled" : "Active"} />
-                          </td>
-                          {owner && (
-                            <td>
-                              {u.id === data.actor.id ? (
-                                "You"
-                              ) : (
-                                <button
-                                  className="text-button"
-                                  onClick={() =>
-                                    openForm(
-                                      "Manage team access",
-                                      "team",
-                                      [
-                                        {
-                                          name: "role",
-                                          label: "Role",
-                                          options: options([
-                                            "OWNER",
-                                            "MANAGER",
-                                            "AGENT",
-                                          ]),
-                                        },
-                                        {
-                                          name: "disabled",
-                                          label: "Access status",
-                                          options: [
-                                            { value: "false", label: "Active" },
-                                            {
-                                              value: "true",
-                                              label: "Disabled",
-                                            },
-                                          ],
-                                        },
-                                      ],
-                                      {
-                                        role: u.role,
-                                        disabled: String(u.disabled),
-                                      },
-                                      { id: u.id },
-                                    )
-                                  }
-                                >
-                                  Manage access
-                                </button>
-                              )}
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-              {owner && (
-                <section className="panel">
-                  <h2>Team invitations</h2>
-                  <p className="method-note">
-                    Recipients choose their own password. Invitations expire
-                    after 7 days and reserve one plan seat.
-                  </p>
-                  {data.invitations.length ? (
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <section className="panel table-panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Journey register</h2>
+                        <p>Bookings created in the selected period</p>
+                      </div>
+                      <ExportButton
+                        name="bookings"
+                        rows={a.bookings.map((b) => ({
+                          bookingId: b.id,
+                          customer: lead(b.leadId)?.customer,
+                          status: b.status,
+                          travelStart: b.travelStart.slice(0, 10),
+                          travelEnd: b.travelEnd.slice(0, 10),
+                          salesINR: balances(b).sales / 100,
+                          cashReceivedNetINR: balances(b).netCash / 100,
+                          customerDueINR: balances(b).customerDue / 100,
+                          ...(manager
+                            ? {
+                                supplierDueINR: balances(b).supplierDue / 100,
+                                contributionINR: balances(b).contribution / 100,
+                              }
+                            : {}),
+                        }))}
+                      />
+                    </div>
                     <div className="table-scroll">
                       <table>
                         <thead>
                           <tr>
-                            <th>Email</th>
-                            <th>Role</th>
+                            <th>Customer / booking</th>
+                            <th>Journey</th>
                             <th>Status</th>
-                            <th>Expires</th>
-                            <th>Action</th>
+                            <th>Supplier</th>
+                            <th>Sales value</th>
+                            <th>Customer due</th>
+                            <th>Supplier due</th>
+                            <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {data.invitations.map((i) => (
-                            <tr key={i.id}>
-                              <td>{i.email}</td>
-                              <td>{i.role}</td>
-                              <td>
-                                {new Date(i.expiresAt) < new Date() &&
-                                i.status === "Pending"
-                                  ? "Expired"
-                                  : i.status}
-                              </td>
-                              <td>{indianDate(i.expiresAt)}</td>
-                              <td>
-                                {i.status === "Pending" && (
-                                  <button
-                                    className="text-button"
-                                    disabled={busy || data.demo}
-                                    onClick={() =>
-                                      openForm(
-                                        "Revoke invitation",
-                                        "invite-revoke",
-                                        [],
-                                        {},
-                                        { id: i.id },
-                                      )
+                          {a.bookings
+                            .slice(pageIndex * 20, pageIndex * 20 + 20)
+                            .map((b) => {
+                              const bal = balances(b);
+                              return (
+                                <tr key={b.id}>
+                                  <td>
+                                    <button
+                                      className="text-button"
+                                      onClick={() => {
+                                        const l = lead(b.leadId);
+                                        if (l) setDetail(l);
+                                      }}
+                                    >
+                                      {lead(b.leadId)?.customer}
+                                    </button>
+                                    <small>{b.id.slice(-10)}</small>
+                                  </td>
+                                  <td>
+                                    {b.quote.destination}
+                                    <small>
+                                      {indianDate(b.travelStart)} —{" "}
+                                      {indianDate(b.travelEnd)}
+                                    </small>
+                                  </td>
+                                  <td>
+                                    <Badge value={b.status} />
+                                  </td>
+                                  <td>
+                                    <Badge value={b.supplierStatus} />
+                                  </td>
+                                  <td>
+                                    {inr(bal.sales)}
+                                    {manager && (
+                                      <small>
+                                        Estimate: {inr(b.quote.estimatedCost)}{" "}
+                                        cost
+                                      </small>
+                                    )}
+                                  </td>
+                                  <td
+                                    className={
+                                      b.dueDate.slice(0, 10) < today() &&
+                                      bal.customerDue
+                                        ? "negative"
+                                        : ""
                                     }
                                   >
-                                    Revoke invitation
+                                    {inr(bal.customerDue)}
+                                    <small>Due {indianDate(b.dueDate)}</small>
+                                    {bal.refundable > 0 && (
+                                      <small>
+                                        Refund due {inr(bal.refundable)}
+                                      </small>
+                                    )}
+                                  </td>
+                                  <td>
+                                    {manager
+                                      ? inr(bal.supplierDue)
+                                      : "Restricted"}
+                                    {manager && (
+                                      <>
+                                        <small>
+                                          Actual cost {inr(bal.supplierCost)}
+                                        </small>
+                                        {bal.supplierDue < 0 && (
+                                          <small>
+                                            Supplier refund owed{" "}
+                                            {inr(-bal.supplierDue)}
+                                          </small>
+                                        )}
+                                      </>
+                                    )}
+                                  </td>
+                                  <td>
+                                    {manager && (
+                                      <button
+                                        className="btn secondary small"
+                                        disabled={data.demo || busy}
+                                        onClick={async () => {
+                                          if (
+                                            !window.confirm(
+                                              b.directCostsComplete
+                                                ? "Withdraw direct cost completeness?"
+                                                : "Confirm all supplier expenses/credits for this booking have been reconciled. This is not a net-profit certification.",
+                                            )
+                                          )
+                                            return;
+                                          await run("cost-coverage", {
+                                            id: b.id,
+                                            complete: !b.directCostsComplete,
+                                            revision: b.costRevision,
+                                          });
+                                        }}
+                                      >
+                                        {b.directCostsComplete
+                                          ? "Costs complete · withdraw"
+                                          : "Attest direct costs complete"}
+                                      </button>
+                                    )}
+                                    <div className="row-actions">
+                                      <button
+                                        className="text-button"
+                                        onClick={() => transactionForm(b)}
+                                      >
+                                        Record entry
+                                      </button>
+                                      {manager && (
+                                        <button
+                                          className="text-button"
+                                          onClick={() =>
+                                            openForm(
+                                              "Update booking",
+                                              "booking",
+                                              [
+                                                {
+                                                  name: "status",
+                                                  label: "Booking status",
+                                                  options: options([
+                                                    "Confirmed",
+                                                    "Completed",
+                                                    "Cancelled",
+                                                  ]),
+                                                },
+                                                {
+                                                  name: "supplierStatus",
+                                                  label:
+                                                    "Supplier confirmation",
+                                                  options: options([
+                                                    "Pending",
+                                                    "Part confirmed",
+                                                    "Confirmed",
+                                                  ]),
+                                                },
+                                                numField(
+                                                  "cancellationFee",
+                                                  "Retained cancellation fee (₹)",
+                                                ),
+                                              ],
+                                              {
+                                                status: b.status,
+                                                supplierStatus:
+                                                  b.supplierStatus,
+                                                cancellationFee: moneyInput(
+                                                  b.cancellationFee,
+                                                ),
+                                              },
+                                              { id: b.id },
+                                            )
+                                          }
+                                        >
+                                          Update status
+                                        </button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {!a.bookings.length && (
+                      <Empty
+                        title="The journey is just beginning"
+                        detail="Accept a quotation to create a booking and track its collections."
+                      />
+                    )}
+                    <div className="table-footer">
+                      <span>{a.bookings.length} bookings</span>
+                      <div>
+                        <button
+                          className="icon-button"
+                          aria-label="Previous bookings"
+                          disabled={pageIndex === 0}
+                          onClick={() => setPageIndex(pageIndex - 1)}
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <span>Page {pageIndex + 1}</span>
+                        <button
+                          className="icon-button"
+                          aria-label="Next bookings"
+                          disabled={(pageIndex + 1) * 20 >= a.bookings.length}
+                          onClick={() => setPageIndex(pageIndex + 1)}
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                  <p className="method-note">
+                    Cancellation replaces booked value with the retained fee.
+                    Record any refund and supplier credit explicitly; cancelling
+                    does not move cash. Quotes preserve cost estimates.
+                    Contribution uses actual supplier expenses less credits,
+                    whether or not paid.
+                  </p>
+                </>
+              )}
+              {page === "Transactions" &&
+                (() => {
+                  const ids = new Set(
+                    data.leads
+                      .filter(
+                        (l) =>
+                          (!filters.destination ||
+                            l.destination === filters.destination) &&
+                          (!filters.source || l.source === filters.source) &&
+                          (!filters.salesperson ||
+                            l.assignedId === filters.salesperson),
+                      )
+                      .map((l) => l.id),
+                  );
+                  const entries = data.bookings
+                    .filter((b) => ids.has(b.leadId))
+                    .flatMap((b) =>
+                      b.transactions.map((t) => ({
+                        ...t,
+                        customer: lead(b.leadId)?.customer ?? "",
+                      })),
+                    )
+                    .filter(
+                      (t) =>
+                        t.date.slice(0, 10) >= filters.from &&
+                        t.date.slice(0, 10) <= filters.to,
+                    )
+                    .sort((x, y) => y.date.localeCompare(x.date));
+                  return (
+                    <section className="panel table-panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>Manual transaction ledger</h2>
+                          <p>
+                            This product records entries. It does not process
+                            payments.
+                          </p>
+                        </div>
+                        <ExportButton
+                          name="transactions"
+                          rows={entries.map((t) => ({
+                            transactionId: t.id,
+                            bookingId: t.bookingId,
+                            customer: t.customer,
+                            kind: t.kind,
+                            amountINR: t.amount / 100,
+                            date: t.date.slice(0, 10),
+                            supplier: t.supplier,
+                            memo: t.memo,
+                            dueDate: t.dueDate?.slice(0, 10) ?? "",
+                          }))}
+                        />
+                      </div>
+                      <div className="table-scroll">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Customer</th>
+                              <th>Type</th>
+                              <th>Amount</th>
+                              <th>Supplier</th>
+                              <th>Due date</th>
+                              <th>Reference / reason</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {entries
+                              .slice(pageIndex * 25, pageIndex * 25 + 25)
+                              .map((t) => (
+                                <tr key={t.id}>
+                                  <td>{indianDate(t.date)}</td>
+                                  <td>
+                                    {t.customer}
+                                    <small>{t.bookingId.slice(-10)}</small>
+                                  </td>
+                                  <td>
+                                    <Badge value={t.kind} />
+                                  </td>
+                                  <td>{inr(t.amount)}</td>
+                                  <td>{t.supplier || "—"}</td>
+                                  <td>
+                                    {t.dueDate ? indianDate(t.dueDate) : "—"}
+                                  </td>
+                                  <td>{t.memo}</td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {!entries.length && (
+                        <Empty
+                          title="A clear record of every rupee"
+                          detail="Record a receipt or expense against a booking to begin."
+                        />
+                      )}
+                      <div className="table-footer">
+                        <span>
+                          {entries.length} entries · transaction-date filter
+                        </span>
+                        <div>
+                          <button
+                            className="icon-button"
+                            aria-label="Previous transactions"
+                            disabled={!pageIndex}
+                            onClick={() => setPageIndex(pageIndex - 1)}
+                          >
+                            <ChevronLeft size={18} />
+                          </button>
+                          <span>Page {pageIndex + 1}</span>
+                          <button
+                            className="icon-button"
+                            aria-label="Next transactions"
+                            disabled={(pageIndex + 1) * 25 >= entries.length}
+                            onClick={() => setPageIndex(pageIndex + 1)}
+                          >
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </section>
+                  );
+                })()}
+              {page === "Marketing" && manager && (
+                <>
+                  <div className="secondary-metrics compact">
+                    <div>
+                      <div>
+                        <small>Advertising spend</small>
+                        <strong>{inr(a.adSpend)}</strong>
+                        <span>
+                          Full calendar months overlapping the date range
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <div>
+                        <small>Operating expenses</small>
+                        <strong>{inr(a.ops)}</strong>
+                        <span>Agency-wide · shown separately</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div>
+                        <small>Booking contribution</small>
+                        <strong>{inr(a.contribution)}</strong>
+                        <span>Before marketing and operating expenses</span>
+                      </div>
+                    </div>
+                  </div>
+                  <section className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Every source has a story</h2>
+                        <p>First-touch source attribution · enquiry cohort</p>
+                      </div>
+                      <ExportButton
+                        name="marketing"
+                        rows={a.sourceStats.map((s) => ({
+                          ...s,
+                          sales: s.sales / 100,
+                          spend: s.spend / 100,
+                          cpl: s.cpl === null ? "" : s.cpl / 100,
+                          cac: s.cac === null ? "" : s.cac / 100,
+                          roas: s.roas ?? "",
+                        }))}
+                      />
+                    </div>
+                    {sourceTable(a.sourceStats)}
+                    <p className="method-note">
+                      ¹ First-touch attribution assigns 100% of an active
+                      booking’s sales value to the source stored on its enquiry.
+                      The cohort is enquiries received in the selected period,
+                      including their current bookings. ROAS = attributed active
+                      booked value ÷ channel advertising spend. It is
+                      booked-value ROAS, not cash ROAS or proof of advertising
+                      impact. Spend is monthly and cannot be allocated by
+                      destination or salesperson; CPL, cost per booking and ROAS
+                      are unavailable for those slices.
+                    </p>
+                  </section>
+                  <section className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Marketing & operating spend</h2>
+                        <p>
+                          Manual monthly totals; saving the same month, kind and
+                          channel replaces its total
+                        </p>
+                      </div>
+                      <button
+                        className="btn primary small"
+                        onClick={() =>
+                          openForm(
+                            "Record monthly spend",
+                            "spend",
+                            [
+                              { name: "month", label: "Month", type: "month" },
+                              {
+                                name: "kind",
+                                label: "Category",
+                                options: options(["Advertising", "Operating"]),
+                              },
+                              {
+                                name: "channel",
+                                label: "Channel / expense category",
+                                hint: "For advertising use Meta Ads or Google Ads to match attribution.",
+                              },
+                              numField("amount", "Monthly total (₹)"),
+                              {
+                                name: "memo",
+                                label: "Notes",
+                                type: "textarea",
+                                required: false,
+                              },
+                            ],
+                            {
+                              month: reportMonth,
+                              kind: "Advertising",
+                              channel: "Meta Ads",
+                            },
+                          )
+                        }
+                      >
+                        <Plus size={16} />
+                        Record spend
+                      </button>
+                    </div>
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Month</th>
+                            <th>Kind</th>
+                            <th>Channel</th>
+                            <th>Amount</th>
+                            <th>Note</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.spends
+                            .filter(
+                              (s) =>
+                                s.month >= filters.from.slice(0, 7) &&
+                                s.month <= filters.to.slice(0, 7) &&
+                                (!filters.source ||
+                                  s.kind === "Operating" ||
+                                  s.channel === filters.source),
+                            )
+                            .map((s) => (
+                              <tr key={s.id}>
+                                <td>{s.month}</td>
+                                <td>{s.kind}</td>
+                                <td>{s.channel}</td>
+                                <td>{inr(s.amount)}</td>
+                                <td>{s.memo}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                  <section className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Contribution by package & destination</h2>
+                        <p>
+                          Actual supplier expense entries, independent of
+                          payment timing
+                        </p>
+                      </div>
+                      <ExportButton
+                        name="package-contribution"
+                        rows={a.packages.map((p) => ({
+                          ...p,
+                          salesINR: p.sales / 100,
+                          costINR: p.cost / 100,
+                          contributionINR: p.contribution / 100,
+                        }))}
+                      />
+                    </div>
+                    {packageTable(a.packages)}
+                  </section>
+                </>
+              )}
+              {page === "Monthly report" && (
+                <>
+                  <div className="report-actions">
+                    <span className="subtle-tag">
+                      A practical review, built from your records
+                    </span>
+                    <button
+                      className="btn primary"
+                      onClick={() => setPrintReport(true)}
+                    >
+                      <Printer size={16} />
+                      Print / save PDF
+                    </button>
+                    <ExportButton
+                      name={`monthly-report-${reportMonth}`}
+                      rows={report.sourceStats.map((s) => ({
+                        ...s,
+                        month: reportMonth,
+                        salesINR: s.sales / 100,
+                        spendINR: s.spend / 100,
+                      }))}
+                    />
+                  </div>
+                  {reportContent()}
+                </>
+              )}
+              {page === "Lead intelligence" && (
+                <>
+                  <div className="model-banner">
+                    <span className="icon-box gold">
+                      <Sparkles size={24} />
+                    </span>
+                    <div>
+                      <h2>Demo model — not validated on your agency</h2>
+                      <p>
+                        A reproducible logistic regression trained on synthetic
+                        data. Use it to explore prioritisation, with human
+                        judgement.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="report-columns">
+                    <section className="panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>Try a scenario</h2>
+                          <p>
+                            This calculator runs in memory. No enquiry is
+                            changed.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="form-grid">
+                        {[
+                          {
+                            label: "Budget fit (budget ÷ quote)",
+                            min: 0.25,
+                            max: 2,
+                            step: 0.01,
+                          },
+                          {
+                            label: "Days to departure at enquiry",
+                            min: 0,
+                            max: 365,
+                            step: 1,
+                          },
+                          { label: "Travellers", min: 1, max: 20, step: 1 },
+                          {
+                            label: "First response hours",
+                            min: 0,
+                            max: 168,
+                            step: 0.1,
+                          },
+                        ].map((f, i) => (
+                          <label key={f.label}>
+                            {f.label}
+                            <input
+                              aria-label={f.label}
+                              type="number"
+                              min={f.min}
+                              max={f.max}
+                              step={f.step}
+                              value={calc[i]}
+                              onChange={(e) =>
+                                setCalc(
+                                  calc.map((v, j) =>
+                                    i === j ? e.target.value : v,
+                                  ),
+                                )
+                              }
+                            />
+                          </label>
+                        ))}
+                        {["Repeat customer", "Itinerary requested"].map(
+                          (label, i) => (
+                            <label key={label}>
+                              {label}
+                              <select
+                                value={calc[i + 4]}
+                                onChange={(e) =>
+                                  setCalc(
+                                    calc.map((v, j) =>
+                                      j === i + 4 ? e.target.value : v,
+                                    ),
+                                  )
+                                }
+                              >
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                              </select>
+                            </label>
+                          ),
+                        )}
+                      </div>
+                      {(() => {
+                        try {
+                          if (calc.slice(0, 4).some((v) => v === ""))
+                            throw new Error("Complete every input");
+                          const inputs = calc.map((v, i) =>
+                            i < 4 ? Number(v) : Number(v === "true"),
+                          );
+                          if (
+                            !Number.isInteger(inputs[1]) ||
+                            !Number.isInteger(inputs[2])
+                          )
+                            throw new Error(
+                              "Days and travellers must be whole numbers",
+                            );
+                          const p = predict(inputs);
+                          return (
+                            <div className="score-result">
+                              <span>SYNTHETIC MODEL OUTPUT</span>
+                              <strong>
+                                {(p * 100).toFixed(1)}
+                                <small>%</small>
+                              </strong>
+                              <Badge
+                                value={
+                                  p >= 0.65
+                                    ? "High"
+                                    : p >= 0.35
+                                      ? "Medium"
+                                      : "Low"
+                                }
+                              />
+                              <p>
+                                Synthetic model output · not validated booking
+                                probability
+                              </p>
+                            </div>
+                          );
+                        } catch (e) {
+                          return (
+                            <p className="error-box">
+                              Not scored: {(e as Error).message}
+                            </p>
+                          );
+                        }
+                      })()}
+                    </section>
+                    <section className="panel prose">
+                      <h2>Useful context. Clear limits.</h2>
+                      <p>
+                        Eligible enquiries are scored when created, imported,
+                        edited or quoted. Missing inputs and values outside the
+                        supported ranges produce “Not scored”.
+                      </p>
+                      <details>
+                        <summary>Technical model details</summary>
+                        <ul>
+                          <li>
+                            Budget fit: 0.25–2.0; departure: 0–365 days from
+                            enquiry.
+                          </li>
+                          <li>
+                            Travellers: 1–20; first response: 0–168 hours.
+                          </li>
+                          <li>
+                            Repeat-customer and itinerary-request status must be
+                            explicitly supplied.
+                          </li>
+                          <li>
+                            Synthetic score bands: high ≥65%; medium 35–65%; low
+                            below 35%. These are not operational priorities.
+                          </li>
+                          <li>
+                            Explanations describe how recorded inputs affect
+                            this demonstration model. They are not evidence of
+                            real customer intent.
+                          </li>
+                        </ul>
+                        <p>
+                          <strong>Version:</strong> {modelInfo.version}
+                        </p>
+                        <p>
+                          Python trains on 6,000 synthetic rows and evaluates on
+                          a separate 2,000-row holdout. Evaluation and
+                          limitations are in <code>ml/evaluation.json</code> and{" "}
+                          <code>ml/README.md</code>. Those results do not
+                          establish real-world accuracy.
+                        </p>
+                        <p>
+                          No uploaded records are used for retraining. Lead
+                          stage, receipts and booking outcome are excluded from
+                          model inputs.
+                        </p>
+                      </details>
+                    </section>
+                  </div>
+                  <section className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Open enquiries · synthetic model context</h2>
+                        <p>All dates · your permitted records only</p>
+                      </div>
+                    </div>
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Enquiry</th>
+                            <th>Synthetic model output</th>
+                            <th>Explanation / reason</th>
+                            <th>Scored at</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.leads
+                            .filter((l) => !["Won", "Lost"].includes(l.stage))
+                            .sort((x, y) => (y.score ?? -1) - (x.score ?? -1))
+                            .slice(0, 25)
+                            .map((l) => (
+                              <tr key={l.id}>
+                                <td>
+                                  <button
+                                    className="table-link"
+                                    onClick={() => setDetail(l)}
+                                  >
+                                    {l.customer}
                                   </button>
-                                )}
+                                  <small>{l.destination}</small>
+                                </td>
+                                <td>
+                                  {l.score === null
+                                    ? "Not scored"
+                                    : (l.score * 100).toFixed(1) + "%"}
+                                </td>
+                                <td>
+                                  {l.scoreReason}
+                                  <small>
+                                    {l.modelVersion ?? "No model run"}
+                                  </small>
+                                </td>
+                                <td>
+                                  {l.scoredAt ? indianDate(l.scoredAt) : "—"}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                </>
+              )}
+              {!data.demo && !data.access.canWrite && (
+                <div className="info-box">
+                  Your trial or subscription is inactive. You can view and
+                  export existing records. Contact support to renew before
+                  changing business records.
+                </div>
+              )}
+              {page === "Automation" && <Automation data={data} />}
+              {page === "Messaging" && <Messaging data={data} />}
+              {page === "Integrations" && <Integrations data={data} />}
+              {page === "Subscription" && (
+                <SubscriptionPage
+                  data={data}
+                  onRequest={async (input) =>
+                    run("subscription-request", input)
+                  }
+                  error={formError}
+                  busy={busy}
+                />
+              )}
+              {page === "Settings" && (
+                <>
+                  <div className="report-columns">
+                    <section className="panel prose">
+                      <h2>Agency profile</h2>
+                      <p>
+                        <strong>{data.agency.name}</strong>
+                        <br />
+                        {data.agency.contact ||
+                          "Add your agency contact details."}
+                      </p>
+                      <p>{data.agency.footer}</p>
+                      <div className="status-line">
+                        <Badge value={data.agency.plan} />
+                        <Badge value={data.agency.subscription} />
+                        <span>Manually managed subscription</span>
+                        <span>
+                          {data.users.filter((u) => !u.disabled).length} /{" "}
+                          {data.access.limits.seats} active users
+                        </span>
+                      </div>
+                      {owner && (
+                        <button
+                          className="btn primary"
+                          onClick={() =>
+                            openForm(
+                              "Agency settings",
+                              "settings",
+                              [
+                                { name: "name", label: "Agency name" },
+                                {
+                                  name: "timezone",
+                                  label: "Reporting timezone (IANA)",
+                                  hint: "For example Asia/Kolkata or America/New_York. Historical events are not rewritten.",
+                                },
+                                {
+                                  name: "logo",
+                                  label: "Logo URL (HTTPS)",
+                                  type: "url",
+                                  required: false,
+                                },
+                                {
+                                  name: "contact",
+                                  label: "Contact details",
+                                  type: "textarea",
+                                  required: false,
+                                },
+                                {
+                                  name: "footer",
+                                  label: "Quotation footer",
+                                  type: "textarea",
+                                  required: false,
+                                },
+                              ],
+                              { ...data.agency },
+                            )
+                          }
+                        >
+                          Edit agency profile
+                        </button>
+                      )}
+                      <p className="method-note">
+                        {data.agency.subscription === "Trial"
+                          ? `Trial ends ${indianDate(data.agency.trialEndsAt)}.`
+                          : data.agency.subscriptionExpiresAt
+                            ? `Subscription ends ${indianDate(data.agency.subscriptionExpiresAt)}.`
+                            : "Subscription dates are managed by the service administrator."}{" "}
+                        Plan limits are enforced on the server. No money is
+                        charged automatically.
+                      </p>
+                      {owner && !data.access.emailConfigured && (
+                        <p className="info-box">
+                          Email invitations and password recovery need to be
+                          enabled by the service administrator before client
+                          onboarding.
+                        </p>
+                      )}
+                      {owner && !data.access.emailVerificationRequired && (
+                        <p className="info-box">
+                          Required email verification is not enabled yet.
+                          Complete the launch checklist before onboarding real
+                          clients.
+                        </p>
+                      )}
+                    </section>
+                    <section className="panel prose">
+                      <h2>Owner onboarding checklist</h2>
+                      <ul className="checklist">
+                        {[
+                          [true, "Create your agency workspace"],
+                          [!!data.agency.contact, "Add agency contact details"],
+                          [data.users.length > 1, "Add your sales team"],
+                          [
+                            data.packages.length > 0,
+                            "Create your first package",
+                          ],
+                          [data.leads.length > 0, "Add an enquiry"],
+                          [
+                            data.bookings.length > 0,
+                            "Convert a quotation into a booking",
+                          ],
+                        ].map(([done, label]) => (
+                          <li key={String(label)}>
+                            <CheckCircle2
+                              size={18}
+                              className={done ? "positive" : "muted"}
+                            />
+                            {String(label)}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  </div>
+                  <section className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Your people</h2>
+                        <p>
+                          Owners manage team membership. Agents see only
+                          assigned enquiries and their related records.
+                        </p>
+                      </div>
+                      {owner && (
+                        <button
+                          className="btn primary small"
+                          onClick={() =>
+                            openForm("Invite team member", "invite", [
+                              { name: "email", label: "Email", type: "email" },
+                              {
+                                name: "role",
+                                label: "Role",
+                                options: options(["AGENT", "MANAGER"]),
+                              },
+                            ])
+                          }
+                        >
+                          <Plus size={16} />
+                          Invite member
+                        </button>
+                      )}
+                    </div>
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            {owner && <th>Email</th>}
+                            <th>Role</th>
+                            <th>Status</th>
+                            {owner && <th>Access</th>}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.users.map((u) => (
+                            <tr key={u.id}>
+                              <td>{u.name}</td>
+                              {owner && (
+                                <td>{"email" in u ? String(u.email) : "—"}</td>
+                              )}
+                              <td>{u.role}</td>
+                              <td>
+                                <Badge
+                                  value={u.disabled ? "Disabled" : "Active"}
+                                />
                               </td>
+                              {owner && (
+                                <td>
+                                  {u.id === data.actor.id ? (
+                                    "You"
+                                  ) : (
+                                    <button
+                                      className="text-button"
+                                      onClick={() =>
+                                        openForm(
+                                          "Manage team access",
+                                          "team",
+                                          [
+                                            {
+                                              name: "role",
+                                              label: "Role",
+                                              options: options([
+                                                "OWNER",
+                                                "MANAGER",
+                                                "AGENT",
+                                              ]),
+                                            },
+                                            {
+                                              name: "disabled",
+                                              label: "Access status",
+                                              options: [
+                                                {
+                                                  value: "false",
+                                                  label: "Active",
+                                                },
+                                                {
+                                                  value: "true",
+                                                  label: "Disabled",
+                                                },
+                                              ],
+                                            },
+                                          ],
+                                          {
+                                            role: u.role,
+                                            disabled: String(u.disabled),
+                                          },
+                                          { id: u.id },
+                                        )
+                                      }
+                                    >
+                                      Manage access
+                                    </button>
+                                  )}
+                                </td>
+                              )}
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
-                  ) : (
-                    <p className="muted">No invitations sent yet.</p>
-                  )}
-                </section>
-              )}
-              {!data.demo && <SecuritySettings />}
-              {!data.demo && (
-                <section className="panel prose">
-                  <h2>Your password</h2>
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setBusy(true);
-                      const fd = new FormData(e.currentTarget);
-                      const r = await authClient.changePassword({
-                        currentPassword: String(fd.get("current")),
-                        newPassword: String(fd.get("new")),
-                        revokeOtherSessions: true,
-                      });
-                      setBusy(false);
-                      notify(
-                        r.error?.message ??
-                          "Password changed. Other sessions were revoked.",
-                      );
-                    }}
-                  >
-                    <div className="form-grid">
-                      <label>
-                        Current password
-                        <input
-                          name="current"
-                          type="password"
-                          required
-                          autoComplete="current-password"
-                        />
-                      </label>
-                      <label>
-                        New password
-                        <input
-                          name="new"
-                          type="password"
-                          required
-                          minLength={12}
-                          maxLength={128}
-                          autoComplete="new-password"
-                        />
-                      </label>
-                    </div>
-                    <button className="btn secondary" disabled={busy}>
-                      Change password
-                    </button>
-                  </form>
-                </section>
-              )}
-              <section className="panel">
-                <div className="panel-heading">
-                  <div>
-                    <h2>Workspace export & audit trail</h2>
-                    <p>
-                      Exports contain only records you may access. Full-record
-                      exports store money as integer paise. Spreadsheet formulas
-                      are escaped.
-                    </p>
-                  </div>
-                  <div className="row-actions">
-                    <select
-                      aria-label="Export record type"
-                      value={exportTable}
-                      onChange={(e) => setExportTable(e.target.value)}
-                    >
-                      {Object.keys(exportTables).map((t) => (
-                        <option key={t}>{t}</option>
-                      ))}
-                    </select>
-                    <ExportButton
-                      name={`agency-${exportTable.toLowerCase()}`}
-                      rows={workspaceExport}
-                    />
-                  </div>
-                </div>
-                <div className="audit-list">
-                  {data.activities.slice(0, 30).map((x) => (
-                    <div key={x.id}>
-                      <span className="audit-dot" />
-                      <p>
-                        {x.action}
-                        <small>
-                          {userName(x.actor)} · {indianDate(x.createdAt)}
-                        </small>
+                  </section>
+                  {owner && (
+                    <section className="panel">
+                      <h2>Team invitations</h2>
+                      <p className="method-note">
+                        Recipients choose their own password. Invitations expire
+                        after 7 days and reserve one plan seat.
                       </p>
-                    </div>
-                  ))}
-                  {!data.activities.length && (
-                    <p className="muted">
-                      Important enquiry, booking, payment and access changes
-                      will appear here.
-                    </p>
+                      {data.invitations.length ? (
+                        <div className="table-scroll">
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Expires</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {data.invitations.map((i) => (
+                                <tr key={i.id}>
+                                  <td>{i.email}</td>
+                                  <td>{i.role}</td>
+                                  <td>
+                                    {new Date(i.expiresAt) < new Date() &&
+                                    i.status === "Pending"
+                                      ? "Expired"
+                                      : i.status}
+                                  </td>
+                                  <td>{indianDate(i.expiresAt)}</td>
+                                  <td>
+                                    {i.status === "Pending" && (
+                                      <button
+                                        className="text-button"
+                                        disabled={busy || data.demo}
+                                        onClick={() =>
+                                          openForm(
+                                            "Revoke invitation",
+                                            "invite-revoke",
+                                            [],
+                                            {},
+                                            { id: i.id },
+                                          )
+                                        }
+                                      >
+                                        Revoke invitation
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="muted">No invitations sent yet.</p>
+                      )}
+                    </section>
                   )}
-                </div>
-              </section>
-            </>
-          )}
-          {page === "Demo guide" && (
-            <div className="guide-layout">
-              <section className="panel prose">
-                <span className="eyebrow">A THREE-MINUTE TOUR</span>
-                <h2>Show the journey, then show the value.</h2>
-                <ol className="guide-steps">
-                  <li>
-                    <strong>0:00–0:40 · Start with the overview</strong>
+                  {!data.demo && <SecuritySettings />}
+                  {!data.demo && (
+                    <section className="panel prose">
+                      <h2>Your password</h2>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          setBusy(true);
+                          const fd = new FormData(e.currentTarget);
+                          const r = await authClient.changePassword({
+                            currentPassword: String(fd.get("current")),
+                            newPassword: String(fd.get("new")),
+                            revokeOtherSessions: true,
+                          });
+                          setBusy(false);
+                          notify(
+                            r.error?.message ??
+                              "Password changed. Other sessions were revoked.",
+                          );
+                        }}
+                      >
+                        <div className="form-grid">
+                          <label>
+                            Current password
+                            <input
+                              name="current"
+                              type="password"
+                              required
+                              autoComplete="current-password"
+                            />
+                          </label>
+                          <label>
+                            New password
+                            <input
+                              name="new"
+                              type="password"
+                              required
+                              minLength={12}
+                              maxLength={128}
+                              autoComplete="new-password"
+                            />
+                          </label>
+                        </div>
+                        <button className="btn secondary" disabled={busy}>
+                          Change password
+                        </button>
+                      </form>
+                    </section>
+                  )}
+                  <section className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Workspace export & audit trail</h2>
+                        <p>
+                          Exports contain only records you may access.
+                          Full-record exports store money as integer paise.
+                          Spreadsheet formulas are escaped.
+                        </p>
+                      </div>
+                      <div className="row-actions">
+                        <select
+                          aria-label="Export record type"
+                          value={exportTable}
+                          onChange={(e) => setExportTable(e.target.value)}
+                        >
+                          {Object.keys(exportTables).map((t) => (
+                            <option key={t}>{t}</option>
+                          ))}
+                        </select>
+                        <ExportButton
+                          name={`agency-${exportTable.toLowerCase()}`}
+                          rows={workspaceExport}
+                        />
+                      </div>
+                    </div>
+                    <div className="audit-list">
+                      {data.activities.slice(0, 30).map((x) => (
+                        <div key={x.id}>
+                          <span className="audit-dot" />
+                          <p>
+                            {x.action}
+                            <small>
+                              {userName(x.actor)} · {indianDate(x.createdAt)}
+                            </small>
+                          </p>
+                        </div>
+                      ))}
+                      {!data.activities.length && (
+                        <p className="muted">
+                          Important enquiry, booking, payment and access changes
+                          will appear here.
+                        </p>
+                      )}
+                    </div>
+                  </section>
+                </>
+              )}
+              {page === "Demo guide" && (
+                <div className="guide-layout">
+                  <section className="panel prose">
+                    <span className="eyebrow">A THREE-MINUTE TOUR</span>
+                    <h2>Show the journey, then show the value.</h2>
+                    <ol className="guide-steps">
+                      <li>
+                        <strong>0:00–0:40 · Start with the overview</strong>
+                        <p>
+                          “Here is your agency in one view: enquiries, bookings,
+                          collections and balances. Contribution is separate
+                          from advertising and operating costs.” Change a
+                          destination filter to show that the numbers come from
+                          connected records.
+                        </p>
+                      </li>
+                      <li>
+                        <strong>0:40–1:20 · Open an enquiry</strong>
+                        <p>
+                          Show salesperson assignment, follow-ups and the
+                          pipeline. Open an enquiry to see its activity history.
+                          Explain the synthetic model label before showing its
+                          score.
+                        </p>
+                      </li>
+                      <li>
+                        <strong>1:20–2:00 · Follow the booking</strong>
+                        <p>
+                          View a printable quotation. Open Bookings to show
+                          partial collections, supplier balances and
+                          cancellations. Explain that receipts are recorded
+                          manually; the system does not collect money.
+                        </p>
+                      </li>
+                      <li>
+                        <strong>2:00–2:40 · Review the month</strong>
+                        <p>
+                          Open Marketing for source attribution and acquisition
+                          costs. Show the monthly report, its observations and
+                          browser-print PDF workflow.
+                        </p>
+                      </li>
+                      <li>
+                        <strong>2:40–3:00 · Invite the next step</strong>
+                        <p>
+                          “We can create your own workspace, add your packages,
+                          import your enquiries and train your team.
+                          Subscription and onboarding are arranged manually.”
+                        </p>
+                      </li>
+                    </ol>
+                    <button
+                      className="btn primary"
+                      onClick={() => changePage("Overview")}
+                    >
+                      Start the tour <ArrowRight size={16} />
+                    </button>
+                  </section>
+                  <section className="panel prose">
+                    <h2>How to use this demo</h2>
                     <p>
-                      “Here is your agency in one view: enquiries, bookings,
-                      collections and balances. Contribution is separate from
-                      advertising and operating costs.” Change a destination
-                      filter to show that the numbers come from connected
+                      The isolated demo contains 1,500 fictional enquiries and
+                      330 bookings across six completed months. Names and agency
+                      details are invented; no real customer contacts are
+                      included.
+                    </p>
+                    <p>
+                      Use the date, source, destination and salesperson filters.
+                      Search enquiries, switch to pipeline view, inspect
+                      records, export CSVs and print quotations or reports. The
+                      model calculator is interactive and does not save data.
+                    </p>
+                    <p>
+                      Save controls explain that this demo is read-only. Create
+                      an agency to try the full write workflow with your own
                       records.
                     </p>
-                  </li>
-                  <li>
-                    <strong>0:40–1:20 · Open an enquiry</strong>
-                    <p>
-                      Show salesperson assignment, follow-ups and the pipeline.
-                      Open an enquiry to see its activity history. Explain the
-                      synthetic model label before showing its score.
-                    </p>
-                  </li>
-                  <li>
-                    <strong>1:20–2:00 · Follow the booking</strong>
-                    <p>
-                      View a printable quotation. Open Bookings to show partial
-                      collections, supplier balances and cancellations. Explain
-                      that receipts are recorded manually; the system does not
-                      collect money.
-                    </p>
-                  </li>
-                  <li>
-                    <strong>2:00–2:40 · Review the month</strong>
-                    <p>
-                      Open Marketing for source attribution and acquisition
-                      costs. Show the monthly report, its observations and
-                      browser-print PDF workflow.
-                    </p>
-                  </li>
-                  <li>
-                    <strong>2:40–3:00 · Invite the next step</strong>
-                    <p>
-                      “We can create your own workspace, add your packages,
-                      import your enquiries and train your team. Subscription
-                      and onboarding are arranged manually.”
-                    </p>
-                  </li>
-                </ol>
-                <button
-                  className="btn primary"
-                  onClick={() => changePage("Overview")}
-                >
-                  Start the tour <ArrowRight size={16} />
-                </button>
-              </section>
-              <section className="panel prose">
-                <h2>How to use this demo</h2>
-                <p>
-                  The isolated demo contains 1,500 fictional enquiries and 330
-                  bookings across six completed months. Names and agency details
-                  are invented; no real customer contacts are included.
-                </p>
-                <p>
-                  Use the date, source, destination and salesperson filters.
-                  Search enquiries, switch to pipeline view, inspect records,
-                  export CSVs and print quotations or reports. The model
-                  calculator is interactive and does not save data.
-                </p>
-                <p>
-                  Save controls explain that this demo is read-only. Create an
-                  agency to try the full write workflow with your own records.
-                </p>
-                <Link className="btn secondary" href="/login?signup=1">
-                  Create an agency <ArrowUpRight size={16} />
-                </Link>
-              </section>
-              <section className="panel prose span-2">
-                <h2>KPI methodology</h2>
-                <dl className="methodology">
-                  <div>
-                    <dt>Enquiries / conversion</dt>
-                    <dd>
-                      Enquiries received in the selected dates. Conversion is
-                      the share with a current, non-cancelled booking; this is
-                      an enquiry cohort metric.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Booked sales value</dt>
-                    <dd>
-                      Current total of bookings created in the date range,
-                      including optional quotation tax. Cancelled bookings
-                      contribute only their retained cancellation fee. This is a
-                      commercial booked-value metric, not recognised accounting
-                      revenue.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Cash collected</dt>
-                    <dd>
-                      Receipts minus refunds dated in the selected period, even
-                      when the booking was created in another month. Supplier
-                      payments are separate cash outflows.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Customer balances</dt>
-                    <dd>
-                      Current booked obligation (or cancellation fee) less
-                      receipts plus refunds, floored at zero, for bookings
-                      created in the period. Overpayments to return are shown
-                      separately as refunds due.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Supplier balances</dt>
-                    <dd>
-                      Recorded actual expenses minus supplier credits and
-                      supplier payments. Expense entries recognise costs;
-                      payment entries settle balances and never create a second
-                      cost.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Booking contribution</dt>
-                    <dd>
-                      Booked sales value minus actual supplier expenses plus
-                      credits. Quotes’ estimates are excluded. It is before
-                      advertising, operating expenses and any statutory tax
-                      reconciliation; it is not net profit.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>CPL, acquisition cost & ROAS</dt>
-                    <dd>
-                      Monthly channel ad spend divided by enquiry count or
-                      active booking count. First-touch attribution assigns
-                      booked value to the source on the enquiry.
-                      Revenue-to-spend is labelled booked-value ROAS; source
-                      edits change attribution. Costs are unavailable when
-                      destination or salesperson filters prevent allocating
-                      spend.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Dates & monthly reports</dt>
-                    <dd>
-                      Dates are calendar dates, displayed in Indian format.
-                      Monthly spend is never prorated: it includes full months
-                      touched by the date range. Reports use current booking and
-                      enquiry state; they are not historical accounting
-                      snapshots. Follow-up completion is a count of recorded
-                      completion events.
-                    </dd>
-                  </div>
-                </dl>
-              </section>
+                    <Link className="btn secondary" href="/login?signup=1">
+                      Create an agency <ArrowUpRight size={16} />
+                    </Link>
+                  </section>
+                  <section className="panel prose span-2">
+                    <h2>KPI methodology</h2>
+                    <dl className="methodology">
+                      <div>
+                        <dt>Enquiries / conversion</dt>
+                        <dd>
+                          Enquiries received in the selected dates. Conversion
+                          is the share with a current, non-cancelled booking;
+                          this is an enquiry cohort metric.
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Booked sales value</dt>
+                        <dd>
+                          Current total of bookings created in the date range,
+                          including optional quotation tax. Cancelled bookings
+                          contribute only their retained cancellation fee. This
+                          is a commercial booked-value metric, not recognised
+                          accounting revenue.
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Cash collected</dt>
+                        <dd>
+                          Receipts minus refunds dated in the selected period,
+                          even when the booking was created in another month.
+                          Supplier payments are separate cash outflows.
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Customer balances</dt>
+                        <dd>
+                          Current booked obligation (or cancellation fee) less
+                          receipts plus refunds, floored at zero, for bookings
+                          created in the period. Overpayments to return are
+                          shown separately as refunds due.
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Supplier balances</dt>
+                        <dd>
+                          Recorded actual expenses minus supplier credits and
+                          supplier payments. Expense entries recognise costs;
+                          payment entries settle balances and never create a
+                          second cost.
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Booking contribution</dt>
+                        <dd>
+                          Booked sales value minus actual supplier expenses plus
+                          credits. Quotes’ estimates are excluded. It is before
+                          advertising, operating expenses and any statutory tax
+                          reconciliation; it is not net profit.
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>CPL, acquisition cost & ROAS</dt>
+                        <dd>
+                          Monthly channel ad spend divided by enquiry count or
+                          active booking count. First-touch attribution assigns
+                          booked value to the source on the enquiry.
+                          Revenue-to-spend is labelled booked-value ROAS; source
+                          edits change attribution. Costs are unavailable when
+                          destination or salesperson filters prevent allocating
+                          spend.
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Dates & monthly reports</dt>
+                        <dd>
+                          Dates are calendar dates, displayed in Indian format.
+                          Monthly spend is never prorated: it includes full
+                          months touched by the date range. Reports use current
+                          booking and enquiry state; they are not historical
+                          accounting snapshots. Follow-up completion is a count
+                          of recorded completion events.
+                        </dd>
+                      </div>
+                    </dl>
+                  </section>
+                </div>
+              )}
             </div>
-          )}
+          </div>
           <footer className="workspace-footer">
             <span>
               Vashisht TravelOS{" "}

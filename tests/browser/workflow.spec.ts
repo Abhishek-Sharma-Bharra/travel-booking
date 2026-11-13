@@ -31,7 +31,7 @@ test("demo entry, filters, pipeline, search, printing, exports and read-only wri
   await page.goto("/");
   await page.getByRole("link", { name: "Explore Demo", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Every journey starts here." }),
+    page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("1,500", { exact: true }).last()).toBeVisible();
   await page.screenshot({
@@ -145,7 +145,7 @@ test("demo entry, filters, pipeline, search, printing, exports and read-only wri
   await page.getByLabel("Open navigation").click();
   await page.getByRole("button", { name: "Overview", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Every journey starts here." }),
+    page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
   await page.screenshot({
     path: "test-results/demo-mobile.png",
