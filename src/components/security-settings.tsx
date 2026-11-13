@@ -11,7 +11,7 @@ export default function SecuritySettings() {
     );
   const enabled = !!session?.user.twoFactorEnabled;
   return (
-    <section className="panel prose">
+    <section className="panel prose security-page">
       <h2>Two-factor authentication</h2>
       <p>
         Add an authenticator app to protect your account. Required for service

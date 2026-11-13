@@ -50,7 +50,7 @@ export default function Automation({ data }: { data: Dataset }) {
     }
   }
   return (
-    <>
+    <div className="feature-page automation-page">
       <section className="panel prose">
         <h2>Agency automation</h2>
         <p>
@@ -71,6 +71,7 @@ export default function Automation({ data }: { data: Dataset }) {
         )}
         {notice && <p role="status">{notice}</p>}
         <form
+          className="automation-policy"
           onSubmit={(e) => {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
@@ -84,7 +85,7 @@ export default function Automation({ data }: { data: Dataset }) {
           key={report?.policy?.revision ?? "new"}
         >
           {Object.entries(labels).map(([key, label]) => (
-            <label key={key} style={{ display: "block", margin: "12px 0" }}>
+            <label key={key} className="automation-option">
               <input
                 type="checkbox"
                 name={key}
@@ -163,6 +164,6 @@ export default function Automation({ data }: { data: Dataset }) {
           They cannot be blindly retried.
         </p>
       </section>
-    </>
+    </div>
   );
 }

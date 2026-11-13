@@ -78,7 +78,7 @@ export default function Integrations({ data }: { data: Dataset }) {
     }
   }
   return (
-    <section className="assistant-card">
+    <section className="assistant-card feature-page integrations-page">
       <h2>Agency integrations</h2>
       <p>
         Connect only advertising accounts you are authorized to manage. Provider
@@ -97,9 +97,13 @@ export default function Integrations({ data }: { data: Dataset }) {
         </p>
       )}
       {notice && <p role="status">{notice}</p>}
-      <div className="assistant-controls">
+      <div className="provider-grid">
         {(["META", "GOOGLE"] as const).map((provider) => (
-          <section className="assistant-card" key={provider}>
+          <section
+            className="assistant-card provider-card"
+            data-provider={provider}
+            key={provider}
+          >
             <h3>{provider === "META" ? "Meta Ads" : "Google Ads"}</h3>
             <p>
               {report?.configured[provider]

@@ -56,7 +56,7 @@ export default function Messaging({ data }: { data: Dataset }) {
     }
   }
   return (
-    <section className="assistant-card">
+    <section className="assistant-card feature-page messaging-page">
       <h2>Official WhatsApp messaging</h2>
       <p>
         The manual Open in WhatsApp button remains available separately.
@@ -115,6 +115,7 @@ export default function Messaging({ data }: { data: Dataset }) {
       ))}
       <h3>Record customer consent</h3>
       <form
+        className="consent-form"
         onSubmit={(e) => {
           e.preventDefault();
           const f = new FormData(e.currentTarget);

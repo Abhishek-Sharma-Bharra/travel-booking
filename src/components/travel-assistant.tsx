@@ -270,7 +270,7 @@ export function AssistantPanel({
   const edit = (k: keyof Extraction, v: unknown) =>
     setDraft((d) => (d ? { ...d, [k]: v } : d));
   return (
-    <section className="assistant-card">
+    <section className="assistant-card message-entry">
       <button className="btn secondary" onClick={() => setOpen(!open)}>
         Create from customer message
       </button>

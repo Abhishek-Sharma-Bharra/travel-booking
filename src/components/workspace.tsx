@@ -957,6 +957,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       "Packages",
     ].includes(page);
 
+  let ActivePageIcon = LayoutDashboard;
+  for (const group of navigation) {
+    for (const [name, Icon] of group.items) {
+      if (name === page) ActivePageIcon = Icon;
+    }
+  }
   return (
     <div className="app-shell studio-workspace premium-workspace">
       <aside className={`sidebar ${menu ? "open" : ""}`}>
@@ -1112,6 +1118,9 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         )}
         <div className="page-content">
           <div className="page-heading" data-tour-page={page}>
+            <span className="feature-page-icon" aria-hidden="true">
+              <ActivePageIcon size={23} />
+            </span>
             <div>
               <span className="eyebrow">
                 {page === "Overview"
@@ -1297,7 +1306,10 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </div>
               </aside>
             )}
-            <div className="workspace-records">
+            <div
+              className="workspace-records"
+              data-feature={page.toLowerCase().replaceAll(" ", "-")}
+            >
               {formError && !form && !detail && !printQuote && !importOpen && (
                 <p className="error-box" role="alert">
                   {formError}

@@ -26,7 +26,7 @@ export default function SubscriptionPage({
       ? data.agency.trialEndsAt
       : data.agency.subscriptionExpiresAt;
   return (
-    <section className="assistant-card">
+    <section className="assistant-card feature-page subscription-page">
       <h2>Your subscription</h2>
       <div className="detail-grid">
         <div>
@@ -66,9 +66,13 @@ export default function SubscriptionPage({
         stored-record limits, not monthly quotas.
       </p>
       <h3>Available plans</h3>
-      <div className="assistant-controls">
+      <div className="subscription-plans">
         {data.billing.plans.map((p) => (
-          <section className="assistant-card" key={p.name}>
+          <section
+            className="assistant-card plan-card"
+            data-current={data.agency.plan === p.name}
+            key={p.name}
+          >
             <h3>
               {p.name}
               {data.agency.plan === p.name ? " · Current" : ""}
