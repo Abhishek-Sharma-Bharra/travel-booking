@@ -2,15 +2,20 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Compass, ArrowRight } from "lucide-react";
+import { loginDestination } from "@/lib/auth-destination";
 import { authClient } from "@/lib/auth-client";
 export default function Login() {
   const formRef = useRef<HTMLFormElement>(null);
   const [notice, setNotice] = useState("");
+  const [hotelIntent, setHotelIntent] = useState(false);
   const [signup, setSignup] = useState(false),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useEffect(() => {
     setSignup(new URLSearchParams(location.search).has("signup"));
+    setHotelIntent(
+      new URLSearchParams(location.search).get("next") === "hotelier",
+    );
   }, []);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,11 +41,13 @@ export default function Login() {
       return;
     }
     setBusy(true);
+    const next = new URLSearchParams(location.search).get("next");
+    const destination = loginDestination(next);
     try {
       const result = signup
         ? await authClient.signUp.email({
             name,
-            callbackURL: "/workspace",
+            callbackURL: destination,
             email,
             password,
           })
@@ -72,7 +79,10 @@ export default function Login() {
         "twoFactorRedirect" in result.data &&
         result.data.twoFactorRedirect
       ) {
-        location.href = "/two-factor";
+        location.href =
+          next === "hotelier" || next === "hotel-admin"
+            ? "/two-factor?next=" + next
+            : "/two-factor";
         return;
       }
       if (!result.data?.user?.id)
@@ -85,7 +95,7 @@ export default function Login() {
         );
         return;
       }
-      location.href = "/workspace";
+      location.href = destination;
     } catch (e) {
       const message = e instanceof Error ? e.message : "";
       setError(
@@ -108,11 +118,21 @@ export default function Login() {
       </Link>
       <section className="auth-card">
         <span className="eyebrow">YOUR NEXT CHAPTER</span>
-        <h1>{signup ? "Let’s build your agency." : "Welcome back."}</h1>
+        <h1>
+          {hotelIntent
+            ? signup
+              ? "Create your TravelOS account."
+              : "Hotel owner sign in."
+            : signup
+              ? "Let’s build your agency."
+              : "Welcome back."}
+        </h1>
         <p className="muted">
-          {signup
-            ? "A dedicated workspace for your team and your journeys."
-            : "Your journeys, people and numbers, together."}
+          {hotelIntent
+            ? "Use your existing TravelOS login or create an account. Verified email is required for hotel registration. An agency workspace is also created by the current shared signup flow."
+            : signup
+              ? "A dedicated workspace for your team and your journeys."
+              : "Your journeys, people and numbers, together."}
         </p>
         <form
           ref={formRef}
@@ -161,7 +181,13 @@ export default function Login() {
             </div>
           )}
           <button disabled={busy} className="btn primary">
-            {busy ? "Please wait…" : signup ? "Create workspace" : "Sign in"}
+            {busy
+              ? "Please wait…"
+              : signup
+                ? hotelIntent
+                  ? "Create account"
+                  : "Create workspace"
+                : "Sign in"}
             <ArrowRight size={17} />
           </button>
         </form>
@@ -187,7 +213,9 @@ export default function Login() {
               try {
                 const r = await authClient.sendVerificationEmail({
                   email,
-                  callbackURL: "/workspace",
+                  callbackURL: loginDestination(
+                    new URLSearchParams(location.search).get("next"),
+                  ),
                 });
                 if (r.error)
                   throw new Error(

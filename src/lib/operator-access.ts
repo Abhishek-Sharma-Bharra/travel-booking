@@ -1,7 +1,12 @@
+import type { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { HttpError } from "./http";
-export async function requireOperator(userId: string, sessionToken: string) {
-  const u = await db.user.findUnique({ where: { id: userId } });
+export async function requireOperator(
+  userId: string,
+  sessionToken: string,
+  client: Prisma.TransactionClient = db,
+) {
+  const u = await client.user.findUnique({ where: { id: userId } });
   const allowed = (process.env.PLATFORM_ADMIN_EMAILS || "")
     .split(",")
     .map((v) => v.trim().toLowerCase())
@@ -17,7 +22,7 @@ export async function requireOperator(userId: string, sessionToken: string) {
       403,
       "Verified service administrator access with two-factor authentication is required",
     );
-  const session = await db.session.findFirst({
+  const session = await client.session.findFirst({
     where: {
       token: sessionToken,
       userId: u.id,

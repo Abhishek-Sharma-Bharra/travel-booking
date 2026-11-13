@@ -1,4 +1,8 @@
 export const runtimeTables = [
+  "Hotel",
+  "HotelMember",
+  "HotelRoomCategory",
+  "HotelAuditEntry",
   "Agency",
   "User",
   "Session",

@@ -19,6 +19,7 @@ export function publicOrigin() {
 export const indexingEnabled = () =>
   process.env.SITE_INDEXING_ENABLED !== "false";
 export const privatePaths = [
+  "/hotelier",
   "/workspace",
   "/admin",
   "/api",

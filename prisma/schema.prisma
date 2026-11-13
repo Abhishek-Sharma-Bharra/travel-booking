@@ -34,6 +34,7 @@ model Agency {
   spends Spend[]
 }
 model User {
+  hotelMemberships HotelMember[]
   tourProgress TourProgress[]
   id String @id
   name String
@@ -515,4 +516,73 @@ model TourProgress {
  step Int @default(0)
  status String @default("ACTIVE")
  updatedAt DateTime @updatedAt
+}
+
+// Hotel domain is independent of agency CRM tenancy.
+model Hotel {
+  id String @id @default(cuid())
+  name String
+  address String @default("")
+  city String @default("")
+  region String @default("")
+  countryCode String @default("IN")
+  postalCode String @default("")
+  timezone String @default("Asia/Kolkata")
+  contactEmail String @default("")
+  contactPhone String @default("")
+  amenities String[] @default([])
+  photoUrls String[] @default([])
+  policies String @default("")
+  cancellationPolicy String @default("")
+  taxBps Int
+  status String @default("DRAFT")
+  revision Int @default(0)
+  reviewReason String @default("")
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members HotelMember[]
+  rooms HotelRoomCategory[]
+  audit HotelAuditEntry[]
+  @@index([status,createdAt])
+  @@index([city,status])
+}
+model HotelMember {
+  hotelId String
+  userId String
+  role String @default("OWNER")
+  createdAt DateTime @default(now())
+  hotel Hotel @relation(fields:[hotelId],references:[id],onDelete:Cascade)
+  user User @relation(fields:[userId],references:[id],onDelete:Restrict)
+  @@id([hotelId,userId])
+  @@index([userId])
+}
+model HotelRoomCategory {
+  id String @id @default(cuid())
+  hotelId String
+  hotel Hotel @relation(fields:[hotelId],references:[id],onDelete:Cascade)
+  name String
+  description String @default("")
+  totalRooms Int
+  maxAdults Int
+  maxChildren Int
+  maxOccupancy Int
+  amenities String[] @default([])
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([id,hotelId])
+  @@unique([hotelId,name])
+  @@index([hotelId,active])
+}
+model HotelAuditEntry {
+  id String @id @default(cuid())
+  hotelId String
+  hotel Hotel @relation(fields:[hotelId],references:[id],onDelete:Cascade)
+  actorId String
+  action String
+  revision Int
+  details Json
+  createdAt DateTime @default(now())
+  @@index([hotelId,createdAt])
 }

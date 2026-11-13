@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { mfaDestination } from "@/lib/auth-destination";
 import { authClient } from "@/lib/auth-client";
 export default function TwoFactor() {
   const [backup, setBackup] = useState(false),
@@ -34,10 +35,9 @@ export default function TwoFactor() {
                   });
               if (r.error)
                 throw new Error(r.error.message || "Verification failed.");
-              location.href =
-                new URLSearchParams(location.search).get("next") === "admin"
-                  ? "/admin"
-                  : "/workspace";
+              location.href = mfaDestination(
+                new URLSearchParams(location.search).get("next"),
+              );
             } catch (e) {
               setError((e as Error).message || "Could not verify this code.");
             } finally {

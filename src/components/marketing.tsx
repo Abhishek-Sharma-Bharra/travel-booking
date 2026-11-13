@@ -26,6 +26,9 @@ export function MarketingHeader({ path = "/" }: { path?: string }) {
             {label}
           </Link>
         ))}
+        {process.env.HOTELS_ENABLED === "true" && (
+          <Link href="/hotelier">Hotel owners</Link>
+        )}
       </div>
       <Link className="btn secondary" href="/login">
         Sign in <ArrowUpRight size={16} />

@@ -26,6 +26,7 @@ jobs:
       BETTER_AUTH_SECRET: fictional-ci-only-secret-not-a-live-credential-2026
       REQUIRE_EMAIL_VERIFICATION: "false"
       PLAYWRIGHT_PRODUCTION: "true"
+      HOTELS_ENABLED: "true"
     steps:
       - uses: actions/checkout@v4
         with:
