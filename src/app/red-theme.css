@@ -1,0 +1,334 @@
+/* Reviewable Burgundy theme. Remove the body class to restore the blue theme. */
+@media screen {
+  body.premium-theme.red-theme {
+    --navy: #382a32;
+    --navy-dark: #281d24;
+    --navy-light: #f5ecee;
+    --copper: #9b2c3e;
+    --copper-strong: #9b2c3e;
+    --copper-dark: #7b2030;
+    --ink: #362d34;
+    --paper: #f8f6f4;
+    --line: #e8e1df;
+    background: #f8f6f4;
+    color: #362d34;
+  }
+  .red-theme .premium-workspace.studio-workspace {
+    --paper: #f8f6f4;
+    --line: #e8e1df;
+    --ink: #362d34;
+    --muted: #796f76;
+    --accent: #9b2c3e;
+    --accent-soft: #f7edef;
+    background: #f8f6f4;
+  }
+  .red-theme .premium-workspace.studio-workspace .sidebar {
+    background: #2c2027;
+    border-color: #413039;
+  }
+  .red-theme .premium-workspace.studio-workspace .workspace-switch {
+    background: #382831;
+    border-color: #513a45;
+  }
+  .red-theme .premium-workspace.studio-workspace .workspace-switch small {
+    color: #bdaab2;
+  }
+  .red-theme .premium-workspace.studio-workspace .sidebar .brand-sub {
+    color: #bdaab2;
+  }
+  .red-theme .premium-workspace.studio-workspace .agency-avatar {
+    background: #f0e6df;
+    color: #7b4b4c;
+  }
+  .red-theme .premium-workspace.studio-workspace .nav-group {
+    color: #b39ba7;
+  }
+  .red-theme .premium-workspace.studio-workspace .nav-item {
+    color: #c9b9c1;
+  }
+  .red-theme .premium-workspace.studio-workspace .nav-item:hover {
+    background: #45303b;
+    color: #fff;
+  }
+  .red-theme .premium-workspace.studio-workspace .nav-item.active {
+    background: #603342;
+    border-color: #7b4657;
+    color: #fff8fa;
+  }
+  .red-theme .premium-workspace.studio-workspace .nav-active-dot {
+    background: #e4a6b2;
+  }
+  .red-theme .premium-workspace.studio-workspace .nav-item small {
+    background: #4a343f;
+    color: #e4cdd6;
+  }
+  .red-theme .premium-workspace.studio-workspace .help-card button {
+    color: #c2adb8;
+  }
+  .red-theme .premium-workspace.studio-workspace .sidebar nav {
+    scrollbar-color: #694956 transparent;
+  }
+  .red-theme .premium-workspace.studio-workspace .user-box {
+    border-color: #513a45;
+  }
+  .red-theme .premium-workspace.studio-workspace .user-avatar {
+    background: #5b3b49;
+    color: #f1dfe5;
+  }
+  .red-theme .premium-workspace.studio-workspace .user-box small {
+    color: #c2adb8;
+  }
+  .red-theme .premium-workspace.studio-workspace .studio-create {
+    background: #a33549;
+    border-color: #b94e61;
+    box-shadow: 0 3px 8px #180a1018;
+  }
+  .red-theme .premium-workspace.studio-workspace .studio-create:hover {
+    background: #b23b51;
+  }
+  .red-theme .premium-workspace.studio-workspace .studio-create > span {
+    color: #f1c6d0;
+  }
+  .premium-theme.red-theme .premium-workspace.studio-workspace .primary,
+  .premium-theme.red-theme .modal .primary,
+  .premium-theme.red-theme .auth-card .primary,
+  .premium-theme.red-theme .hotel-shell .primary,
+  .premium-theme.red-theme .landing .primary {
+    background: #9b2c3e;
+    border-color: #9b2c3e;
+    color: #fff;
+  }
+  .premium-theme.red-theme .primary:hover {
+    background: #7b2030;
+    border-color: #7b2030;
+  }
+  .red-theme .premium-workspace.studio-workspace .feature-page-icon {
+    background: #f7edef;
+    color: #a45365;
+    border-color: #ead6dc;
+  }
+  .red-theme .premium-workspace.studio-workspace .page-heading h1 {
+    color: #362b33;
+  }
+  .red-theme .premium-workspace.studio-workspace :is(.secondary, .table-link) {
+    color: #68505b;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    :is(input, select, textarea):focus,
+  .premium-theme.red-theme .modal :is(input, select, textarea):focus,
+  .premium-theme.red-theme .hotel-branded :is(input, select, textarea):focus {
+    border-color: #bf7888;
+    box-shadow: 0 0 0 3px #9b2c3e12;
+  }
+  .red-theme .premium-workspace.studio-workspace .metric-top svg {
+    background: #f8eef1;
+    color: #ac6576;
+  }
+  .red-theme .premium-workspace.studio-workspace .metric.highlight {
+    border-color: #ead4dc;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    :is(.metric, .panel, .assistant-card, .kpi-card, .bi-summary) {
+    border-color: #e8e1e2;
+  }
+  .red-theme .premium-workspace.studio-workspace .overview-pipeline {
+    border-color: #e8e1e2;
+  }
+  .red-theme .premium-workspace.studio-workspace .overview-lanes > section {
+    background: #faf7f7;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .overview-lanes
+    header
+    strong::before {
+    background: #b96b7d;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .overview-lanes
+    [data-stage="Qualified"]
+    header
+    strong::before {
+    background: #72a78d;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .overview-lanes
+    [data-stage="Quoted"]
+    header
+    strong::before {
+    background: #c2a16d;
+  }
+  .red-theme .premium-workspace.studio-workspace .overview-lanes button {
+    border-color: #eae2e5;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    :is(.report-results, .workspace-records)
+    th {
+    background: #fbf8f8;
+    color: #80717b;
+  }
+  .red-theme .premium-workspace.studio-workspace .view-toggle button.selected {
+    color: #9b2c3e;
+  }
+  .red-theme .premium-workspace.studio-workspace .message-entry {
+    background: #fbf5f6;
+    border-color: #eddde2;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .message-entry
+    > button:first-child {
+    color: #8e4355;
+    border-color: #e7cfd7;
+  }
+  .red-theme .premium-workspace.studio-workspace .toolbar .search-input {
+    background: #fbf8f9;
+    border-color: #eee2e7;
+  }
+  .red-theme .premium-workspace.studio-workspace .pipeline > section {
+    background: #f1eded;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .plan-card[data-current="true"] {
+    background: #fcf7f8;
+    border-color: #d4a1ad;
+    box-shadow: inset 0 3px 0 #ac5367;
+  }
+  .red-theme .premium-workspace.studio-workspace .provider-card::before {
+    background: #f8eaf0;
+    color: #9b2c3e;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .automation-option:has(input:checked) {
+    background: #fbf1f4;
+    border-color: #ddb6c2;
+  }
+  .red-theme .premium-workspace.studio-workspace .automation-option input {
+    accent-color: #9b2c3e;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .package-card
+    .destination-art {
+    background: #55303f;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .package-card
+    .destination-art.art-1 {
+    background: #79616b;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .package-card
+    .destination-art.art-2 {
+    background: #8b7660;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .package-card
+    .destination-art.art-3 {
+    background: #65586c;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .package-card
+    .destination-art.art-4 {
+    background: #526f70;
+  }
+  .red-theme
+    .premium-workspace.studio-workspace
+    .package-card
+    .destination-art.art-5 {
+    background: #776074;
+  }
+  .premium-theme.red-theme .landing {
+    background: #f8f6f4;
+  }
+  .premium-theme.red-theme .landing .hero h1 {
+    color: #382b33;
+  }
+  .premium-theme.red-theme .landing .hero h1 em {
+    color: #9b2c3e;
+  }
+  .premium-theme.red-theme .landing .hero-art {
+    background: #f1e9e8;
+  }
+  .premium-theme.red-theme .landing .marketing-links a[aria-current="page"] {
+    color: #9b2c3e;
+  }
+  .premium-theme.red-theme .auth-page {
+    background: #f8f6f4;
+  }
+  .premium-theme.red-theme .hotel-shell.hotel-branded {
+    --hotel-accent: #9b2c3e;
+    --hotel-ink: #382b33;
+    --hotel-muted: #7a6c76;
+    --hotel-line: #e8dfe3;
+  }
+  .premium-theme.red-theme .hotel-branded .hotel-welcome {
+    background: #402630;
+    border-color: #56343e;
+  }
+  .premium-theme.red-theme .hotel-branded .hotel-welcome-copy > span {
+    color: #dfbfae;
+  }
+  .premium-theme.red-theme .hotel-branded .hotel-welcome-copy p {
+    color: #d8c0c8;
+  }
+  .premium-theme.red-theme .hotel-branded .hotel-welcome-photo figcaption {
+    background: #3b2029e8;
+  }
+  .premium-theme.red-theme .hotel-branded .hotel-stage-note {
+    background: #fbf1f4;
+    border-color: #efdde3;
+    color: #815d6d;
+  }
+  .premium-theme.red-theme .hotel-branded .hotel-property.selected {
+    background: #fbf0f3;
+    border-color: #ecd3dc;
+  }
+  .premium-theme.red-theme .hotel-branded .hotel-tabs button[aria-current] {
+    color: #9b2c3e;
+    border-color: #9b2c3e;
+  }
+  .premium-theme.red-theme .hotel-brand-nav .brand {
+    color: #382b33;
+  }
+  .red-theme .premium-workspace.studio-workspace button:focus-visible,
+  .red-theme .premium-workspace.studio-workspace a:focus-visible {
+    outline-color: #b55a71;
+  }
+}
+@media screen {
+  .premium-theme.red-theme .bi-chart :is(rect, circle) {
+    fill: #9b2c3e;
+  }
+  .premium-theme.red-theme .bi-chart polyline {
+    stroke: #9b2c3e;
+  }
+  .premium-theme.red-theme
+    :is(.premium-workspace.studio-workspace, .hotel-shell)
+    input:is([type="checkbox"], [type="radio"]) {
+    accent-color: #9b2c3e;
+  }
+  .premium-theme.red-theme
+    :is(
+      .premium-workspace.studio-workspace,
+      .modal,
+      .auth-card,
+      .hotel-shell,
+      .landing
+    )
+    .primary:hover {
+    background: #7b2030;
+    border-color: #7b2030;
+  }
+}
