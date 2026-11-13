@@ -1,0 +1,854 @@
+/* Dark analytics preview. Deliberately screen-only; printed customer documents stay light. */
+@media screen {
+  body.premium-theme.dark-theme {
+    color-scheme: dark;
+    --navy: #d3dce9;
+    --ink: #dce2ec;
+    --muted: #9aa6b8;
+    --line: #363c47;
+    --paper: #191c22;
+    --copper: #21a9ef;
+    --copper-strong: #189bdd;
+    --copper-dark: #0e84bf;
+    background: #191c22;
+    color: #dce2ec;
+  }
+  .dark-theme .premium-workspace.studio-workspace {
+    --paper: #191c22;
+    --ink: #e2e7ee;
+    --muted: #9ba8ba;
+    --line: #353c48;
+    --accent: #21a9ef;
+    --accent-soft: #203445;
+    background: #191c22;
+    color: #dce2ec;
+  }
+  .dark-theme .premium-workspace.studio-workspace .sidebar {
+    background: #20242c;
+    border-color: #343b46;
+  }
+  .dark-theme .premium-workspace.studio-workspace .workspace-switch {
+    background: #282e38;
+    border-color: #3b4453;
+  }
+  .dark-theme .premium-workspace.studio-workspace .nav-item.active {
+    background: #243847;
+    border-color: #31546d;
+    color: #c5eaff;
+  }
+  .dark-theme .premium-workspace.studio-workspace .nav-item:hover {
+    background: #2a3544;
+  }
+  .dark-theme .premium-workspace.studio-workspace .nav-active-dot {
+    background: #26b6f4;
+  }
+  .dark-theme .premium-workspace.studio-workspace .nav-group {
+    color: #8996aa;
+  }
+  .dark-theme .premium-workspace.studio-workspace .studio-create {
+    background: #0877ad;
+    border-color: #2e9fdb;
+  }
+  .dark-theme .premium-workspace.studio-workspace .studio-create:hover {
+    background: #146f9f;
+  }
+  .dark-theme .premium-workspace.studio-workspace .user-box {
+    border-color: #384251;
+  }
+  .dark-theme .premium-workspace.studio-workspace .topbar {
+    background: #20242c;
+    border-color: #343b46;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(.workspace-status, .subtle-tag) {
+    background: #292f38;
+    border-color: #3a424e;
+    color: #aebaca;
+  }
+  .dark-theme .premium-workspace.studio-workspace .page-heading h1 {
+    color: #eef2f8;
+  }
+  .dark-theme .premium-workspace.studio-workspace .page-heading p {
+    color: #9aa6b8;
+  }
+  .dark-theme .premium-workspace.studio-workspace .feature-page-icon {
+    color: #27b4f6;
+    background: #203544;
+    border-color: #2a4c65;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(
+      .panel,
+      .assistant-card,
+      .metric,
+      .kpi-card,
+      .bi-summary,
+      .overview-pipeline,
+      .workspace-filter-rail,
+      .report-filter-rail .assistant-card,
+      .secondary-metrics,
+      .table-panel
+    ) {
+    background: #232830;
+    border-color: #383f4b;
+    border-radius: 6px;
+    box-shadow: none;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .workspace-board.with-filters {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 20px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .report-layout {
+    grid-template-columns: 215px minmax(0, 1fr);
+    gap: 20px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .workspace-records {
+    gap: 18px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .page-content {
+    padding-top: 23px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .page-heading {
+    margin-bottom: 20px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .studio-insight-note {
+    color: #9ba8ba;
+    border-color: #353d49;
+    padding-bottom: 12px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .studio-insight-note button {
+    color: #2eb2f4;
+  }
+  .dark-theme .premium-workspace.studio-workspace .metric.highlight {
+    background: #232830;
+    border-color: #395169;
+    padding: 18px;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .metric:nth-child(n)
+    .metric-top {
+    background: transparent;
+    color: #aab7ca;
+    border: 0;
+    margin-bottom: 12px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .metric-top svg {
+    background: #1e3b4b;
+    color: #22b2f3;
+  }
+  .dark-theme .premium-workspace.studio-workspace .metric > strong {
+    color: #f5f7fb;
+    font-size: 27px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .metric > small {
+    color: #98a6b8;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(
+      .panel-heading h2,
+      .overview-pipeline-heading h2,
+      .feature-page > h2,
+      .feature-page > h3,
+      .security-page > h2,
+      .report-workbar h2
+    ) {
+    color: #e8edf5;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(
+      .panel-heading p,
+      .overview-pipeline-heading p,
+      .method-note,
+      .report-context,
+      .report-results > p,
+      .feature-page > p,
+      .prose p,
+      .prose ul,
+      .prose ol,
+      .observations,
+      .audit-list p,
+      .detail-grid small,
+      .bar-label,
+      .bar-label strong
+    ) {
+    color: #a3afc1;
+  }
+  .dark-theme .premium-workspace.studio-workspace .report-workbar {
+    border-color: #38414e;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-filter-rail
+    :is(h2, h3, label, p) {
+    color: #b4c1d3;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .workspace-filter-rail
+    .filter-title {
+    color: #d3dce9;
+    border-color: #38414e;
+  }
+  .dark-theme .premium-workspace.studio-workspace :is(input, select, textarea),
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .workspace-filter-rail
+    :is(input, select) {
+    background: #1c2129;
+    color: #cbd5e3;
+    border-color: #424b5b;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(input, select, textarea):focus {
+    border-color: #278fc4;
+    box-shadow: 0 0 0 3px #21a9ef12;
+  }
+  .dark-theme .premium-workspace.studio-workspace .secondary {
+    background: #2a303a;
+    border-color: #434c5d;
+    color: #c5d0e0;
+  }
+  .dark-theme .premium-workspace.studio-workspace .secondary:hover {
+    background: #344052;
+  }
+  .dark-theme .premium-workspace.studio-workspace .primary {
+    background: #0877ad;
+    border-color: #0877ad;
+    color: #fff;
+  }
+  .dark-theme .premium-workspace.studio-workspace .primary:hover {
+    background: #146f9f;
+  }
+  .dark-theme .premium-workspace.studio-workspace .text-button {
+    color: #35b4f2;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(
+      .toolbar,
+      .table-footer,
+      .table-panel .table-footer,
+      .toolbar .search-input,
+      .view-toggle
+    ) {
+    background: #222730;
+    border-color: #3a424f;
+    color: #afbed2;
+  }
+  .dark-theme .premium-workspace.studio-workspace .view-toggle button.selected {
+    background: #29465a;
+    color: #58c4fa;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(.report-results, .workspace-records)
+    th {
+    background: #1d222b;
+    color: #afbed2;
+    border-color: #38414f;
+  }
+  .dark-theme .premium-workspace.studio-workspace td {
+    color: #c4cddd;
+    border-color: #353d4a;
+  }
+  .dark-theme .premium-workspace.studio-workspace td small {
+    color: #94a5bd;
+  }
+  .dark-theme .premium-workspace.studio-workspace .table-link {
+    color: #deebfb;
+  }
+  .dark-theme .premium-workspace.studio-workspace tbody tr:hover {
+    background: #293342;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    > .assistant-controls {
+    background: #232830;
+    border-color: #3a424f;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    :is(.kpi-card, .bi-summary) {
+    background: #232830;
+    border-color: #3a424f;
+    padding: 17px;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    :is(.kpi-card, .bi-summary)
+    > h3 {
+    background: transparent;
+    color: #abb9cf;
+    border: 0;
+    font-size: 13px;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    :is(.kpi-card, .bi-summary)
+    > strong {
+    color: #f0f4fb;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    [data-availability="missing"] {
+    background: #29282a;
+    border-color: #48434a;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    [data-availability="missing"]
+    > strong {
+    color: #c4b5a5;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    :is(.kpi-card, .bi-summary)
+    :is(small, p, summary) {
+    color: #a2b0c5;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .report-results
+    .assistant-card
+    > h3 {
+    color: #dce6f4;
+    border-color: #3a434f;
+  }
+  .dark-theme .premium-workspace.studio-workspace .overview-lanes > section {
+    background: #1e232b;
+  }
+  .dark-theme .premium-workspace.studio-workspace .overview-lanes header {
+    color: #c3d0e3;
+  }
+  .dark-theme .premium-workspace.studio-workspace .overview-lanes header span {
+    background: #303b4a;
+    color: #aebed4;
+  }
+  .dark-theme .premium-workspace.studio-workspace .overview-lanes button {
+    background: #292f39;
+    border-color: #3a4453;
+    box-shadow: none;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .overview-lanes
+    button
+    strong {
+    color: #d8e1ef;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .overview-lanes
+    button
+    :is(span, small) {
+    color: #a1b0c5;
+  }
+  .dark-theme .premium-workspace.studio-workspace .overview-lanes button:hover {
+    border-color: #3188b8;
+  }
+  .dark-theme .premium-workspace.studio-workspace .secondary-metrics > div {
+    border-color: #3a4453;
+  }
+  .dark-theme .premium-workspace.studio-workspace .secondary-metrics strong {
+    color: #e2eaf6;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .secondary-metrics
+    :is(small, div > span:not(.icon-box)) {
+    color: #a2b0c5;
+  }
+  .dark-theme .premium-workspace.studio-workspace .priority-row {
+    border-color: #3b4452;
+  }
+  .dark-theme .premium-workspace.studio-workspace .pipeline > section {
+    background: #1f242c;
+  }
+  .dark-theme .premium-workspace.studio-workspace .pipeline-title {
+    background: #29394d;
+    color: #cddbec;
+  }
+  .dark-theme .premium-workspace.studio-workspace .pipeline-title .badge {
+    color: #d6e1ef;
+  }
+  .dark-theme .premium-workspace.studio-workspace .pipeline-card {
+    background: #272e39;
+    border-color: #3b4555;
+  }
+  .dark-theme .premium-workspace.studio-workspace .pipeline-card > strong {
+    color: #dfebfb;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .pipeline-card
+    :is(span, small) {
+    color: #a7b6cb;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(
+      .provider-card,
+      .plan-card,
+      .automation-option,
+      .consent-form,
+      .security-page form,
+      .subscription-page > form,
+      .checklist li,
+      .observations li
+    ) {
+    background: #282f3a;
+    border-color: #3e495b;
+    color: #c6d1e2;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .plan-card[data-current="true"] {
+    background: #243344;
+    border-color: #3878a4;
+    box-shadow: inset 0 3px 0 #21a9ef;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(
+      .plan-card h3,
+      .plan-card p,
+      .provider-card h3,
+      .provider-card p,
+      .package-body h2,
+      .package-price strong
+    ) {
+    color: #d4dfef;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(.plan-card small, .package-body > p, .package-body details) {
+    color: #a4b3c8;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .subscription-page
+    .detail-grid {
+    background: #1f2631;
+    border-color: #3d4656;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .subscription-page
+    .detail-grid
+    strong {
+    color: #d8e5f7;
+  }
+  .dark-theme .premium-workspace.studio-workspace .package-actions {
+    border-color: #3c4656;
+  }
+  .dark-theme .premium-workspace.studio-workspace .package-card {
+    overflow: hidden;
+  }
+  .dark-theme .premium-workspace.studio-workspace .info-box {
+    background: #223544;
+    border-color: #33536b;
+    color: #b7d4e9;
+  }
+  .dark-theme .premium-workspace.studio-workspace .error-box {
+    background: #432a34;
+    border-color: #6b3a4c;
+    color: #f3becb;
+  }
+  .dark-theme .premium-workspace.studio-workspace .report-brand {
+    background: #232830;
+    border-color: #3c4554;
+    color: #d1e0f4;
+  }
+  .dark-theme .premium-workspace.studio-workspace .workspace-footer {
+    color: #8e9eb6;
+    border-color: #394353;
+  }
+  .dark-theme .premium-workspace.studio-workspace .bi-chart {
+    background: transparent;
+    border: 0;
+    max-height: none;
+    margin: 18px 0;
+  }
+  .dark-theme .premium-workspace.studio-workspace .kpi-bars {
+    height: 60px;
+    align-items: stretch;
+    border: 0;
+    padding: 0;
+    gap: 5px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .kpi-bar {
+    height: 42px !important;
+    background: #244c65;
+    border: 1px solid #337fa8;
+    opacity: 0.85;
+  }
+  .dark-theme .premium-workspace.studio-workspace .kpi-bar:hover {
+    background: #21a9ef;
+  }
+  .premium-theme .report-trend {
+    width: 100%;
+    min-width: 0;
+  }
+  .premium-theme .report-trend svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 310px;
+    overflow: visible;
+  }
+  .premium-theme .trend-grid {
+    stroke: #434b58;
+    stroke-width: 1;
+  }
+  .premium-theme .trend-axis {
+    fill: #a5b1c4;
+    font-size: 10px;
+    font-family: inherit;
+  }
+  .premium-theme .report-chart-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 8px 0 15px;
+    font-size: 12px;
+    color: #b8c8de;
+  }
+  .premium-theme .report-chart-legend span {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+  }
+  .premium-theme .report-chart-legend i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .premium-theme .report-trend.compact {
+    margin-top: 12px;
+  }
+  .premium-theme .report-trend.compact svg {
+    height: 35px;
+    width: 100%;
+  }
+  .premium-theme .stage-ring-layout {
+    display: grid;
+    grid-template-columns: 155px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 10px 0;
+  }
+  .premium-theme .stage-ring-layout svg {
+    width: 155px;
+    height: 155px;
+  }
+  .premium-theme .ring-track {
+    stroke: #3e4654;
+  }
+  .premium-theme .ring-total {
+    fill: #edf3fd;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  .premium-theme .ring-caption {
+    fill: #a6b5ca;
+    font-size: 11px;
+  }
+  .premium-theme .stage-ring-layout dl {
+    margin: 0;
+  }
+  .premium-theme .stage-ring-layout dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 9px 0;
+    font-size: 12px;
+  }
+  .premium-theme .stage-ring-layout dt {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    color: #b4c4db;
+  }
+  .premium-theme .stage-ring-layout dt i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .premium-theme .stage-ring-layout dd {
+    margin: 0;
+    color: #d1dff3;
+    font-variant-numeric: tabular-nums;
+  }
+  .dark-theme .premium-workspace.studio-workspace .dark-report-overview {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .dark-report-overview
+    > .panel {
+    margin: 0;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .dark-report-overview
+    + .overview-pipeline {
+    margin-top: 0;
+  }
+  .premium-theme .chart-unavailable {
+    padding: 60px 20px;
+    color: #a0afc4;
+    text-align: center;
+  }
+  .premium-theme.dark-theme .landing {
+    background: #191c22;
+    color: #c5d0e2;
+  }
+  .premium-theme.dark-theme
+    .landing
+    :is(
+      .hero h1,
+      .marketing-intro h1,
+      .marketing-copy h2,
+      .marketing-card h2,
+      .landing-features h3,
+      .brand
+    ) {
+    color: #e5edf8;
+  }
+  .premium-theme.dark-theme .landing .hero h1 em {
+    color: #2bb5f6;
+  }
+  .premium-theme.dark-theme
+    .landing
+    :is(
+      .marketing-card,
+      .marketing-callout,
+      .floating,
+      .landing-features article
+    ) {
+    background: #252b34;
+    border-color: #3b4554;
+    color: #c1d0e5;
+  }
+  .premium-theme.dark-theme .landing .hero-art {
+    background: #222b37;
+  }
+  .premium-theme.dark-theme
+    .landing
+    :is(
+      .hero > div > p,
+      .landing-features p,
+      .marketing-intro > p,
+      .marketing-links a,
+      .marketing-footer
+    ) {
+    color: #a0b0c9;
+  }
+  .premium-theme.dark-theme .landing .primary {
+    background: #0877ad;
+    border-color: #0877ad;
+  }
+  .premium-theme.dark-theme :is(.auth-page, .hotel-shell) {
+    background: #191c22;
+    color: #b6c6dd;
+  }
+  .premium-theme.dark-theme
+    :is(
+      .auth-card,
+      .modal,
+      .hotel-properties,
+      .hotel-content,
+      .hotel-review-card
+    ) {
+    background: #242b35;
+    border-color: #414b5d;
+    color: #cfdaed;
+  }
+  .premium-theme.dark-theme
+    :is(
+      .auth-card h1,
+      .modal header h2,
+      .hotel-header h1,
+      .hotel-section-header h2,
+      .hotel-properties h2
+    ) {
+    color: #e0e9f8;
+  }
+  .premium-theme.dark-theme
+    :is(.modal, .auth-card, .hotel-shell)
+    :is(input, select, textarea) {
+    background: #1b2430;
+    border-color: #48566c;
+    color: #d1def2;
+  }
+  .premium-theme.dark-theme :is(.modal, .auth-card, .hotel-shell) label {
+    color: #b4c5de;
+  }
+  .premium-theme.dark-theme :is(.modal, .auth-card, .hotel-shell) .primary {
+    background: #0877ad;
+    border-color: #0877ad;
+  }
+  .premium-theme.dark-theme :is(.modal, .auth-card, .hotel-shell) .secondary {
+    background: #2c3644;
+    border-color: #4a5870;
+    color: #cad9ef;
+  }
+  .premium-theme.dark-theme
+    .modal
+    :is(.sales-journey, .sales-steps li, .assistant-card) {
+    background: #283448;
+    border-color: #485974;
+  }
+  .premium-theme.dark-theme .hotel-branded :is(.hotel-brand-nav, .hotel-tabs) {
+    border-color: #3b475b;
+  }
+  .premium-theme.dark-theme .hotel-branded .hotel-brand-nav .brand {
+    color: #d6e5fc;
+  }
+  .premium-theme.dark-theme .hotel-branded .hotel-stage-note {
+    background: #26374e;
+    border-color: #405b7e;
+    color: #b3cceb;
+  }
+  .premium-theme.dark-theme
+    .hotel-branded
+    :is(
+      .hotel-property.selected,
+      .hotel-room-grid article,
+      .hotel-review-card details
+    ) {
+    background: #2d3b50;
+    border-color: #4a607f;
+  }
+  .premium-theme.dark-theme .hotel-branded .hotel-property strong {
+    color: #c8daf4;
+  }
+}
+@media screen and (max-width: 1200px) {
+  .dark-theme .premium-workspace.studio-workspace .dark-report-overview {
+    grid-template-columns: 1fr;
+  }
+}
+@media screen and (max-width: 950px) {
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(.workspace-board.with-filters, .report-layout) {
+    grid-template-columns: 1fr;
+  }
+}
+@media screen and (max-width: 700px) {
+  .premium-theme .stage-ring-layout {
+    grid-template-columns: 130px minmax(0, 1fr);
+  }
+  .premium-theme .stage-ring-layout svg {
+    width: 130px;
+    height: 130px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media screen {
+  .dark-theme .premium-workspace.studio-workspace .kpi-bars {
+    height: auto;
+    align-items: center;
+    padding-bottom: 5px;
+  }
+  .dark-theme .premium-workspace.studio-workspace .kpi-bar {
+    min-width: 100px;
+    height: 35px !important;
+    font-size: 11px;
+    padding: 7px;
+    color: #bde5fb;
+    border-radius: 5px;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .kpi-bar[aria-pressed="true"] {
+    color: #fff;
+    background: #0877ad;
+  }
+}
+@media screen {
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(.assistant-card, .panel, .bi-reports) {
+    color: #c6d3e6;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    :is(.assistant-card, .panel, .bi-reports)
+    :is(label, summary, h2, h3, h4, dt) {
+    color: #c5d2e5;
+  }
+  .dark-theme .premium-workspace.studio-workspace .demo-banner {
+    background: #2d2d27;
+    border-color: #444338;
+    color: #cfc39f;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .demo-banner
+    :is(strong, a, span) {
+    color: #cfc39f;
+  }
+  .dark-theme .premium-workspace.studio-workspace :is(.top-pill, .today) {
+    color: #acbcd1;
+  }
+  .dark-theme .premium-workspace.studio-workspace .top-pill {
+    background: #29313e;
+    border-color: #414c60;
+  }
+  .dark-theme .premium-workspace.studio-workspace .model-banner {
+    background: #302c26;
+    border-color: #5c4c38;
+  }
+  .dark-theme .premium-workspace.studio-workspace .model-banner :is(h2, p) {
+    color: #d1c3a4;
+  }
+  .dark-theme .premium-workspace.studio-workspace .badge.green {
+    background: #253f36;
+    color: #6bd4a7;
+  }
+  .dark-theme .premium-workspace.studio-workspace .badge.red {
+    background: #482d37;
+    color: #ed9bae;
+  }
+  .dark-theme .premium-workspace.studio-workspace .badge.amber {
+    background: #443b2a;
+    color: #e2c080;
+  }
+  .dark-theme .premium-workspace.studio-workspace .badge.neutral {
+    background: #303a4b;
+    color: #a5b9d8;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .additional-metrics
+    > summary {
+    color: #30b5f6;
+  }
+  .dark-theme
+    .premium-workspace.studio-workspace
+    .dark-report-overview
+    .report-trend
+    svg {
+    max-height: 270px;
+  }
+}

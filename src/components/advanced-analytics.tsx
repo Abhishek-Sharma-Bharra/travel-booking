@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { ReportTrend } from "./report-visuals";
 import type { Dataset } from "@/lib/data";
 import type { KpiData, Metric } from "@/lib/kpi-service";
 import {
@@ -165,7 +166,40 @@ export default function AdvancedAnalytics({
     a.click();
     URL.revokeObjectURL(url);
   }
-  const peak = report ? Math.max(1, ...report.trends.map((r) => r[trend])) : 1;
+  const primaryKeys = ["leads", "gbv", "receipts", "outstanding"];
+  function metricCard(m: Metric) {
+    const previous = report?.previous.find((p) => p.key === m.key);
+    const change =
+      m.value === null ||
+      previous?.value === null ||
+      previous?.value === undefined
+        ? "Comparison unavailable"
+        : previous.value === 0
+          ? m.value === 0
+            ? "No change"
+            : "New activity; previous zero"
+          : `${(((m.value - previous.value) / Math.abs(previous.value)) * 100).toFixed(1)}% vs previous`;
+    return (
+      <article
+        className="kpi-card"
+        data-availability={m.value === null ? "missing" : "recorded"}
+        key={m.key}
+      >
+        <h3>{m.label}</h3>
+        <strong>{formatted(m)}</strong>
+        <small>{m.reason || change}</small>
+        <details>
+          <summary>Definition & comparison</summary>
+          <p>{m.basis}</p>
+          <p>
+            Previous: {previous ? formatted(previous) : "Data unavailable"}.{" "}
+            {change}.
+          </p>
+          {m.reason && <p>{m.reason}</p>}
+        </details>
+      </article>
+    );
+  }
   return (
     <section className="analytics-dashboard" aria-busy={loading}>
       <header className="report-workbar">
@@ -360,41 +394,9 @@ export default function AdvancedAnalytics({
           {report && (
             <>
               <div className="kpi-grid">
-                {report.current.map((m) => {
-                  const p = report.previous.find((p) => p.key === m.key);
-                  const change =
-                    m.value !== null &&
-                    p?.value !== null &&
-                    p?.value !== undefined
-                      ? p.value === 0
-                        ? m.value === 0
-                          ? "No change"
-                          : "New activity; previous zero"
-                        : `${(((m.value - p.value) / Math.abs(p.value)) * 100).toFixed(1)}% vs previous`
-                      : "Comparison unavailable";
-                  return (
-                    <article
-                      className="kpi-card"
-                      data-availability={
-                        m.value === null ? "missing" : "recorded"
-                      }
-                      key={m.key}
-                    >
-                      <h3>{m.label}</h3>
-                      <strong>{formatted(m)}</strong>
-                      <small>{m.reason || change}</small>
-                      <details>
-                        <summary>Definition & comparison</summary>
-                        <p>{m.basis}</p>
-                        <p>
-                          Previous: {p ? formatted(p) : "Data unavailable"}.{" "}
-                          {change}.
-                        </p>
-                        {m.reason && <p>{m.reason}</p>}
-                      </details>
-                    </article>
-                  );
-                })}
+                {report.current
+                  .filter((m) => primaryKeys.includes(m.key))
+                  .map(metricCard)}
               </div>
               <section className="assistant-card">
                 <h3>Period trend</h3>
@@ -429,29 +431,54 @@ export default function AdvancedAnalytics({
                   Week/month buckets include only selected days. Booking value
                   uses creation date; manual cash uses transaction date.
                 </p>
+                <ReportTrend
+                  title={`Recorded ${trend} by ${query.grain}`}
+                  labels={report.trends.map((r) => r.bucket)}
+                  unit={trend === "leads" ? "count" : "INR"}
+                  series={[
+                    {
+                      label:
+                        trend === "leads"
+                          ? "Enquiries"
+                          : trend === "gbv"
+                            ? "Gross booking value"
+                            : trend === "receipts"
+                              ? "Manual receipts"
+                              : "Manual refunds",
+                      values: report.trends.map((r) =>
+                        trend === "leads" ? r[trend] : r[trend] / 100,
+                      ),
+                    },
+                  ]}
+                />
+                <p className="method-note">
+                  Select a bucket below to focus the report.
+                </p>
                 <div className="kpi-chart-scroll">
                   <div
                     className="kpi-bars"
                     style={{
-                      minWidth: Math.max(500, report.trends.length * 20),
+                      minWidth: Math.max(500, report.trends.length * 105),
                     }}
                   >
                     {report.trends.map((r) => (
                       <button
                         key={r.bucket}
                         className="kpi-bar"
-                        style={{ height: Math.max(3, (r[trend] / peak) * 155) }}
+                        aria-pressed={selected === r.bucket}
                         title={`${r.bucket}: ${trend === "leads" ? r[trend] : inr(r[trend])}`}
                         aria-label={`${r.bucket}: ${trend === "leads" ? r[trend] + " leads" : inr(r[trend])}`}
                         onClick={() => setSelected(r.bucket)}
-                      />
+                      >
+                        {r.bucket}
+                      </button>
                     ))}
                   </div>
                 </div>
                 <p role="status">
                   {selected
                     ? `${selected}: ${trend === "leads" ? report.trends.find((r) => r.bucket === selected)?.leads + " leads" : inr(report.trends.find((r) => r.bucket === selected)?.[trend] || 0)}`
-                    : "Select a bar for its value. Zero bars mean no recorded event, not verified zero provider activity."}
+                    : "Select a date bucket for its recorded value. Zero means no recorded event, not verified zero provider activity."}
                 </p>
                 <details>
                   <summary>Accessible trend data</summary>
@@ -481,6 +508,19 @@ export default function AdvancedAnalytics({
                   </div>
                 </details>
               </section>
+              <details className="assistant-card additional-metrics">
+                <summary>All metrics and financial definitions</summary>
+                <p className="method-note">
+                  Provider verification, cost completeness and metric
+                  definitions remain explicit. These are not all measures of
+                  profit.
+                </p>
+                <div className="kpi-grid">
+                  {report.current
+                    .filter((m) => !primaryKeys.includes(m.key))
+                    .map(metricCard)}
+                </div>
+              </details>
               <section className="assistant-card">
                 <h3>Performance breakdown</h3>
                 <label>

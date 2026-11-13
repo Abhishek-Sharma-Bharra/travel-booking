@@ -8,6 +8,7 @@ import {
   FollowUpPanel,
 } from "./travel-assistant";
 
+import { ReportTrend, StageRing } from "./report-visuals";
 import GuidedTour from "./guided-tour";
 const loadingPanel = () => (
   <p role="status" aria-live="polite">
@@ -941,7 +942,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       </div>
     );
   }
-  const chartMax = Math.max(...a.monthly.map((m) => m.sales), 1);
+
   const showWorkspaceFilters =
     !salesFocus &&
     ![
@@ -1393,8 +1394,79 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                         </div>
                         <strong>{m.value}</strong>
                         <small>{m.detail}</small>
+                        {(i === 0 || i === 2) && (
+                          <ReportTrend
+                            compact
+                            title={
+                              i === 0
+                                ? "Monthly enquiry counts"
+                                : "Monthly booked sales value"
+                            }
+                            unit={i === 2 ? "INR" : "count"}
+                            labels={a.monthly.map((m) => m.month)}
+                            series={[
+                              {
+                                label: m.label,
+                                values: a.monthly.map((month) =>
+                                  i === 0 ? month.enquiries : month.sales / 100,
+                                ),
+                              },
+                            ]}
+                          />
+                        )}
                       </article>
                     ))}
+                  </div>
+                  <div className="overview-grid dark-report-overview">
+                    <section className="panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>Booking value overview</h2>
+                          <p>Booking creation month · INR · selected filters</p>
+                        </div>
+                        <span className="subtle-tag">Monthly</span>
+                      </div>
+                      <ReportTrend
+                        title="Monthly booked sales value"
+                        unit="INR"
+                        labels={a.monthly.map((m) => m.month)}
+                        series={[
+                          {
+                            label: "Booked sales value",
+                            values: a.monthly.map((m) => m.sales / 100),
+                          },
+                        ]}
+                      />
+                      {!a.monthly.length && (
+                        <p className="method-note">
+                          No recorded activity in this period.
+                        </p>
+                      )}
+                      <p className="method-note">
+                        Booked value includes retained cancellation fees. It is
+                        distinct from collected or recognized revenue.
+                      </p>
+                    </section>
+                    <section className="panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>Enquiry stage distribution</h2>
+                          <p>Current stages of the selected enquiry cohort</p>
+                        </div>
+                      </div>
+                      <StageRing
+                        items={stages.map((s) => ({
+                          label: s,
+                          value: a.leads.filter((l) => l.stage === s).length,
+                        }))}
+                      />
+                      <button
+                        className="text-button"
+                        onClick={() => changePage("Enquiries")}
+                      >
+                        Open sales pipeline <ArrowRight size={15} />
+                      </button>
+                    </section>
                   </div>
                   <section
                     className="overview-pipeline"
@@ -1443,102 +1515,6 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                       })}
                     </div>
                   </section>
-                  <div className="overview-grid">
-                    <section className="panel sales-panel">
-                      <div className="panel-heading">
-                        <div>
-                          <h2>A little perspective on growth</h2>
-                          <p>
-                            Booked value and contribution by booking creation
-                            month
-                          </p>
-                        </div>
-                        <span className="subtle-tag">INR</span>
-                      </div>
-                      <div className="chart-legend">
-                        <span>
-                          <i />
-                          Booked sales value
-                        </span>
-                        <span>
-                          <i className="gold-dot" />
-                          Booking contribution
-                        </span>
-                      </div>
-                      {a.monthly.length ? (
-                        <div className="sales-chart">
-                          <div className="chart-y">
-                            <span>{inr(chartMax)}</span>
-                            <span>{inr(chartMax / 2)}</span>
-                            <span>₹0</span>
-                          </div>
-                          <div className="chart-plot">
-                            <div className="grid-lines">
-                              <i />
-                              <i />
-                              <i />
-                            </div>
-                            {a.monthly.map((m) => (
-                              <div className="chart-column" key={m.month}>
-                                <div className="bar-pair">
-                                  <div
-                                    title={`${m.month}: ${inr(m.sales)} booked`}
-                                    style={{
-                                      height: `${Math.max(1, (m.sales / chartMax) * 100)}%`,
-                                    }}
-                                  />
-                                  <div
-                                    title={`${m.month}: ${inr(m.contribution)} contribution`}
-                                    className="contribution-bar"
-                                    style={{
-                                      height: `${Math.max(1, (m.contribution / chartMax) * 100)}%`,
-                                    }}
-                                  />
-                                </div>
-                                <span>
-                                  {new Date(m.month + "-02").toLocaleDateString(
-                                    "en-IN",
-                                    { month: "short" },
-                                  )}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <Empty
-                          title="Your story starts here"
-                          detail="Create an enquiry and convert a quotation into your first booking."
-                        />
-                      )}
-                      <div className="chart-footer">
-                        <span>
-                          Contribution before marketing & operating expenses
-                        </span>
-                        <strong>{inr(a.contribution)}</strong>
-                      </div>
-                    </section>
-                    <section className="panel funnel-panel">
-                      <div className="panel-heading">
-                        <div>
-                          <h2>Conversations to journeys</h2>
-                          <p>Your selected enquiry cohort, by current stage</p>
-                        </div>
-                      </div>
-                      <MiniBars
-                        items={stages.map((s) => ({
-                          label: s,
-                          value: a.leads.filter((l) => l.stage === s).length,
-                        }))}
-                      />
-                      <button
-                        className="text-button"
-                        onClick={() => changePage("Enquiries")}
-                      >
-                        Open sales pipeline <ArrowRight size={15} />
-                      </button>
-                    </section>
-                  </div>
                   <PrioritiesPanel
                     data={data}
                     onOpen={setDetail}

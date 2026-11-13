@@ -13,6 +13,9 @@ test("advanced dashboard uses server filters, truthful unavailable metrics, char
   await expect(
     page.getByText("Showing 2026-04-01 through 2026-09-30", { exact: false }),
   ).toBeVisible();
+  await page
+    .getByText("All metrics and financial definitions", { exact: true })
+    .click();
   await expect(
     page.locator(".kpi-card").filter({
       has: page.getByRole("heading", {

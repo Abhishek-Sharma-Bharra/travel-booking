@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { ReportTrend } from "./report-visuals";
 import type { Dataset } from "@/lib/data";
 import type { KpiData } from "@/lib/kpi-service";
 import { calendarDate } from "@/lib/reporting-time";
@@ -25,7 +26,6 @@ import {
 } from "@/lib/bi";
 const defaultCards: (typeof cardOptions)[number][] = [
   "leads",
-  "conversion",
   "gbv",
   "receipts",
   "outstanding",
@@ -239,15 +239,7 @@ export default function BiReports({ data }: { data: Dataset }) {
       "metrics",
     );
   }
-  const shown = !!report && !loading && !error,
-    peak = report ? Math.max(1, ...report.trends.map((r) => r[trend])) : 1;
-  const points =
-    report?.trends
-      .map(
-        (r, i) =>
-          `${report.trends.length === 1 ? 350 : 30 + (i * 640) / (report.trends.length - 1)},${180 - (r[trend] / peak) * 155}`,
-      )
-      .join(" ") || "";
+  const shown = !!report && !loading && !error;
   const filterLabels = {
     destination: "Destination",
     source: "Source",
@@ -570,51 +562,29 @@ export default function BiReports({ data }: { data: Dataset }) {
                     </select>
                   </label>
                 </div>
-                <svg
-                  className="bi-chart"
-                  viewBox="0 0 700 210"
-                  role="img"
-                  aria-label={`${chart} chart of ${trend} by ${query.grain}; exact values and date filters are in the table below`}
-                >
-                  <line x1="30" y1="180" x2="670" y2="180" stroke="#c6cfdd" />
-                  {chart === "line" ? (
-                    <>
-                      <polyline
-                        fill="none"
-                        stroke="#b65330"
-                        strokeWidth="3"
-                        points={points}
-                      />
-                      {report.trends.map((r, i) => (
-                        <circle
-                          key={r.bucket}
-                          cx={
-                            report.trends.length === 1
-                              ? 350
-                              : 30 + (i * 640) / (report.trends.length - 1)
-                          }
-                          cy={180 - (r[trend] / peak) * 155}
-                          r="3"
-                          fill="#b65330"
-                        />
-                      ))}
-                    </>
-                  ) : (
-                    report.trends.map((r, i) => {
-                      const width = 640 / Math.max(1, report.trends.length);
-                      return (
-                        <rect
-                          key={r.bucket}
-                          x={30 + i * width + width * 0.1}
-                          y={180 - (r[trend] / peak) * 155}
-                          width={width * 0.8}
-                          height={(r[trend] / peak) * 155}
-                          fill="#b65330"
-                        />
-                      );
-                    })
-                  )}
-                </svg>
+                <div className="bi-chart">
+                  <ReportTrend
+                    kind={chart}
+                    title={`${chart} chart of ${trend} by ${query.grain}; exact values and date filters are in the table below`}
+                    labels={report.trends.map((r) => r.bucket)}
+                    unit={trend === "leads" ? "count" : "INR"}
+                    series={[
+                      {
+                        label:
+                          trend === "leads"
+                            ? "Enquiries"
+                            : trend === "gbv"
+                              ? "Gross booking value"
+                              : trend === "receipts"
+                                ? "Manual receipts"
+                                : "Manual refunds",
+                        values: report.trends.map((r) =>
+                          trend === "leads" ? r[trend] : r[trend] / 100,
+                        ),
+                      },
+                    ]}
+                  />
+                </div>
                 <p className="method-note">
                   Chart uses{" "}
                   {trend === "leads" ? "enquiry counts" : "INR amounts"}.
