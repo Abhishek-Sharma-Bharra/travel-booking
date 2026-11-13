@@ -943,7 +943,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
   }
   const chartMax = Math.max(...a.monthly.map((m) => m.sales), 1);
   return (
-    <div className="app-shell">
+    <div className="app-shell studio-workspace">
       <aside className={`sidebar ${menu ? "open" : ""}`}>
         <Link href="/" className="brand">
           <Compass size={34} />
@@ -962,6 +962,9 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             </small>
           </div>
         </div>
+        <button className="studio-create" onClick={() => enquiryForm()}>
+          <Plus size={17} /> Create enquiry <span>+</span>
+        </button>
         <nav aria-label="Workspace navigation">
           {navigation.map((g) => (
             <div key={g.group}>
@@ -1167,6 +1170,42 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               )}
             </div>
           </div>
+          {page === "Overview" && (
+            <section
+              className="studio-command"
+              aria-label="Workspace shortcuts"
+            >
+              <div className="studio-command-intro">
+                <span className="eyebrow">YOUR DAILY WORKSPACE</span>
+                <h2>From first hello to final itinerary.</h2>
+                <p>Keep your team, travellers and next steps together.</p>
+              </div>
+              <button onClick={() => changePage("Enquiries")}>
+                <Users size={21} />
+                <span>
+                  <strong>Sales pipeline</strong>
+                  <small>Manage conversations</small>
+                </span>
+                <ArrowUpRight size={17} />
+              </button>
+              <button onClick={() => changePage("Quotations")}>
+                <FileText size={21} />
+                <span>
+                  <strong>Quotations</strong>
+                  <small>Build the next journey</small>
+                </span>
+                <ArrowUpRight size={17} />
+              </button>
+              <button onClick={() => changePage("Bookings")}>
+                <Plane size={21} />
+                <span>
+                  <strong>Bookings</strong>
+                  <small>Keep every trip on track</small>
+                </span>
+                <ArrowUpRight size={17} />
+              </button>
+            </section>
+          )}
           {salesFocus && (
             <section className="sales-focus" aria-label="Enquiry focus">
               <div>
@@ -1304,43 +1343,20 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           )}
           {page === "Overview" && manager && (
             <>
-              <section className="assistant-card">
+              <div className="studio-insight-note">
+                <BarChart3 size={17} />
                 <p>
-                  The overview below retains legacy current-state/manual-report
-                  definitions. For timezone-aware KPIs, verified/manual
-                  distinctions and cost-completeness controls use Advanced
-                  Analytics.
+                  Operational snapshot · recorded booking values and manual
+                  payments. For verified collections and complete financial
+                  definitions, use Analytics.
                 </p>
                 <button
-                  className="btn primary"
+                  className="text-button"
                   onClick={() => changePage("Analytics")}
                 >
-                  Open advanced analytics
+                  Open advanced analytics <ArrowUpRight size={14} />
                 </button>
-              </section>
-              <PrioritiesPanel
-                data={data}
-                onOpen={setDetail}
-                onRecord={(kind, id, leadId) => {
-                  if (kind === "Quotation follow-up") {
-                    setPrintQuote(data.quotes.find((q) => q.id === id) || null);
-                    return;
-                  }
-                  if (
-                    kind === "Customer payment due" ||
-                    kind === "Departure task"
-                  ) {
-                    changePage("Bookings");
-                    setFilters({
-                      ...defaultFilters(),
-                      from: "2000-01-01",
-                      search: lead(leadId)?.externalId || "",
-                    });
-                    return;
-                  }
-                  setDetail(lead(leadId) || null);
-                }}
-              />
+              </div>
               <div className="section-label">
                 <span>PERFORMANCE SNAPSHOT</span>
                 <span>
@@ -1482,6 +1498,29 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   </button>
                 </section>
               </div>
+              <PrioritiesPanel
+                data={data}
+                onOpen={setDetail}
+                onRecord={(kind, id, leadId) => {
+                  if (kind === "Quotation follow-up") {
+                    setPrintQuote(data.quotes.find((q) => q.id === id) || null);
+                    return;
+                  }
+                  if (
+                    kind === "Customer payment due" ||
+                    kind === "Departure task"
+                  ) {
+                    changePage("Bookings");
+                    setFilters({
+                      ...defaultFilters(),
+                      from: "2000-01-01",
+                      search: lead(leadId)?.externalId || "",
+                    });
+                    return;
+                  }
+                  setDetail(lead(leadId) || null);
+                }}
+              />
               <div className="secondary-metrics">
                 <div>
                   <span className="icon-box">
@@ -1661,7 +1700,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   {stages
                     .filter((s) => !stage || s === stage)
                     .map((s) => (
-                      <section key={s}>
+                      <section key={s} data-stage={s}>
                         <div className="pipeline-title">
                           <Badge value={s} />
                           <strong>
