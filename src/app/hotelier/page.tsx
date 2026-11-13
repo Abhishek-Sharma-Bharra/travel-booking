@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { hotelOverview } from "@/lib/hotels/service";
+import { HotelBrandHeader } from "@/components/hotel-brand";
 import HotelConsole from "@/components/hotel-console";
 export const dynamic = "force-dynamic";
 export default async function Page() {
@@ -11,7 +12,8 @@ export default async function Page() {
   if (!session) redirect("/login?next=hotelier");
   if (!session.user.emailVerified)
     return (
-      <main className="hotel-shell">
+      <main className="hotel-shell hotel-branded">
+        <HotelBrandHeader />
         <h1>Verify your email first</h1>
         <p>
           A verified account is required before hotel registration. Use the

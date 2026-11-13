@@ -1533,3 +1533,232 @@
     font-size: 16px;
   }
 }
+
+/* Hotel workspace shares the CRM palette and type scale; image is brand art only. */
+@media screen {
+  .hotel-shell.hotel-branded {
+    --hotel-ink: #202c3d;
+    --hotel-muted: #647388;
+    --hotel-line: #e3e8ef;
+    --hotel-accent: #3863d3;
+    max-width: 1360px;
+    padding-top: 0;
+    color: var(--hotel-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .hotel-branded .hotel-brand-nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    min-height: 88px;
+    border-bottom: 1px solid var(--hotel-line);
+    margin-bottom: 30px;
+  }
+  .hotel-branded .hotel-brand-nav .brand {
+    font-size: 29px;
+    color: #24354c;
+    letter-spacing: -1px;
+  }
+  .hotel-branded .hotel-brand-nav .brand-sub {
+    color: #7e8ca0;
+    font-size: 8px;
+    letter-spacing: 3.5px;
+    margin-top: 6px;
+  }
+  .hotel-branded .hotel-brand-divider {
+    height: 30px;
+    width: 1px;
+    background: #dfe5ed;
+  }
+  .hotel-branded .hotel-brand-area {
+    font-size: 13px;
+    color: #748298;
+  }
+  .hotel-branded .hotel-brand-nav > .btn {
+    margin-left: auto;
+  }
+  .hotel-branded .hotel-header {
+    margin-bottom: 24px;
+  }
+  .hotel-branded .hotel-header .eyebrow {
+    display: none;
+  }
+  .hotel-branded .hotel-header h1 {
+    color: var(--hotel-ink);
+    font-size: 29px;
+    letter-spacing: -0.9px;
+    font-weight: 650;
+    margin: 0 0 8px;
+  }
+  .hotel-branded .hotel-header p {
+    color: var(--hotel-muted);
+    font-size: 13px;
+  }
+  .hotel-branded .hotel-welcome {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 22px;
+    border: 1px solid #26384d;
+    background: #1e2d42;
+    min-height: 246px;
+  }
+  .hotel-branded .hotel-welcome-copy {
+    padding: 30px 32px;
+    align-self: center;
+  }
+  .hotel-branded .hotel-welcome-copy > span {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: #c4b69a;
+    font-weight: 600;
+  }
+  .hotel-branded .hotel-welcome-copy h2 {
+    font-size: clamp(23px, 2.5vw, 33px);
+    letter-spacing: -0.7px;
+    line-height: 1.25;
+    font-weight: 550;
+    color: #f6f8fc;
+    margin: 14px 0 12px;
+  }
+  .hotel-branded .hotel-welcome-copy p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #b7c3d4;
+    max-width: 330px;
+  }
+  .hotel-branded .hotel-welcome-photo {
+    position: relative;
+    margin: 0;
+    min-width: 0;
+    min-height: 246px;
+  }
+  .hotel-branded .hotel-welcome-photo img {
+    object-fit: cover;
+    object-position: 64% 53%;
+  }
+  .hotel-branded .hotel-welcome-photo figcaption {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    max-width: calc(100% - 24px);
+    color: #fff;
+    background: #152133dc;
+    border-radius: 5px;
+    padding: 5px 9px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .hotel-branded .hotel-stage-note {
+    background: #f0f4fc;
+    border-color: #dfe7f4;
+    color: #64758e;
+    font-size: 12px;
+    padding: 13px 16px;
+  }
+  .hotel-branded .hotel-layout {
+    gap: 22px;
+  }
+  .hotel-branded :is(.hotel-properties, .hotel-content, .hotel-review-card) {
+    border-color: var(--hotel-line);
+    box-shadow: 0 2px 6px #202c3d03;
+    border-radius: 11px;
+  }
+  .hotel-branded :is(.hotel-properties h2, .hotel-section-header h2) {
+    color: #3b485c;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .hotel-branded :is(.btn, .text-button) {
+    font-family: inherit;
+    font-size: 13px;
+    border-radius: 7px;
+  }
+  .hotel-branded .primary {
+    background: var(--hotel-accent);
+    border-color: var(--hotel-accent);
+  }
+  .hotel-branded .secondary {
+    border-color: #dce3ec;
+    color: #4d5a6e;
+  }
+  .hotel-branded .hotel-property.selected {
+    background: #edf2fc;
+    border-color: #d8e3f6;
+  }
+  .hotel-branded .hotel-property strong {
+    color: #43546d;
+    font-weight: 600;
+  }
+  .hotel-branded .hotel-tabs button {
+    color: #718098;
+    font-size: 13px;
+  }
+  .hotel-branded .hotel-tabs button[aria-current] {
+    color: var(--hotel-accent);
+    border-color: var(--hotel-accent);
+  }
+  .hotel-branded label {
+    color: #647388;
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .hotel-branded :is(input, select, textarea) {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    color: #49586d;
+    border-color: #dce3ec;
+    background: #fcfdff;
+  }
+  .hotel-branded :is(input, select, textarea):focus {
+    border-color: #7290dc;
+    box-shadow: 0 0 0 3px #3863d312;
+  }
+  .hotel-branded .hotel-room-grid article {
+    background: #f8fafc;
+    border-color: #e3e8ef;
+  }
+  .hotel-branded .hotel-review-card details {
+    border-color: #e3e8ef;
+  }
+}
+@media screen and (max-width: 700px) {
+  .hotel-branded .hotel-brand-nav {
+    gap: 12px;
+    min-height: 84px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+    margin-bottom: 24px;
+  }
+  .hotel-branded .hotel-brand-divider,
+  .hotel-branded .hotel-brand-area {
+    display: none;
+  }
+  .hotel-branded .hotel-brand-nav .brand {
+    font-size: 24px;
+  }
+  .hotel-branded .hotel-brand-nav > .btn {
+    font-size: 12px;
+    padding: 9px 10px;
+  }
+  .hotel-branded .hotel-header h1 {
+    font-size: 26px;
+  }
+  .hotel-branded .hotel-welcome {
+    grid-template-columns: 1fr;
+  }
+  .hotel-branded .hotel-welcome-copy {
+    padding: 25px;
+  }
+  .hotel-branded .hotel-welcome-photo {
+    min-height: 190px;
+  }
+  .hotel-branded .hotel-welcome-copy h2 {
+    font-size: 27px;
+  }
+  .hotel-branded :is(input, select, textarea) {
+    font-size: 16px;
+  }
+}

@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { HotelBrandHeader } from "./hotel-brand";
 import { useState } from "react";
 import type { hotelReviewQueue } from "@/lib/hotels/service";
 type Queue = Awaited<ReturnType<typeof hotelReviewQueue>>;
@@ -45,7 +45,8 @@ export default function HotelReviewConsole({ initial }: { initial: Queue }) {
     }
   }
   return (
-    <main className="hotel-shell">
+    <main className="hotel-shell hotel-branded">
+      <HotelBrandHeader review />
       <header className="hotel-header">
         <div>
           <span className="eyebrow">PLATFORM REVIEW</span>
@@ -55,9 +56,6 @@ export default function HotelReviewConsole({ initial }: { initial: Queue }) {
             decision.
           </p>
         </div>
-        <Link href="/admin" className="btn secondary">
-          Platform administration
-        </Link>
       </header>
       {error && (
         <p role="alert" className="error-box">

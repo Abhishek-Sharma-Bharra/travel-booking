@@ -55,6 +55,20 @@ test("hotel owner verifies account, registers draft, adds category, submits revi
   await expect(
     page.getByRole("heading", { name: "Hotel owner workspace" }),
   ).toBeVisible();
+  await expect(page.locator(".hotel-welcome-photo figcaption")).toContainText(
+    "not a listed property",
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator(".hotel-welcome-photo img")
+        .evaluate(
+          (img) =>
+            (img as HTMLImageElement).complete &&
+            (img as HTMLImageElement).naturalWidth > 0,
+        ),
+    )
+    .toBe(true);
   await page
     .getByLabel("Hotel name", { exact: true })
     .fill("Fictional Mountain Hotel");

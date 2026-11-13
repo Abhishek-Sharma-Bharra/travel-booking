@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
-import { Building2, Plus, ArrowUpRight, ShieldCheck } from "lucide-react";
+import { HotelBrandHeader, HotelWelcomeImage } from "./hotel-brand";
+import { Building2, Plus, ShieldCheck } from "lucide-react";
 import type { hotelOverview } from "@/lib/hotels/service";
 type Overview = Awaited<ReturnType<typeof hotelOverview>>;
 type Property = Overview["hotels"][number];
@@ -82,17 +82,16 @@ export default function HotelConsole({
     }
   }
   return (
-    <main className="hotel-shell">
+    <main className="hotel-shell hotel-branded">
+      <HotelBrandHeader />
       <header className="hotel-header">
         <div>
           <span className="eyebrow">VASHISHT TRAVELOS</span>
           <h1>Hotel owner workspace</h1>
           <p>Register your property and prepare its room catalogue.</p>
         </div>
-        <Link className="btn secondary" href="/workspace">
-          Agency CRM <ArrowUpRight size={16} />
-        </Link>
       </header>
+      <HotelWelcomeImage />
       <div className="hotel-stage-note">
         <ShieldCheck size={18} />
         <span>

@@ -14,3 +14,9 @@ New service tests cover independent hotel ownership even within the same agency,
 New browser test covers the shared signup destination, email-verification gate, hotel draft, category creation, review submission, audit history, cross-hotel request refusal, ordinary-owner admin refusal, cross-origin mutation rejection and mobile overflow. No inventory booking, payment webhook, refund or hotel-chat test is claimed: those implementations do not yet exist in this stage.
 
 The migration was applied only to the local development database. A deployment still requires staging acceptance, a migration/permissions review and explicit production approval. The hotel feature defaults to disabled.
+
+## Visual follow-up
+
+The owner console now shares TravelOS brand navigation, font stack and navy/blue styling. A locally generated illustrative hotel image is encoded as a 160,470-byte WebP and rendered with responsive Next Image sizing. The operator review and email-verification gate use the same branded header. The image is visibly labelled as illustrative, not an actual listing.
+
+The feature-enabled production build and 3 owner/SEO browser checks passed. An additional owner-flow run verified that the image loads successfully and retains its illustrative caption. Fictional desktop/mobile previews were refreshed and mobile overflow checks passed. No new migration, payment behavior, provider connection or production deployment was included in this visual follow-up.
