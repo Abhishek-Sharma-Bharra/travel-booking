@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "vashisht-travelos-d1-migrations",
+  "compatibility_date": "2026-11-16",
+  "d1_databases": [
+    {
+      "binding": "TRAVELOS_DB",
+      "database_name": "vashisht-travelos-staging-db",
+      "database_id": "7b40469d-2035-4275-89ab-c4ebcc53e279",
+      "migrations_dir": "migrations",
+    },
+  ],
+}

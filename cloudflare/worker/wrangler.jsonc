@@ -6,13 +6,33 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": false,
   "preview_urls": false,
-  "assets": { "directory": "../../.open-next/assets", "binding": "ASSETS", "html_handling": "none", "not_found_handling": "404-page" },
-  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "vashisht-travelos-api-staging" }],
+  "assets": {
+    "directory": "../../.open-next/assets",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "404-page",
+  },
+  "d1_databases": [
+    {
+      "binding": "TRAVELOS_DB",
+      "database_name": "vashisht-travelos-staging-db",
+      "database_id": "7b40469d-2035-4275-89ab-c4ebcc53e279",
+      "migrations_dir": "../d1/migrations",
+    },
+  ],
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "vashisht-travelos-api-staging",
+    },
+  ],
   "vars": {
     "TRAVELOS_RUNTIME": "cloudflare",
     "BETTER_AUTH_URL": "https://vashisht-travelos-staging.pages.dev",
     "PUBLIC_SITE_URL": "https://vashisht-travelos-staging.pages.dev",
-    "SITE_INDEXING_ENABLED": "false", "HOTELS_ENABLED": "false",
-    "WHATSAPP_LIVE_SEND_APPROVED": "false", "WHATSAPP_PROVISION_APPROVED": "false"
-  }
+    "SITE_INDEXING_ENABLED": "false",
+    "HOTELS_ENABLED": "false",
+    "WHATSAPP_LIVE_SEND_APPROVED": "false",
+    "WHATSAPP_PROVISION_APPROVED": "false",
+  },
 }

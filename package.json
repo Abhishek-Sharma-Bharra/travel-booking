@@ -33,9 +33,14 @@
     "cloudflare:deploy:pages": "cd cloudflare/pages && wrangler pages deploy ../pages-dist --project-name vashisht-travelos-staging --branch main",
     "cloudflare:local-env": "node scripts/cloudflare/local-env.mjs",
     "cloudflare:dev:worker": "wrangler dev -c cloudflare/worker/wrangler.jsonc --port 8787",
-    "cloudflare:dev:pages": "cd cloudflare/pages && wrangler pages dev --port 3000 --service TRAVELOS_BACKEND=vashisht-travelos-api-staging"
+    "cloudflare:dev:pages": "cd cloudflare/pages && wrangler pages dev --port 3000 --service TRAVELOS_BACKEND=vashisht-travelos-api-staging",
+    "d1:schema": "tsx scripts/cloudflare/d1-schema.ts",
+    "d1:schema:check": "tsx scripts/cloudflare/d1-schema.ts --check",
+    "d1:migrate:local": "wrangler d1 migrations apply TRAVELOS_DB --local --config cloudflare/d1/wrangler.jsonc",
+    "d1:migrate:remote": "wrangler d1 migrations apply TRAVELOS_DB --remote --config cloudflare/d1/wrangler.jsonc"
   },
   "dependencies": {
+    "@prisma/adapter-d1": "7.10.1",
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
     "better-auth": "1.7.12",
@@ -50,6 +55,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20261116.1",
     "@opennextjs/cloudflare": "1.20.17",
     "@playwright/test": "^1.58.2",
     "@prisma/client-generator-js": "^7.10.1",
@@ -62,6 +68,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "esbuild": "0.28.2",
+    "miniflare": "5.20261113.0-beta",
     "prettier": "^3.9.10",
     "prisma": "7.10.1",
     "rclone.js": "0.6.6",
