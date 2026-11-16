@@ -1,7 +1,33 @@
 import type { NextConfig } from "next";
 import { privatePaths, indexingEnabled } from "./src/lib/seo";
+const cloudflareWebpack: NonNullable<NextConfig["webpack"]> = (
+  webpackConfig,
+  context,
+) => {
+  if (context.isServer) {
+    const previous = webpackConfig.externals ?? [];
+    webpackConfig.externals = [
+      (
+        { request }: { request?: string },
+        callback: (error: Error | null, result?: string) => void,
+      ) => {
+        if (request === "@travelos/d1-client")
+          return callback(null, "commonjs @travelos/d1-client");
+        callback(null);
+      },
+      ...(Array.isArray(previous) ? previous : [previous]),
+    ];
+  }
+  return webpackConfig;
+};
 const config: NextConfig = {
-  serverExternalPackages: ["pg"],
+  serverExternalPackages: ["pg", "@travelos/d1-client"],
+  ...(process.env.TRAVELOS_BUILD_ID
+    ? {
+        generateBuildId: async () => process.env.TRAVELOS_BUILD_ID!,
+        webpack: cloudflareWebpack,
+      }
+    : {}),
   async headers() {
     return [
       ...(!indexingEnabled()

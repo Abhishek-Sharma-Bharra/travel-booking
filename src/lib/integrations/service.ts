@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "../db";
+import { requirePostgresIntegration } from "../d1/availability";
 import { requireOwner, canManage, type Actor } from "../access";
 import { HttpError, trustedOrigin } from "../http";
 import { requireSubscription } from "../subscriptions";
@@ -47,6 +48,7 @@ export async function integrationActor(
 const callback = (provider: string) =>
   `${trustedOrigin()}/api/integrations/${provider.toLowerCase()}/callback`;
 export async function startAuthorization(inputActor: Actor, provider: string) {
+  requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true);
   providerSchema.parse(provider);
   if (!vaultReady() || !(provider === "META" ? metaReady() : googleReady()))
@@ -104,6 +106,7 @@ export async function finishAuthorization(
   code: string,
   transport: typeof fetch = fetch,
 ) {
+  requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true);
   providerSchema.parse(provider);
   if (!/^[A-Za-z0-9_-]{43}$/.test(state) || !code || code.length > 4000)
@@ -220,6 +223,7 @@ export async function selectAdAccount(
   accountId: string,
   transport: typeof fetch = fetch,
 ) {
+  requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true),
     c = await permittedConnection(a, id);
   if (c.status !== "SELECT_ACCOUNT")
@@ -313,6 +317,7 @@ export async function selectAdAccount(
   });
 }
 export async function disconnectAdAccount(inputActor: Actor, id: string) {
+  requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true, true),
     c = await db.integrationConnection.findFirst({
       where: { id, agencyId: a.agencyId },
@@ -428,6 +433,7 @@ export async function syncAds(
   to: string,
   transport: typeof fetch = fetch,
 ) {
+  requirePostgresIntegration("Live advertising integration");
   const c = await permittedConnection(
     { id: "sync-worker", agencyId, role: "OWNER" },
     connectionId,

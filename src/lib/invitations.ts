@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
-import { db } from "./db";
+import { db, d1Binding } from "./db";
+import { acceptInvitationD1 } from "./d1/management";
 import { Actor, requireOwner } from "./access";
 import { ensureSeat, requireSubscription } from "./subscriptions";
 import { requireMail, sendMail, verificationRequired } from "./mail";
@@ -102,6 +103,8 @@ export async function revokeInvitation(a: Actor, input: unknown) {
   return { message: "Invitation revoked" };
 }
 export async function acceptInvitation(userId: string, token: string) {
+  const binding = d1Binding();
+  if (binding) return acceptInvitationD1(binding, userId, token);
   if (!/^[A-Za-z0-9_-]{43}$/.test(token))
     throw new HttpError(400, "Invitation is invalid or expired");
   return db.$transaction(
@@ -163,6 +166,7 @@ export async function acceptInvitation(userId: string, token: string) {
           );
       }
       const previous = user.agencyId;
+      await tx.tourProgress.deleteMany({ where: { userId: user.id } });
       await tx.user.update({
         where: { id: user.id },
         data: { agencyId: target.id, role: invitation.role },

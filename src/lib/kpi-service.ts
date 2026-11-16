@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { db as database } from "./db";
+import { db as database, d1Binding } from "./db";
+import { kpiDataD1 } from "./d1/kpi";
 import type { Actor } from "./access";
 import { HttpError } from "./http";
 import {
@@ -549,10 +550,15 @@ async function loadKpi(
     demo: !!a.demo,
   };
 }
-export async function kpiData(inputActor: Actor, input: unknown) {
+export async function kpiData(
+  inputActor: Actor,
+  input: unknown,
+): Promise<KpiData> {
+  const binding = d1Binding();
+  if (binding) return kpiDataD1(binding, inputActor, input);
   return database.$transaction((tx) => loadKpi(inputActor, input, tx), {
     isolationLevel: "RepeatableRead",
     timeout: 25000,
   });
 }
-export type KpiData = Awaited<ReturnType<typeof kpiData>>;
+export type KpiData = Awaited<ReturnType<typeof loadKpi>>;

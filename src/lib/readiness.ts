@@ -1,5 +1,5 @@
 import { mailReady, verificationRequired } from "./mail";
-import { db } from "./db";
+import { db, d1Binding } from "./db";
 export function configurationGaps() {
   const gaps: string[] = [];
   try {
@@ -36,11 +36,18 @@ export async function launchGaps() {
   const gaps = configurationGaps();
   try {
     await db.$queryRaw`SELECT 1`;
-    const privileges = await db.$queryRaw<
-      { powerful: boolean }[]
-    >`SELECT (rolsuper OR rolcreaterole OR rolcreatedb OR has_schema_privilege(current_user,'public','CREATE')) AS powerful FROM pg_roles WHERE rolname=current_user`;
-    if (privileges[0]?.powerful)
-      gaps.push("Least-privilege runtime database role");
+    if (!d1Binding()) {
+      const privileges = await db.$queryRaw<
+        { powerful: boolean }[]
+      >`SELECT (rolsuper OR rolcreaterole OR rolcreatedb OR has_schema_privilege(current_user,'public','CREATE')) AS powerful FROM pg_roles WHERE rolname=current_user`;
+      if (privileges[0]?.powerful)
+        gaps.push("Least-privilege runtime database role");
+    } else {
+      const binding = d1Binding()!;
+      await binding
+        .prepare('SELECT "version" FROM "_D1RecordVersion" LIMIT 1')
+        .all();
+    }
     await db.requestBucket.findFirst({ select: { key: true } });
     await db.invitation.findFirst({ select: { id: true } });
     const emails = (process.env.PLATFORM_ADMIN_EMAILS || "")

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual, createHash } from "node:crypto";
 import { z } from "zod";
+import { requirePostgresIntegration } from "../d1/availability";
 import { db } from "../db";
 import { HttpError } from "../http";
 export function verifyWhatsAppSignature(
@@ -64,6 +65,7 @@ export async function receiveWhatsAppEvents(
   raw: Uint8Array,
   signature: string | null,
 ) {
+  requirePostgresIntegration("Live WhatsApp integration");
   if (!verifyWhatsAppSignature(raw, signature))
     throw new HttpError(401, "Invalid webhook signature");
   let input;

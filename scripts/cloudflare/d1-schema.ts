@@ -42,7 +42,7 @@ export async function generateD1Schema() {
     .replace('provider = "postgresql"', 'provider = "sqlite"')
     .replace(
       'provider = "prisma-client-js"',
-      'provider = "prisma-client-js"\n  output = "../../.local/d1-client"',
+      'provider = "prisma-client-js"\n  output = "../../packages/d1-client/generated"',
     )
     .replace(/String\[\] @default\(\[\]\)/g, 'Json @default("[]")')
     .replace(
@@ -134,6 +134,62 @@ export async function generateD1Schema() {
       schema,
       sql: `-- Fresh D1 schema only; do not execute against PostgreSQL.\n-- Application runtime port is still in progress.\n${sql}\n${triggers}\n`,
       models: dmmf.datamodel.models.length,
+      definitions: dmmf.datamodel.models.map((model) => ({
+        name: model.name,
+        fields: model.fields
+          .filter((field) => field.kind === "scalar")
+          .map(
+            ({
+              name,
+              type,
+              isRequired,
+              hasDefaultValue,
+              default: defaultValue,
+              isUpdatedAt,
+            }) => ({
+              name,
+              type,
+              isRequired,
+              hasDefaultValue,
+              default: defaultValue,
+              isUpdatedAt,
+            }),
+          ),
+      })),
+      authModels: dmmf.datamodel.models
+        .filter((model) =>
+          [
+            "Agency",
+            "User",
+            "Account",
+            "Session",
+            "Verification",
+            "RateLimit",
+            "TwoFactor",
+          ].includes(model.name),
+        )
+        .map((model) => ({
+          name: model.name,
+          fields: model.fields
+            .filter((field) => field.kind === "scalar")
+            .map(
+              ({
+                name,
+                type,
+                isRequired,
+                hasDefaultValue,
+                default: defaultValue,
+                isUpdatedAt,
+              }) => ({
+                name,
+                type,
+                isRequired,
+                hasDefaultValue,
+                default: defaultValue,
+                isUpdatedAt,
+              }),
+            ),
+        })),
     };
   } finally {
     await mf.dispose();
@@ -143,6 +199,14 @@ async function main() {
   const result = await generateD1Schema();
   const files: [string, string][] = [
     ["cloudflare/d1/schema.prisma", result.schema],
+    [
+      "cloudflare/d1/model-definitions.json",
+      JSON.stringify(result.definitions, null, 2) + "\n",
+    ],
+    [
+      "cloudflare/d1/auth-models.json",
+      JSON.stringify(result.authModels, null, 2) + "\n",
+    ],
     ["cloudflare/d1/migrations/0001_initial.sql", result.sql],
   ];
   for (const [path, contents] of files) {

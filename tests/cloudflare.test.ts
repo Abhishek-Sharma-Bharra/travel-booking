@@ -133,3 +133,27 @@ test("Workers mail requires HTTPS delivery even when legacy SMTP variables are p
     }
   }
 });
+
+test("Pages gateway uses the trusted Cloudflare client IP instead of user-supplied forwarding headers", async () => {
+  const env = {
+    PUBLIC_ORIGIN: origin,
+    ASSETS: { fetch: async () => new Response("unused") },
+    TRAVELOS_BACKEND: {
+      fetch: async (received: Request) => {
+        assert.equal(received.headers.get("X-Forwarded-For"), "198.51.100.23");
+        assert.equal(received.headers.get("X-Real-IP"), "198.51.100.23");
+        return new Response("ok");
+      },
+    },
+  };
+  await gateway.fetch(
+    new Request(origin + "/api/data", {
+      headers: {
+        "CF-Connecting-IP": "198.51.100.23",
+        "X-Forwarded-For": "forged",
+        "X-Real-IP": "forged",
+      },
+    }),
+    env,
+  );
+});

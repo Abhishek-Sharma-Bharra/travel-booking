@@ -1,6 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { db } from "../db";
+import { db, d1Binding } from "../db";
+import { requirePostgresIntegration } from "../d1/availability";
+import { saveConsentD1 } from "../d1/operations";
 import { integrationActor } from "../integrations/service";
 import type { Actor } from "../access";
 import { requireOwner } from "../access";
@@ -41,6 +43,7 @@ export async function provisionChannel(
   token: string,
   transport: typeof fetch = fetch,
 ) {
+  requirePostgresIntegration("Live WhatsApp integration");
   if (process.env.WHATSAPP_PROVISION_APPROVED !== "true")
     throw new HttpError(
       403,
@@ -112,6 +115,7 @@ export async function syncTemplates(
   channelId: string,
   transport: typeof fetch = fetch,
 ) {
+  requirePostgresIntegration("Live WhatsApp integration");
   const a = await integrationActor(inputActor, true),
     c = await db.whatsAppChannel.findFirst({
       where: { id: channelId, agencyId: a.agencyId },
@@ -310,6 +314,8 @@ export async function recordConsent(inputActor: Actor, input: unknown) {
     phone = whatsappNumber(v.phone);
   if (!phone)
     throw new HttpError(400, "Use an explicit international phone number");
+  const binding = d1Binding();
+  if (binding) return saveConsentD1(binding, a, phone, v.optedIn, v.evidence);
   const now = new Date();
   await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Agency" WHERE id=${a.agencyId} FOR UPDATE`;
@@ -473,6 +479,7 @@ export async function queueNotification(
   bookingId: string,
   kind: string,
 ) {
+  requirePostgresIntegration("Live WhatsApp integration");
   if (!liveMessagingApproved())
     throw new HttpError(
       503,
@@ -532,6 +539,7 @@ export async function dispatchNotification(
   id: string,
   transport: typeof fetch = fetch,
 ) {
+  requirePostgresIntegration("Live WhatsApp integration");
   if (!liveMessagingApproved())
     throw new HttpError(503, "Live WhatsApp sending is not authorized");
   const n = await db.whatsAppNotification.findFirst({

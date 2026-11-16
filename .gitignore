@@ -25,3 +25,6 @@ __pycache__/
 .dev.vars*
 **/.dev.vars*
 cloudflare/pages-dist/
+
+# Generated D1 Prisma client (created by npm run db:generate)
+packages/d1-client/generated/

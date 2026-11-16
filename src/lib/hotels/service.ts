@@ -1,9 +1,11 @@
 import { Prisma } from "@prisma/client";
+import { requirePostgresIntegration } from "../d1/availability";
 import { db } from "../db";
 import { HttpError } from "../http";
 import { requireOperator } from "../operator-access";
 import { hotelActionSchema, hotelReviewSchema } from "./validation";
 export function requireHotels() {
+  requirePostgresIntegration("Hotel management");
   if (process.env.HOTELS_ENABLED !== "true")
     throw new HttpError(404, "Hotel module is not enabled");
 }

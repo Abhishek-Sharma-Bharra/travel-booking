@@ -1,0 +1,17 @@
+{
+  "name": "@travelos/d1-client",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.cjs",
+  "types": "./generated/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./generated/index.d.ts",
+      "workerd": "./edge.cjs",
+      "worker": "./edge.cjs",
+      "edge-light": "./edge.cjs",
+      "node": "./index.cjs",
+      "default": "./index.cjs"
+    }
+  }
+}

@@ -7,6 +7,9 @@ import {
   type RequestResources,
 } from "../../src/lib/request-resources";
 interface Environment {
+  BETTER_AUTH_SECRET?: string;
+  TRAVELOS_DATABASE_ENGINE?: string;
+  TRAVELOS_DB?: import("@cloudflare/workers-types").D1Database;
   DATABASE_URL?: string;
   HYPERDRIVE?: { connectionString: string };
 }
@@ -15,8 +18,24 @@ interface Context {
 }
 export default {
   async fetch(request: Request, env: Environment, ctx: Context) {
+    if (
+      env.TRAVELOS_DATABASE_ENGINE === "d1" &&
+      (!env.BETTER_AUTH_SECRET ||
+        env.BETTER_AUTH_SECRET.length < 32 ||
+        /replace|default-secret/i.test(env.BETTER_AUTH_SECRET))
+    )
+      return Response.json(
+        {
+          error:
+            "Staging authentication is not configured. Contact the service administrator.",
+        },
+        { status: 503, headers: { "Cache-Control": "private, no-store" } },
+      );
     const resources: RequestResources = {
       databaseUrl: env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL ?? "",
+      databaseEngine:
+        env.TRAVELOS_DATABASE_ENGINE === "d1" ? "d1" : "postgresql",
+      d1: env.TRAVELOS_DB,
       values: new Map(),
       cleanup: [],
     };

@@ -3,7 +3,7 @@ import type { D1Database } from "@cloudflare/workers-types";
 
 // Prisma's default D1 adapter warns and ignores transaction boundaries. Fail
 // closed instead: every multi-record write must be explicitly ported to batch().
-// Not enabled in src/lib/db.ts until all application transaction paths are ported.
+// Core D1 paths use explicit native batches; unported integrations stay disabled.
 export function createSafeD1Adapter(binding: D1Database) {
   const factory = new PrismaD1(binding);
   const connect = factory.connect.bind(factory);

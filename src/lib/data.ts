@@ -2,9 +2,13 @@ import { redactFinancial } from "./financial-redaction";
 import { readSubscriptionRequest } from "./subscription-request-format";
 import { subscriptionAccess, limitsFor, planLimits } from "./subscriptions";
 import { mailReady, verificationRequired } from "./mail";
-import { db } from "./db";
+import { db, d1Binding } from "./db";
+import { workspaceSnapshotD1 } from "./d1/workspace";
 import { Actor, scope } from "./access";
 export async function workspaceData(a: Actor) {
+  const binding = d1Binding();
+  const snapshot = binding ? await workspaceSnapshotD1(binding, a) : undefined;
+  if (snapshot) a = snapshot.actor;
   const leadWhere = scope(a);
   const [
     agency,
@@ -17,62 +21,67 @@ export async function workspaceData(a: Actor) {
     activities,
     enquiryCount,
     invitations,
-  ] = await Promise.all([
-    db.agency.findUniqueOrThrow({ where: { id: a.agencyId } }),
-    db.user.findMany({
-      where: { agencyId: a.agencyId },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        disabled: true,
-        ...(a.role === "OWNER" ? { email: true } : {}),
-      },
-      orderBy: { name: "asc" },
-    }),
-    db.lead.findMany({ where: leadWhere, orderBy: { enquiryDate: "desc" } }),
-    db.package.findMany({
-      where: { agencyId: a.agencyId },
-      orderBy: { name: "asc" },
-    }),
-    db.quote.findMany({
-      where: { agencyId: a.agencyId, lead: leadWhere },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.booking.findMany({
-      where: { agencyId: a.agencyId, lead: leadWhere },
-      include: { transactions: true, quote: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    a.role === "AGENT"
-      ? []
-      : db.spend.findMany({
-          where: { agencyId: a.agencyId },
-          orderBy: { month: "desc" },
-        }),
-    db.activity.findMany({
-      where: {
-        agencyId: a.agencyId,
-        ...(a.role === "AGENT" ? { lead: { is: leadWhere } } : {}),
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.lead.count({ where: { agencyId: a.agencyId } }),
-    a.role === "OWNER"
-      ? db.invitation.findMany({
+  ] = snapshot
+    ? snapshot.records
+    : await Promise.all([
+        db.agency.findUniqueOrThrow({ where: { id: a.agencyId } }),
+        db.user.findMany({
           where: { agencyId: a.agencyId },
           select: {
             id: true,
-            email: true,
+            name: true,
             role: true,
-            status: true,
-            expiresAt: true,
+            disabled: true,
+            ...(a.role === "OWNER" ? { email: true } : {}),
+          },
+          orderBy: { name: "asc" },
+        }),
+        db.lead.findMany({
+          where: leadWhere,
+          orderBy: { enquiryDate: "desc" },
+        }),
+        db.package.findMany({
+          where: { agencyId: a.agencyId },
+          orderBy: { name: "asc" },
+        }),
+        db.quote.findMany({
+          where: { agencyId: a.agencyId, lead: leadWhere },
+          orderBy: { createdAt: "desc" },
+        }),
+        db.booking.findMany({
+          where: { agencyId: a.agencyId, lead: leadWhere },
+          include: { transactions: true, quote: true },
+          orderBy: { createdAt: "desc" },
+        }),
+        a.role === "AGENT"
+          ? []
+          : db.spend.findMany({
+              where: { agencyId: a.agencyId },
+              orderBy: { month: "desc" },
+            }),
+        db.activity.findMany({
+          where: {
+            agencyId: a.agencyId,
+            ...(a.role === "AGENT" ? { lead: { is: leadWhere } } : {}),
           },
           orderBy: { createdAt: "desc" },
-          take: 50,
-        })
-      : [],
-  ]);
+        }),
+        db.lead.count({ where: { agencyId: a.agencyId } }),
+        a.role === "OWNER"
+          ? db.invitation.findMany({
+              where: { agencyId: a.agencyId },
+              select: {
+                id: true,
+                email: true,
+                role: true,
+                status: true,
+                expiresAt: true,
+              },
+              orderBy: { createdAt: "desc" },
+              take: 50,
+            })
+          : [],
+      ]);
   const payload = {
     refreshedAt: new Date().toISOString(),
     billing: {

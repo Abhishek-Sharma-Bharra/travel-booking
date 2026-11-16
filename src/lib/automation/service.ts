@@ -1,7 +1,13 @@
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { Prisma, AutomationJob } from "@prisma/client";
-import { db } from "../db";
+import { db, d1Binding } from "../db";
+import {
+  saveAutomationD1,
+  enqueueJobD1,
+  claimJobD1,
+  finishJobD1,
+} from "../d1/operations";
 import type { Actor } from "../access";
 import { integrationActor, syncAds } from "../integrations/service";
 import {
@@ -67,6 +73,8 @@ export async function automationOverview(input: Actor) {
 export async function saveAutomation(input: Actor, value: unknown) {
   const v = settings.parse(value),
     a = await integrationActor(input, true, !v.enabled);
+  const binding = d1Binding();
+  if (binding) return saveAutomationD1(binding, a, v);
   await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Agency" WHERE id=${a.agencyId} FOR UPDATE`;
     await tx.automationPolicy.upsert({
@@ -106,6 +114,15 @@ export async function enqueueJob(
   payload: Prisma.InputJsonValue,
   revision: number,
 ) {
+  const binding = d1Binding();
+  if (binding)
+    return enqueueJobD1(binding, {
+      agencyId,
+      kind,
+      key,
+      payload,
+      policyRevision: revision,
+    });
   return db.automationJob.upsert({
     where: { agencyId_key: { agencyId, key } },
     create: { agencyId, kind, key, payload, policyRevision: revision },
@@ -182,6 +199,8 @@ export async function scheduleAutomation(cursor = "", now = new Date()) {
   };
 }
 export async function claimJob(now = new Date()) {
+  const binding = d1Binding();
+  if (binding) return claimJobD1(binding, now);
   return db.$transaction(async (tx) => {
     const rows = await tx.$queryRaw<
       { id: string }[]
@@ -494,6 +513,9 @@ async function finish(
   delay = 0,
   failed = false,
 ) {
+  const binding = d1Binding();
+  if (binding)
+    return finishJobD1(binding, j, status, errorCode, result, delay, failed);
   await db.$transaction(async (tx) => {
     const updated = await tx.automationJob.updateMany({
       where: {

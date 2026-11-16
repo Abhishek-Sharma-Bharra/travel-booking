@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { db } from "./db";
+import { db, d1Binding } from "./db";
+import { updateSubscriptionD1 } from "./d1/management";
 import { requireOperator } from "./operator-access";
 import { limitsFor } from "./subscriptions";
 import { HttpError } from "./http";
@@ -8,6 +9,9 @@ export async function updateSubscription(
   input: unknown,
   sessionToken: string,
 ) {
+  const binding = d1Binding();
+  if (binding)
+    return updateSubscriptionD1(binding, operatorId, input, sessionToken);
   await requireOperator(operatorId, sessionToken);
   const v = z
     .object({

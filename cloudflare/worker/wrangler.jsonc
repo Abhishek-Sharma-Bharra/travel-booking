@@ -28,6 +28,9 @@
   ],
   "vars": {
     "TRAVELOS_RUNTIME": "cloudflare",
+    "TRAVELOS_DATABASE_ENGINE": "d1",
+    "REQUIRE_EMAIL_VERIFICATION": "false",
+    "SUPPORT_EMAIL": "avinav.vashisht@gmail.com",
     "BETTER_AUTH_URL": "https://vashisht-travelos-staging.pages.dev",
     "PUBLIC_SITE_URL": "https://vashisht-travelos-staging.pages.dev",
     "SITE_INDEXING_ENABLED": "false",

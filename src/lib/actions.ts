@@ -11,7 +11,8 @@ import { requireSubscription, ensureSeat, limitsFor } from "./subscriptions";
 import { HttpError } from "./http";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { db } from "./db";
+import { db, d1Binding } from "./db";
+import { mutateD1 } from "./d1/crm";
 import { Actor, scope, canManage, requireOwner, writable } from "./access";
 import {
   leadSchema,
@@ -34,6 +35,8 @@ export async function mutate(
   action: string,
   input: unknown,
 ): Promise<MutationResult> {
+  const binding = d1Binding();
+  if (binding) return mutateD1(binding, a, action, input);
   writable(a);
   const agency = await db.agency.findUniqueOrThrow({
     where: { id: a.agencyId },
@@ -104,7 +107,7 @@ export async function mutate(
       await assignee(uid);
     return db.$transaction(
       async (tx) => {
-        if (!wrapper.id) {
+        if (!wrapper.id || action === "import") {
           const existing = await tx.lead.count({
             where: { agencyId: a.agencyId },
           });

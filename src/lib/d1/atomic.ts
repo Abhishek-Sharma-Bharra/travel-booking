@@ -28,22 +28,42 @@ export async function atomicD1Batch(
   db: D1Database,
   condition: D1Statement,
   writes: D1Statement[],
-): Promise<D1Result[]> {
-  if (!writes.length || writes.length > 98)
-    throw new RangeError("Atomic D1 batches require 1–98 write statements");
-  const id = randomUUID();
-  const guard = prepare(db, {
-    sql: `INSERT INTO "_TravelOSAtomicGuard" ("id","ok") SELECT ?, CASE WHEN (${condition.sql}) THEN 1 ELSE 0 END`,
-    values: [id, ...(condition.values ?? [])],
-  });
+): Promise<D1Result<Record<string, unknown>>[]> {
+  return guardedD1Batch(db, [condition], writes);
+}
+
+export async function guardedD1Batch(
+  db: D1Database,
+  conditions: D1Statement[],
+  writes: D1Statement[],
+): Promise<D1Result<Record<string, unknown>>[]> {
+  if (
+    !writes.length ||
+    !conditions.length ||
+    conditions.length + writes.length > 99
+  )
+    throw new RangeError(
+      "Atomic D1 batches require 1–98 writes and at most 100 total statements",
+    );
+  const ids = conditions.map(() => randomUUID());
+  const guards = conditions.map((condition, index) =>
+    prepare(db, {
+      sql: `INSERT INTO "_TravelOSAtomicGuard" ("id","ok") SELECT ?, CASE WHEN (${condition.sql}) THEN 1 ELSE 0 END`,
+      values: [ids[index], ...(condition.values ?? [])],
+    }),
+  );
   const statements = writes.map((statement) => prepare(db, statement));
   try {
-    const result = await db.batch([
-      guard,
+    const result = await db.batch<Record<string, unknown>>([
+      ...guards,
       ...statements,
-      db.prepare('DELETE FROM "_TravelOSAtomicGuard" WHERE "id"=?').bind(id),
+      db
+        .prepare(
+          `DELETE FROM "_TravelOSAtomicGuard" WHERE "id" IN (${ids.map(() => "?").join(",")})`,
+        )
+        .bind(...ids),
     ]);
-    return result.slice(1, -1);
+    return result.slice(guards.length, -1);
   } catch (error) {
     if (
       /CHECK constraint failed|UNIQUE constraint failed|FOREIGN KEY constraint failed/i.test(

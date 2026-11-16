@@ -1,0 +1,530 @@
+[
+  {
+    "name": "Agency",
+    "fields": [
+      {
+        "name": "adSpendRevision",
+        "type": "Int",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": 0,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "timezone",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": "Asia/Kolkata",
+        "isUpdatedAt": false
+      },
+      {
+        "name": "id",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "cuid",
+          "args": [
+            1
+          ]
+        },
+        "isUpdatedAt": false
+      },
+      {
+        "name": "name",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "logo",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": "",
+        "isUpdatedAt": false
+      },
+      {
+        "name": "contact",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": "",
+        "isUpdatedAt": false
+      },
+      {
+        "name": "footer",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": "Thank you for choosing us. Prices are subject to availability.",
+        "isUpdatedAt": false
+      },
+      {
+        "name": "plan",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": "Starter",
+        "isUpdatedAt": false
+      },
+      {
+        "name": "subscription",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": "Trial",
+        "isUpdatedAt": false
+      },
+      {
+        "name": "demo",
+        "type": "Boolean",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "trialEndsAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "dbgenerated",
+          "args": [
+            "(datetime('now', '+14 days'))"
+          ]
+        },
+        "isUpdatedAt": false
+      },
+      {
+        "name": "subscriptionExpiresAt",
+        "type": "DateTime",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "createdAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "now",
+          "args": []
+        },
+        "isUpdatedAt": false
+      }
+    ]
+  },
+  {
+    "name": "User",
+    "fields": [
+      {
+        "name": "id",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "name",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "email",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "emailVerified",
+        "type": "Boolean",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "image",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "createdAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "now",
+          "args": []
+        },
+        "isUpdatedAt": false
+      },
+      {
+        "name": "updatedAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": true
+      },
+      {
+        "name": "agencyId",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "role",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": "OWNER",
+        "isUpdatedAt": false
+      },
+      {
+        "name": "disabled",
+        "type": "Boolean",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "twoFactorEnabled",
+        "type": "Boolean",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": false,
+        "isUpdatedAt": false
+      }
+    ]
+  },
+  {
+    "name": "Session",
+    "fields": [
+      {
+        "name": "mfaVerifiedAt",
+        "type": "DateTime",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "id",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "expiresAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "token",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "createdAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "now",
+          "args": []
+        },
+        "isUpdatedAt": false
+      },
+      {
+        "name": "updatedAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": true
+      },
+      {
+        "name": "ipAddress",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "userAgent",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "userId",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      }
+    ]
+  },
+  {
+    "name": "Account",
+    "fields": [
+      {
+        "name": "id",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "accountId",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "providerId",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "userId",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "accessToken",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "refreshToken",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "idToken",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "accessTokenExpiresAt",
+        "type": "DateTime",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "refreshTokenExpiresAt",
+        "type": "DateTime",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "scope",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "password",
+        "type": "String",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "createdAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "now",
+          "args": []
+        },
+        "isUpdatedAt": false
+      },
+      {
+        "name": "updatedAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": true
+      }
+    ]
+  },
+  {
+    "name": "Verification",
+    "fields": [
+      {
+        "name": "id",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "identifier",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "value",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "expiresAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "createdAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "now",
+          "args": []
+        },
+        "isUpdatedAt": false
+      },
+      {
+        "name": "updatedAt",
+        "type": "DateTime",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": true
+      }
+    ]
+  },
+  {
+    "name": "RateLimit",
+    "fields": [
+      {
+        "name": "id",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": {
+          "name": "cuid",
+          "args": [
+            1
+          ]
+        },
+        "isUpdatedAt": false
+      },
+      {
+        "name": "key",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "count",
+        "type": "Int",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "lastRequest",
+        "type": "BigInt",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      }
+    ]
+  },
+  {
+    "name": "TwoFactor",
+    "fields": [
+      {
+        "name": "id",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "userId",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "secret",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "backupCodes",
+        "type": "String",
+        "isRequired": true,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "verified",
+        "type": "Boolean",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": true,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "failedVerificationCount",
+        "type": "Int",
+        "isRequired": true,
+        "hasDefaultValue": true,
+        "default": 0,
+        "isUpdatedAt": false
+      },
+      {
+        "name": "lockedUntil",
+        "type": "DateTime",
+        "isRequired": false,
+        "hasDefaultValue": false,
+        "isUpdatedAt": false
+      }
+    ]
+  }
+]

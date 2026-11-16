@@ -11,13 +11,21 @@ export const timezoneSchema = z
   .string()
   .max(100)
   .refine(validTimezone, "Use a valid IANA timezone, such as Asia/Kolkata");
+const calendarFormatters = new Map<string, Intl.DateTimeFormat>();
 export function calendarDate(date: Date, zone: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: zone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
+  let formatter = calendarFormatters.get(zone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    if (calendarFormatters.size >= 32)
+      calendarFormatters.delete(calendarFormatters.keys().next().value!);
+    calendarFormatters.set(zone, formatter);
+  }
+  return formatter.format(date);
 }
 export function shiftDay(day: string, days: number) {
   const d = new Date(day + "T00:00:00Z");
