@@ -17,3 +17,11 @@ __pycache__/
 *.key
 *.p12
 *.pfx
+
+# Cloudflare generated bundles and local credentials
+.open-next/
+.wrangler/
+**/.wrangler/
+.dev.vars*
+**/.dev.vars*
+cloudflare/pages-dist/

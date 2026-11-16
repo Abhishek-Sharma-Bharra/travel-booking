@@ -15,13 +15,16 @@ export default defineConfig({
     viewport: { width: 1440, height: 1050 },
     trace: "retain-on-failure",
   },
-  webServer: {
-    command:
-      process.env.PLAYWRIGHT_PRODUCTION === "true"
-        ? "npm run start"
-        : "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  webServer:
+    process.env.PLAYWRIGHT_EXTERNAL_SERVER === "true"
+      ? undefined
+      : {
+          command:
+            process.env.PLAYWRIGHT_PRODUCTION === "true"
+              ? "npm run start"
+              : "npm run dev",
+          url: "http://localhost:3000",
+          reuseExistingServer: !process.env.CI,
+          timeout: 120000,
+        },
 });

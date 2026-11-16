@@ -1,0 +1,8 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "vashisht-travelos-staging",
+  "pages_build_output_dir": "../pages-dist",
+  "compatibility_date": "2026-11-16",
+  "vars": { "PUBLIC_ORIGIN": "https://vashisht-travelos-staging.pages.dev" },
+  "services": [{ "binding": "TRAVELOS_BACKEND", "service": "vashisht-travelos-api-staging" }]
+}

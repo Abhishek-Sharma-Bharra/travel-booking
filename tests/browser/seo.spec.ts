@@ -1,6 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { publicPages } from "../../src/lib/seo";
-const origin = "https://vashisht-travelos.onrender.com";
+const origin =
+  process.env.PLAYWRIGHT_SITE_ORIGIN ||
+  "https://vashisht-travelos.onrender.com";
+const staging = process.env.PLAYWRIGHT_STAGING === "true";
 test("public marketing pages have distinct server-rendered SEO and honest pricing/contact", async ({
   page,
 }) => {
@@ -22,7 +25,7 @@ test("public marketing pages have distinct server-rendered SEO and honest pricin
     );
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
-      /^index, follow$/,
+      staging ? /^noindex, nofollow$/ : /^index, follow$/,
     );
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
       "content",
@@ -95,13 +98,18 @@ test("crawler endpoints exclude private screens and authentication stays enforce
   const xml = await sitemap.text();
   const urls = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((x) => x[1]);
   expect(urls.sort()).toEqual(
-    publicPages.map((p) => origin + (p === "/" ? "" : p)).sort(),
+    staging ? [] : publicPages.map((p) => origin + (p === "/" ? "" : p)).sort(),
   );
   const robots = await request.get("/robots.txt");
   const rules = await robots.text();
-  for (const p of ["/workspace", "/api", "/admin", "/login", "/demo"])
-    expect(rules).toContain(`Disallow: ${p}`);
-  expect(rules).toContain(`Sitemap: ${origin}/sitemap.xml`);
+  if (staging) {
+    expect(rules).toContain("Disallow: /");
+    expect(rules).not.toContain("Sitemap:");
+  } else {
+    for (const p of ["/workspace", "/api", "/admin", "/login", "/demo"])
+      expect(rules).toContain(`Disallow: ${p}`);
+    expect(rules).toContain(`Sitemap: ${origin}/sitemap.xml`);
+  }
   for (const p of [
     "/login",
     "/forgot-password",

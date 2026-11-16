@@ -3,7 +3,8 @@ import { HttpError } from "./http";
 export function mailReady() {
   return !!(
     process.env.MAIL_FROM &&
-    ((process.env.SMTP_HOST &&
+    ((process.env.TRAVELOS_RUNTIME !== "cloudflare" &&
+      process.env.SMTP_HOST &&
       process.env.SMTP_USER &&
       process.env.SMTP_PASS) ||
       process.env.RESEND_API_KEY)
@@ -26,7 +27,7 @@ export function verificationRequired() {
 export async function sendMail(to: string, subject: string, text: string) {
   requireMail();
   const from = process.env.MAIL_FROM!;
-  if (process.env.SMTP_HOST) {
+  if (process.env.TRAVELOS_RUNTIME !== "cloudflare" && process.env.SMTP_HOST) {
     const port = Number(process.env.SMTP_PORT || "465");
     if (![465, 587].includes(port))
       throw new Error("SMTP must use TLS port 465 or STARTTLS port 587");
