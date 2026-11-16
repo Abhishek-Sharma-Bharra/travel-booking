@@ -8,7 +8,7 @@ const env = {
   ...process.env,
   TRAVELOS_BUILD_ID: revision,
   SITE_INDEXING_ENABLED: "false",
-  PUBLIC_SITE_URL: "https://vashisht-travelos-staging.pages.dev",
+  PUBLIC_SITE_URL: "https://travel-booking-dnn.pages.dev",
 };
 for (const args of [
   ["opennextjs-cloudflare", "build", "-c", "cloudflare/worker/wrangler.jsonc"],

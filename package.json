@@ -30,7 +30,7 @@
     "test:load": "tsx scripts/load-smoke.ts",
     "cloudflare:build": "node scripts/cloudflare/build.mjs",
     "cloudflare:deploy:worker": "wrangler deploy -c cloudflare/worker/wrangler.jsonc",
-    "cloudflare:deploy:pages": "wrangler pages deploy cloudflare/pages-dist --project-name vashisht-travelos-staging --branch main",
+    "cloudflare:deploy:pages": "wrangler pages deploy cloudflare/pages-dist --project-name travel-booking --branch main",
     "cloudflare:local-env": "node scripts/cloudflare/local-env.mjs",
     "cloudflare:dev:worker": "wrangler dev -c cloudflare/worker/wrangler.jsonc --port 8787 --persist-to .local/cloudflare-state",
     "cloudflare:dev:pages": "wrangler pages dev --port 3000 --service TRAVELOS_BACKEND=vashisht-travelos-api-staging",

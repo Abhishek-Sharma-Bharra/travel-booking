@@ -6,7 +6,7 @@ import {
   closeResources,
   type RequestResources,
 } from "../src/lib/request-resources";
-const origin = "https://vashisht-travelos-staging.pages.dev";
+const origin = "https://travel-booking-dnn.pages.dev";
 test("Pages gateway preserves payment bytes, cookies, origin and private streaming responses", async () => {
   const request = new Request(`${origin}/api/payment?retry=1`, {
     method: "POST",

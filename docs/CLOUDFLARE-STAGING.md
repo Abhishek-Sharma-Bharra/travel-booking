@@ -5,8 +5,8 @@
 - Private backend: `vashisht-travelos-api-staging` (workers.dev disabled).
 - D1: `vashisht-travelos-staging-db`, UUID
   `7b40469d-2035-4275-89ab-c4ebcc53e279`, binding `TRAVELOS_DB`.
-- Frontend: Pages project `vashisht-travelos-staging`, canonical origin
-  `https://vashisht-travelos-staging.pages.dev`.
+- Frontend: Pages project `travel-booking`, canonical origin
+  `https://travel-booking-dnn.pages.dev`.
 - Root `wrangler.jsonc` configures Pages; `cloudflare/worker/wrangler.jsonc`
   configures the backend. Always specify the latter for Worker commands.
 
@@ -72,7 +72,7 @@ be "Import an existing Git repository"). Select the same repository, branch main
 
 | Setting                    | Value                                             |
 | -------------------------- | ------------------------------------------------- |
-| Project name               | `vashisht-travelos-staging`                       |
+| Project name               | `travel-booking`                                  |
 | Framework preset           | None                                              |
 | Root directory             | `/`                                               |
 | Build command              | `npm run db:generate && npm run cloudflare:build` |

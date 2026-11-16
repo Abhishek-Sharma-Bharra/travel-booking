@@ -1,9 +1,9 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "vashisht-travelos-staging",
+  "name": "travel-booking",
   "pages_build_output_dir": "./cloudflare/pages-dist",
   "compatibility_date": "2026-11-16",
-  "vars": { "PUBLIC_ORIGIN": "https://vashisht-travelos-staging.pages.dev" },
+  "vars": { "PUBLIC_ORIGIN": "https://travel-booking-dnn.pages.dev" },
   "services": [
     {
       "binding": "TRAVELOS_BACKEND",
