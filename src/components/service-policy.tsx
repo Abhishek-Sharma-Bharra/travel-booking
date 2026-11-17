@@ -12,7 +12,7 @@ export default function Policy({ kind }: { kind: "privacy" | "terms" }) {
           {kind === "privacy" ? "Privacy information" : "Pilot service terms"}
         </h1>
         <p>
-          Updated 26 October 2026. These operational summaries must be reviewed
+          Updated 17 November 2026. These operational summaries must be reviewed
           with the provider’s legal identity, applicable law and your signed
           service agreement before commercial onboarding.
         </p>
@@ -45,6 +45,23 @@ export default function Policy({ kind }: { kind: "privacy" | "terms" }) {
               deployment region and subprocessors in your onboarding agreement.
               No external AI API is required; the prediction demo uses
               synthetic-model coefficients.
+            </p>
+            <h2>Public package enquiries and optional AI</h2>
+            <p>
+              When a traveller submits an agency campaign request, the selected
+              package, preferred dates, traveller count, name, phone, optional
+              email, contact-consent evidence and campaign tracking fields are
+              saved in that agency’s CRM. Contact consent is for that trip and
+              does not subscribe the traveller to marketing. A request is not a
+              confirmed booking and does not collect payment.
+            </p>
+            <p>
+              If a visitor enables AI assistance, minimized chat text and a
+              short recent history are processed by OpenAI to understand the
+              question. The package guide remains usable without AI consent.
+              This version does not store public chat transcripts. Published
+              package facts and server-calculated prices supply the replies;
+              supplier availability still requires agency verification.
             </p>
             <h2>Retention, exports and requests</h2>
             <p>

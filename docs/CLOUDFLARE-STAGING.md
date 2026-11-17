@@ -39,7 +39,7 @@ real customer use, configure these, test delivery, and change
 `REQUIRE_EMAIL_VERIFICATION=true` in the Worker config and redeploy. Because
 Wrangler manages plaintext vars, dashboard plaintext overrides can be replaced
 on later deployments. Secrets persist separately. Gmail SMTP is not the Workers
-mail transport. Optional enquiry AI needs its existing `OPENAI_API_KEY` Secret.
+mail transport. Optional enquiry AI needs its existing `AI_API_KEY` Secret.
 Do not put any of these keys in Pages build variables or frontend JavaScript.
 
 ## 2. Deploy the Worker from Git

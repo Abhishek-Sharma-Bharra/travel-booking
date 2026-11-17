@@ -15,6 +15,7 @@ const loadingPanel = () => (
     Loading this section…
   </p>
 );
+const CampaignManager = dynamic(() => import("./campaign-manager"));
 const SubscriptionPage = dynamic(() => import("./subscription"), {
   loading: loadingPanel,
 });
@@ -105,6 +106,7 @@ const navigation = [
     group: "GROWTH & INSIGHTS",
     items: [
       ["Marketing", Megaphone],
+      ["Ad campaigns", Megaphone],
       ["Monthly report", BarChart3],
       ["Lead intelligence", Sparkles],
     ],
@@ -122,6 +124,8 @@ const navigation = [
   },
 ] as const;
 const subtitles: Record<string, string> = {
+  "Ad campaigns":
+    "Published package links, customer conversations and booking requests.",
   "BI Reports":
     "Build, compare and save personal views of your recorded performance.",
   Analytics:
@@ -956,6 +960,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       "Demo guide",
       "Lead intelligence",
       "Packages",
+      "Ad campaigns",
     ].includes(page);
 
   let ActivePageIcon = LayoutDashboard;
@@ -996,6 +1001,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   ([name]) =>
                     ![
                       "Marketing",
+                      "Ad campaigns",
                       "Monthly report",
                       "Integrations",
                       "Messaging",
@@ -2957,6 +2963,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 </div>
               )}
               {page === "Automation" && <Automation data={data} />}
+              {page === "Ad campaigns" && <CampaignManager data={data} />}
               {page === "Messaging" && <Messaging data={data} />}
               {page === "Integrations" && <Integrations data={data} />}
               {page === "Subscription" && (
