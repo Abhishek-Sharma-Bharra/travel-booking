@@ -3,7 +3,6 @@ import "./globals.css";
 import "./premium.css";
 import "./red-theme.css";
 import "./dark-theme.css";
-import "./travelos-brand.css";
 import { publicOrigin } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(publicOrigin()),
