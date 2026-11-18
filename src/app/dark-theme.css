@@ -886,3 +886,24 @@
     max-height: 270px;
   }
 }
+
+@media screen {
+  body.premium-theme.dark-theme
+    .hotel-shell
+    :is(
+      .hotel-booking-grid > .panel,
+      .hotel-reservation-console,
+      .hotel-verified-quote
+    ) {
+    background: #242b35;
+    color: #dce2ec;
+    border-color: #414b5d;
+  }
+  body.premium-theme.dark-theme .hotel-shell .hotel-verified-quote > strong {
+    display: block;
+    margin: 14px 0;
+  }
+  body.premium-theme.dark-theme .hotel-shell .hotel-chat-message small {
+    color: #d4dfef;
+  }
+}

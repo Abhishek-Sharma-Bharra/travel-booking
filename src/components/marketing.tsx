@@ -26,6 +26,10 @@ export function MarketingHeader({ path = "/" }: { path?: string }) {
             {label}
           </Link>
         ))}
+        {process.env.HOTELS_ENABLED === "true" &&
+          process.env.HOTEL_BOOKING_ENABLED === "true" && (
+            <Link href="/stays">Hotels</Link>
+          )}
         {process.env.HOTELS_ENABLED === "true" && (
           <Link href="/hotelier">Hotel owners</Link>
         )}

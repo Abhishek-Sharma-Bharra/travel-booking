@@ -8,6 +8,8 @@ import {
 } from "../../src/lib/request-resources";
 interface Environment {
   BETTER_AUTH_SECRET?: string;
+  HOTELS_ENABLED?: string;
+  HOTEL_BOOKING_ENABLED?: string;
   TRAVELOS_DATABASE_ENGINE?: string;
   TRAVELOS_DB?: import("@cloudflare/workers-types").D1Database;
   DATABASE_URL?: string;
@@ -17,6 +19,21 @@ interface Context {
   waitUntil(promise: Promise<unknown>): void;
 }
 export default {
+  async scheduled(_controller: unknown, env: Environment, ctx: Context) {
+    if (
+      env.HOTELS_ENABLED !== "true" ||
+      env.HOTEL_BOOKING_ENABLED !== "true" ||
+      !env.TRAVELOS_DB
+    )
+      return;
+    ctx.waitUntil(
+      env.TRAVELOS_DB.prepare(
+        "UPDATE \"HotelChatSession\" SET messages='[]',memory='{}',\"secretHash\"='redacted:'||id,status='REDACTED',revision=revision+1 WHERE id IN (SELECT id FROM \"HotelChatSession\" WHERE \"expiresAt\"<=? AND status<>'REDACTED' LIMIT 100)",
+      )
+        .bind(new Date().toISOString())
+        .run(),
+    );
+  },
   async fetch(request: Request, env: Environment, ctx: Context) {
     if (
       env.TRAVELOS_DATABASE_ENGINE === "d1" &&

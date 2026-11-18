@@ -1762,3 +1762,91 @@
     font-size: 16px;
   }
 }
+
+/* Hotel inventory and guest requests retain the existing website palette. */
+@media screen {
+  .hotel-booking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 24px 0;
+  }
+  .hotel-booking-grid > *,
+  .hotel-reservation-console {
+    min-width: 0;
+  }
+  .hotel-inventory-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 22px 0;
+  }
+  .hotel-inventory-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+  }
+  .hotel-inventory-form label:has(input[type="checkbox"]) {
+    flex-direction: row;
+    align-items: flex-start;
+    grid-column: 1 / -1;
+  }
+  .hotel-inventory-form input[type="checkbox"] {
+    width: 16px;
+    flex: 0 0 16px;
+    margin: 2px 0 0;
+  }
+  .hotel-inventory-form :is(input:not([type="checkbox"]), select, textarea) {
+    width: 100%;
+    min-width: 0;
+    padding: 10px;
+    border-radius: 6px;
+  }
+  .hotel-inventory-form .btn {
+    align-self: end;
+  }
+  .hotel-verified-quote {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+    margin-top: 20px;
+  }
+  .hotel-verified-quote p,
+  .hotel-chat-message {
+    margin: 12px 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .hotel-chat-message {
+    padding: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hotel-chat-message small {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .hotel-reservation-console {
+    margin-top: 26px;
+  }
+  .hotel-reservation-console details {
+    margin: 12px 0;
+  }
+  @media (max-width: 760px) {
+    .hotel-booking-grid,
+    .hotel-inventory-form {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+@media screen {
+  .hotel-public-photo {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 16px 0;
+  }
+}

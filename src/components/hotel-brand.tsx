@@ -3,7 +3,13 @@ import Image from "next/image";
 import { ArrowUpRight, Compass } from "lucide-react";
 import hotelLounge from "../../public/images/hotel-owner-lounge.webp";
 
-export function HotelBrandHeader({ review = false }: { review?: boolean }) {
+export function HotelBrandHeader({
+  review = false,
+  publicView = false,
+}: {
+  review?: boolean;
+  publicView?: boolean;
+}) {
   return (
     <nav className="hotel-brand-nav" aria-label="Hotel workspace navigation">
       <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
@@ -14,10 +20,23 @@ export function HotelBrandHeader({ review = false }: { review?: boolean }) {
       </Link>
       <span className="hotel-brand-divider" />
       <span className="hotel-brand-area">
-        {review ? "Platform review" : "Hotel workspace"}
+        {review
+          ? "Platform review"
+          : publicView
+            ? "Hotel stays"
+            : "Hotel workspace"}
       </span>
-      <Link className="btn secondary" href={review ? "/admin" : "/workspace"}>
-        {review ? "Platform administration" : "Agency CRM"}{" "}
+      <Link
+        className="btn secondary"
+        href={
+          review ? "/admin" : publicView ? "/login?next=hotelier" : "/workspace"
+        }
+      >
+        {review
+          ? "Platform administration"
+          : publicView
+            ? "Hotel owner sign in"
+            : "Agency CRM"}{" "}
         <ArrowUpRight size={15} />
       </Link>
     </nav>

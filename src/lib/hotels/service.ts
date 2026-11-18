@@ -1,11 +1,10 @@
 import { Prisma } from "@prisma/client";
-import { requirePostgresIntegration } from "../d1/availability";
-import { db } from "../db";
+import { db, d1Binding } from "../db";
+import { mutateHotelD1, reviewHotelD1 } from "./d1-foundation";
 import { HttpError } from "../http";
 import { requireOperator } from "../operator-access";
 import { hotelActionSchema, hotelReviewSchema } from "./validation";
 export function requireHotels() {
-  requirePostgresIntegration("Hotel management");
   if (process.env.HOTELS_ENABLED !== "true")
     throw new HttpError(404, "Hotel module is not enabled");
 }
@@ -103,8 +102,16 @@ export async function hotelOverview(userId: string) {
   });
   return {
     hotels: memberships.map(({ hotel, role }) => ({ ...hotel, role })),
-    stage: "FOUNDATION",
-    bookingEnabled: false,
+    stage:
+      d1Binding() && process.env.HOTEL_BOOKING_ENABLED === "true"
+        ? "INVENTORY_AND_HOLDS"
+        : "FOUNDATION",
+    bookingEnabled:
+      !!d1Binding() &&
+      process.env.HOTEL_BOOKING_ENABLED === "true" &&
+      process.env.HOTEL_LIVE_PAYMENTS_APPROVED === "true",
+    inventoryEnabled:
+      !!d1Binding() && process.env.HOTEL_BOOKING_ENABLED === "true",
   };
 }
 export async function mutateHotel(userId: string, input: unknown) {
@@ -112,6 +119,7 @@ export async function mutateHotel(userId: string, input: unknown) {
   const v = hotelActionSchema.parse(input);
   if (v.action === "create" || v.action === "profile")
     validateMedia(v.profile.photoUrls);
+  if (d1Binding()) return mutateHotelD1(userId, input);
   return db.$transaction(
     async (tx) => {
       await verifiedUser(userId, tx);
@@ -247,6 +255,7 @@ export async function reviewHotel(
 ) {
   requireHotels();
   const v = hotelReviewSchema.parse(input);
+  if (d1Binding()) return reviewHotelD1(userId, sessionToken, input);
   return db.$transaction(
     async (tx) => {
       // Recheck the privileged session for every decision, not a client-supplied role.

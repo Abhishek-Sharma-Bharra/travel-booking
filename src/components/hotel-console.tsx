@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import HotelBookingConsole from "./hotel-booking-console";
 import { HotelBrandHeader, HotelWelcomeImage } from "./hotel-brand";
 import { Building2, Plus, ShieldCheck } from "lucide-react";
 import type { hotelOverview } from "@/lib/hotels/service";
@@ -73,7 +74,9 @@ export default function HotelConsole({
       setCreating(false);
       setRoomId("");
       setNotice(
-        "Saved. Publication requires platform verification; booking is not enabled.",
+        data.inventoryEnabled
+          ? "Saved. Profile/category changes require platform verification before public listing. Inventory and checkout remain subject to hotel approval and payment setup."
+          : "Saved. Publication requires platform verification; booking is not enabled.",
       );
     } catch (e) {
       setError((e as Error).message);
@@ -95,9 +98,9 @@ export default function HotelConsole({
       <div className="hotel-stage-note">
         <ShieldCheck size={18} />
         <span>
-          Foundation stage: registration, verification and room categories. Live
-          availability, reservations, payments and AI hotel chat are not
-          enabled.
+          {data.inventoryEnabled
+            ? "Date-wise inventory, verified ad pages and temporary room holds are available. Hotel-specific checkout requires an authorized merchant; test payments are not real bookings."
+            : "Foundation stage: registration, verification and room categories. Inventory and booking are not enabled."}
         </span>
       </div>
       {error && (
@@ -300,6 +303,15 @@ export default function HotelConsole({
           )}
         </section>
       </div>
+      {data.inventoryEnabled && hotel && !creating && (
+        <HotelBookingConsole
+          key={hotel.id}
+          hotelId={hotel.id}
+          rooms={hotel.rooms}
+          status={hotel.status}
+          role={hotel.role}
+        />
+      )}
     </main>
   );
 }
