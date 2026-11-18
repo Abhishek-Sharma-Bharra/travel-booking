@@ -1,0 +1,271 @@
+/* Shared screen palette; printed quotations and vouchers retain their own styles. */
+@media screen {
+  body.premium-theme.light-theme {
+    --paper: #f5f7fa;
+    --surface: #fff;
+    --ink: #23364b;
+    --muted: #596b80;
+    --line: #dce4ec;
+    --navy: #183b50;
+    --navy-dark: #102c3f;
+    --navy-light: #eaf2f7;
+    --copper: #096e87;
+    --copper-strong: #075c73;
+    --copper-dark: #064c60;
+    --accent: #096e87;
+    --accent-soft: #e9f4f6;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+  .light-theme :is(.landing, .auth-page, .hotel-shell, .studio-workspace) {
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+  .light-theme
+    :is(
+      h1,
+      h2,
+      h3,
+      h4,
+      .brand,
+      .brand-sub,
+      .hero h1,
+      .hero h1 em,
+      .auth-card h1,
+      .kpi-card strong,
+      .stat-value
+    ) {
+    font-family: inherit;
+  }
+  .light-theme .brand {
+    font-weight: 600;
+    color: #1c364c;
+  }
+  .light-theme .sidebar .brand {
+    color: #f1f6fc;
+  }
+  .light-theme .brand-sub {
+    color: #596b80;
+  }
+  .light-theme :is(.landing, .auth-page) {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .light-theme :is(.landing-nav, .marketing-footer) {
+    border-color: var(--line);
+  }
+  .light-theme .landing :is(.hero h1, .marketing-intro h1) {
+    color: #20384c;
+    font-weight: 600;
+  }
+  .light-theme .landing .hero h1 em {
+    color: #096e87;
+  }
+  .light-theme .landing :is(p, .hero-note, .marketing-links a) {
+    color: #53677d;
+  }
+  .light-theme .landing .eyebrow {
+    color: #17677b;
+  }
+  .light-theme .landing .hero {
+    gap: 64px;
+    align-items: center;
+    padding: 72px 0 64px;
+  }
+  .light-theme .hero h1 {
+    font-size: clamp(40px, 4.7vw, 70px);
+    letter-spacing: -2px;
+  }
+  .light-theme .hero > div > p:not(.hero-product-category) {
+    font-size: 17px;
+    line-height: 1.8;
+  }
+  .light-theme .operations-visual {
+    margin: 0;
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    border: 1px solid #dce4ec;
+    background: #fff;
+    box-shadow: 0 22px 60px #183b5010;
+  }
+  .operations-visual img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3/2;
+    object-fit: cover;
+  }
+  .operations-visual figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 22px 26px;
+    font-size: 14px;
+  }
+  .operations-visual figcaption strong {
+    font-size: 17px;
+    color: #20384c;
+  }
+  .workspace-selection {
+    padding: 40px 0 64px;
+    scroll-margin-top: 24px;
+  }
+  .workspace-selection h2 {
+    font-size: 32px;
+    letter-spacing: -0.8px;
+    margin: 12px 0;
+  }
+  .workspace-selection > p {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .workspace-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 28px;
+  }
+  .workspace-cards article {
+    padding: 32px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 6px 24px #183b5005;
+  }
+  .workspace-cards svg {
+    color: #096e87;
+  }
+  .workspace-cards h3 {
+    font-size: 23px;
+    margin: 18px 0 10px;
+  }
+  .workspace-cards p {
+    font-size: 15px;
+    line-height: 1.8;
+    max-width: 470px;
+    margin-bottom: 24px;
+    min-height: 54px;
+  }
+  .workspace-signin {
+    display: inline-block;
+    margin: 14px 18px;
+    font-size: 14px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    color: #075c73;
+  }
+  .light-theme :is(.btn.secondary, button.secondary) {
+    background: #fff;
+    color: #263e55;
+    border: 1px solid #8e9fb0;
+  }
+  .light-theme
+    :is(
+      .btn.primary,
+      button.primary,
+      .hotel-shell .primary,
+      .landing .primary
+    ) {
+    background: #096e87;
+    color: white;
+    border: 1px solid #096e87;
+  }
+  .light-theme .btn.primary svg {
+    color: white;
+  }
+  .light-theme :is(.btn.primary, button.primary):hover {
+    background: #07566b;
+    color: white;
+  }
+  .light-theme :is(.btn.secondary, button.secondary):hover {
+    background: #eaf2f7;
+    color: #183b50;
+  }
+  .light-theme :is(button, .btn):disabled {
+    opacity: 1;
+    background: #e8edf2;
+    color: #647387;
+    border-color: #b9c5d0;
+    cursor: not-allowed;
+  }
+  .light-theme :is(a, button, input, select, textarea):focus-visible {
+    outline: 3px solid #087f9d;
+    outline-offset: 3px;
+  }
+  .light-theme .premium-workspace.studio-workspace {
+    --paper: #f5f7fa;
+    --muted: #596b80;
+    --ink: #23364b;
+    --accent: #096e87;
+    --accent-soft: #e9f4f6;
+  }
+  .light-theme .auth-card {
+    background: white;
+    border: 1px solid var(--line);
+    box-shadow: 0 18px 60px #183b5009;
+  }
+  .light-theme .hotel-shell.hotel-branded {
+    --hotel-accent: #096e87;
+    --hotel-muted: #596b80;
+    --hotel-ink: #23364b;
+  }
+  .verification-card {
+    display: flex;
+    gap: 16px;
+    border: 1px solid #bfd6df;
+    background: #edf6f8;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    line-height: 1.8;
+  }
+  .verification-card > svg {
+    flex-shrink: 0;
+    color: #096e87;
+  }
+  .verification-card h2 {
+    font-size: 18px;
+  }
+  .verification-card p {
+    margin: 6px 0 12px;
+    max-width: 820px;
+  }
+  .light-theme .hotel-branded .hotel-header p,
+  .light-theme .hotel-stage-note {
+    color: #53677d;
+  }
+  .light-theme .hotel-branded .hotel-stage-note {
+    background: #edf4f8;
+    border-color: #ccdce5;
+  }
+  @media (max-width: 800px) {
+    .light-theme .landing .hero {
+      grid-template-columns: 1fr;
+      gap: 32px;
+      padding: 40px 0;
+    }
+    .workspace-cards {
+      grid-template-columns: 1fr;
+    }
+    .workspace-cards article {
+      padding: 24px;
+    }
+    .workspace-selection {
+      padding-top: 16px;
+    }
+    .workspace-selection h2 {
+      font-size: 28px;
+    }
+    .workspace-cards p {
+      min-height: 0;
+    }
+    .light-theme .hero h1 {
+      letter-spacing: -1.5px;
+    }
+    .light-theme .hero > div > p:not(.hero-product-category) {
+      font-size: 16px;
+    }
+  }
+}

@@ -1,3 +1,7 @@
+import {
+  logRuntimeFailure,
+  runtimeUnavailable,
+} from "../../src/lib/runtime-failure";
 interface Binding {
   fetch(request: Request): Promise<Response>;
 }
@@ -12,19 +16,40 @@ export default {
     if (url.origin !== env.PUBLIC_ORIGIN)
       return new Response("Unknown frontend origin", { status: 421 });
     const path = url.pathname;
-    if (path.startsWith("/_next/static/")) return env.ASSETS.fetch(request);
+    if (path.startsWith("/_next/static/") || path.startsWith("/images/")) {
+      const asset = await env.ASSETS.fetch(request);
+      if (asset.status !== 404 || !path.startsWith("/_next/static/"))
+        return asset;
+      // Pages and the backend build independently. During rollout, SSR can
+      // reference the other build's hashed chunks; ask that worker's assets.
+      try {
+        return await env.TRAVELOS_BACKEND.fetch(request);
+      } catch (error) {
+        const id = crypto.randomUUID();
+        logRuntimeFailure("STATIC_ASSET_BACKEND_FAILED", id, error);
+        return new Response("Asset temporarily unavailable", {
+          status: 503,
+          headers: { "Cache-Control": "no-store" },
+        });
+      }
+    }
     const headersToBackend = new Headers(request.headers);
     const clientIp = request.headers.get("CF-Connecting-IP");
     if (url.protocol === "https:" && clientIp) {
       headersToBackend.set("X-Forwarded-For", clientIp);
       headersToBackend.set("X-Real-IP", clientIp);
     }
-    // Only these CRM endpoints have a JSON-only contract. Auth callbacks and
-    // streamed pages must keep their redirects and original response bodies.
-    const crmApi = path === "/api/action" || path === "/api/data";
-    const requestId = crmApi ? crypto.randomUUID() : undefined;
+    // Application APIs are JSON-only. Keep OAuth/auth redirects and webhook
+    // challenge responses untouched; they legitimately return other formats.
+    const jsonApi =
+      /^\/api\/(?:action|data|hotelier|admin|public|analytics|assistant|automation|tour|campaigns|invitations|health|payments)(?:\/|$)/.test(
+        path,
+      ) ||
+      path === "/api/messaging" ||
+      path === "/api/integrations";
+    const requestId = crypto.randomUUID();
     const unavailable = (code: string, upstreamStatus?: number) => {
-      console.error("CRM_API_UPSTREAM_FAILURE", {
+      console.error("APP_API_UPSTREAM_FAILURE", {
         requestId,
         path,
         code,
@@ -33,7 +58,7 @@ export default {
       return Response.json(
         {
           error:
-            "The booking workspace could not reach its backend. The request result is not confirmed. Check your records before retrying. Reference: " +
+            "The workspace could not reach its backend. The request result is not confirmed. Check your records before retrying. Reference: " +
             requestId,
           code,
           requestId,
@@ -54,11 +79,12 @@ export default {
         new Request(request, { headers: headersToBackend }),
       );
     } catch (error) {
-      if (!crmApi) throw error;
+      logRuntimeFailure("PAGES_BACKEND_FAILED", requestId, error);
+      if (!jsonApi) return runtimeUnavailable(request, requestId);
       return unavailable("BACKEND_UNAVAILABLE");
     }
     if (
-      crmApi &&
+      jsonApi &&
       !/^application\/(?:[a-z0-9.+-]+\+)?json(?:\s*;|$)/i.test(
         response.headers.get("Content-Type") || "",
       )

@@ -24,25 +24,6 @@ export function MarketingHeader({
     : links;
   return (
     <>
-      {hotelsEnabled && (
-        <nav
-          className="business-audience-nav"
-          aria-label="Choose your business workspace"
-        >
-          <span>CHOOSE YOUR WORKSPACE</span>
-          <div>
-            <Link href="/" aria-current={!hotelAudience ? "page" : undefined}>
-              Travel agencies
-            </Link>
-            <Link
-              href="/hotel-business"
-              aria-current={hotelAudience ? "page" : undefined}
-            >
-              Hotel owners
-            </Link>
-          </div>
-        </nav>
-      )}
       <nav className="landing-nav marketing-nav" aria-label="Main navigation">
         <Link
           href={hotelAudience ? "/hotel-business" : "/"}
@@ -59,6 +40,7 @@ export function MarketingHeader({
           </span>
         </Link>
         <div className="marketing-links">
+          {hotelsEnabled && <Link href="/#workspaces">Workspaces</Link>}
           {navigation.map(([href, label]) => (
             <Link
               key={href}

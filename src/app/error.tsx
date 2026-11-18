@@ -1,13 +1,13 @@
 "use client";
-export default function Error({ reset }: { reset: () => void }) {
+export default function Error({ retry }: { retry: () => void }) {
   return (
     <main className="loading">
       <h1>We couldn’t load this workspace.</h1>
       <p>
-        Please check the database connection and run the migrations and demo
-        seed.
+        Please try again in a moment. If you were saving or paying, check your
+        records before repeating the action.
       </p>
-      <button className="btn primary" onClick={reset}>
+      <button className="btn primary" onClick={retry}>
         Try again
       </button>
       <a href="/">Back to home</a>

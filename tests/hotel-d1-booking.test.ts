@@ -210,11 +210,26 @@ function request(
     attribution: { source: "meta", campaign: "snow-ad" },
   };
 }
-test("D1 hotel registration requires verified identity; approval, published facts and inventory are hotel-scoped", () =>
+test("D1 hotel drafts allow unverified identity; submission requires verification; approval, published facts and inventory are hotel-scoped", () =>
   scoped(async () => {
     const unverified = await user(false);
+    const draft = await mutateHotel(unverified.id, {
+      action: "create",
+      profile,
+    });
+    assert.equal(draft.status, "DRAFT");
+    assert.equal((await hotelOverview(unverified.id)).emailVerified, false);
     await assert.rejects(
-      mutateHotel(unverified.id, { action: "create", profile }),
+      mutateHotel(unverified.id, {
+        action: "submit",
+        hotelId: draft.hotelId,
+        revision: 0,
+      }),
+      /verified/,
+    );
+    await assert.rejects(publicHotel(draft.hotelId), /not available/);
+    await assert.rejects(
+      hotelBookingOverview(unverified.id, draft.hotelId),
       /verified/,
     );
     const f = await fixture(),

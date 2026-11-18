@@ -8,8 +8,23 @@ test("agency, hotel owner and guest entry points are explicit and keep their own
     }),
     main = page.getByRole("navigation", { name: "Main navigation" });
   await expect(
-    business.getByRole("link", { name: "Travel agencies", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
+    business.getByRole("heading", { name: "Travel agencies", exact: true }),
+  ).toBeVisible();
+  await expect(
+    business.getByRole("link", { name: "Create your agency" }),
+  ).toHaveAttribute("href", "/login?signup=1");
+  expect(
+    await page
+      .locator(".hero")
+      .evaluate(
+        (el) =>
+          el.compareDocumentPosition(document.querySelector("#workspaces")!) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+  ).toBeTruthy();
+  await expect(
+    page.getByRole("img", { name: /Travel coordinators/ }),
+  ).toBeVisible();
   await expect(
     main.getByRole("link", { name: "Agency sign in", exact: true }),
   ).toHaveAttribute("href", "/login");

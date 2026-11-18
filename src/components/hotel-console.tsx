@@ -1,4 +1,6 @@
 "use client";
+import { readApiJson } from "@/lib/api-response";
+import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import HotelBookingConsole from "./hotel-booking-console";
 import { HotelBrandHeader, HotelWelcomeImage } from "./hotel-brand";
@@ -61,10 +63,10 @@ export default function HotelConsole({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         }),
-        result = await r.json();
+        result = await readApiJson<{ hotelId: string; error?: string }>(r);
       if (!r.ok) throw Error(result.error || "Could not save hotel");
       const fresh = await fetch("/api/hotelier", { cache: "no-store" }),
-        next = await fresh.json();
+        next = await readApiJson<Overview & { error?: string }>(fresh);
       if (!fresh.ok)
         throw Error(
           next.error || "Saved, but refresh failed. Reload before retrying",
@@ -94,6 +96,54 @@ export default function HotelConsole({
           <p>Register your property and prepare its room catalogue.</p>
         </div>
       </header>
+      {!data.emailVerified && (
+        <section className="verification-card" aria-labelledby="verify-title">
+          <ShieldCheck size={22} />
+          <div>
+            <h2 id="verify-title">Start your hotel registration</h2>
+            <p>
+              Save your property and room categories as a private draft. Verify
+              your email before submitting for approval or accepting bookings.
+            </p>
+            {data.verificationEmailAvailable ? (
+              <button
+                className="btn secondary"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  setError("");
+                  setNotice("");
+                  try {
+                    const result = await authClient.sendVerificationEmail({
+                      email,
+                      callbackURL: "/hotelier",
+                    });
+                    if (result.error)
+                      throw Error(
+                        result.error.message ||
+                          "Could not send verification email",
+                      );
+                    setNotice(
+                      "Verification email requested. Check your inbox and spam folder, then reload this page after verifying.",
+                    );
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Send verification email
+              </button>
+            ) : (
+              <p>
+                Email delivery is awaiting platform setup. You can save your
+                private draft now; contact support to complete verification.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
       <HotelWelcomeImage />
       <div className="hotel-stage-note">
         <ShieldCheck size={18} />
@@ -179,7 +229,12 @@ export default function HotelConsole({
               ["DRAFT", "REJECTED"].includes(hotel.status) && (
                 <button
                   className="btn primary"
-                  disabled={busy}
+                  disabled={busy || !data.emailVerified}
+                  title={
+                    !data.emailVerified
+                      ? "Verify your email to submit your property"
+                      : undefined
+                  }
                   onClick={() =>
                     act({
                       action: "submit",
@@ -303,7 +358,7 @@ export default function HotelConsole({
           )}
         </section>
       </div>
-      {data.inventoryEnabled && hotel && !creating && (
+      {data.emailVerified && data.inventoryEnabled && hotel && !creating && (
         <HotelBookingConsole
           key={hotel.id}
           hotelId={hotel.id}

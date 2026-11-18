@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { db, d1Binding } from "../db";
 import { mutateHotelD1, reviewHotelD1 } from "./d1-foundation";
+import { mailReady } from "../mail";
 import { HttpError } from "../http";
 import { requireOperator } from "../operator-access";
 import { hotelActionSchema, hotelReviewSchema } from "./validation";
@@ -8,7 +9,11 @@ export function requireHotels() {
   if (process.env.HOTELS_ENABLED !== "true")
     throw new HttpError(404, "Hotel module is not enabled");
 }
-async function verifiedUser(userId: string, tx: Prisma.TransactionClient = db) {
+async function verifiedUser(
+  userId: string,
+  tx: Prisma.TransactionClient = db,
+  requireVerified = true,
+) {
   const u = await tx.user.findUnique({
     where: { id: userId },
     select: {
@@ -18,7 +23,12 @@ async function verifiedUser(userId: string, tx: Prisma.TransactionClient = db) {
       agency: { select: { demo: true } },
     },
   });
-  if (!u || u.disabled || !u.emailVerified || u.agency?.demo)
+  if (
+    !u ||
+    u.disabled ||
+    (requireVerified && !u.emailVerified) ||
+    u.agency?.demo
+  )
     throw new HttpError(
       403,
       "A verified, enabled account is required for hotel access",
@@ -51,14 +61,14 @@ async function lockHotel(
   userId: string,
   hotelId: string,
 ) {
-  await verifiedUser(userId, tx);
+  await verifiedUser(userId, tx, false);
   // Membership is checked before the lock and again after it; hotelId is never a permission.
   const member = await tx.hotelMember.findUnique({
     where: { hotelId_userId: { hotelId, userId } },
   });
   if (!member) throw new HttpError(404, "Hotel not found");
   await tx.$queryRaw`SELECT id FROM "Hotel" WHERE id=${hotelId} FOR UPDATE`;
-  await verifiedUser(userId, tx);
+  await verifiedUser(userId, tx, false);
   const current = await tx.hotelMember.findUnique({
     where: { hotelId_userId: { hotelId, userId } },
     include: { hotel: { include: { rooms: true } } },
@@ -82,7 +92,7 @@ async function audit(
 }
 export async function hotelOverview(userId: string) {
   requireHotels();
-  await verifiedUser(userId);
+  const user = await verifiedUser(userId, db, false);
   const memberships = await db.hotelMember.findMany({
     where: { userId },
     include: {
@@ -101,6 +111,8 @@ export async function hotelOverview(userId: string) {
     take: 20,
   });
   return {
+    emailVerified: user.emailVerified,
+    verificationEmailAvailable: mailReady(),
     hotels: memberships.map(({ hotel, role }) => ({ ...hotel, role })),
     stage:
       d1Binding() && process.env.HOTEL_BOOKING_ENABLED === "true"
@@ -122,10 +134,10 @@ export async function mutateHotel(userId: string, input: unknown) {
   if (d1Binding()) return mutateHotelD1(userId, input);
   return db.$transaction(
     async (tx) => {
-      await verifiedUser(userId, tx);
+      await verifiedUser(userId, tx, false);
       if (v.action === "create") {
         await tx.$queryRaw`SELECT id FROM "User" WHERE id=${userId} FOR UPDATE`;
-        await verifiedUser(userId, tx);
+        await verifiedUser(userId, tx, false);
         if (
           (await tx.hotelMember.count({ where: { userId, role: "OWNER" } })) >=
           20
@@ -151,6 +163,7 @@ export async function mutateHotel(userId: string, input: unknown) {
         );
       const revision = hotel.revision + 1;
       if (v.action === "submit") {
+        await verifiedUser(userId, tx);
         if (member.role !== "OWNER")
           throw new HttpError(
             403,
@@ -283,6 +296,14 @@ export async function reviewHotel(
           409,
           "Decision is not allowed for the current hotel status",
         );
+      if (v.decision === "APPROVED") {
+        const owners = await tx.hotelMember.findMany({
+          where: { hotelId: h.id, role: "OWNER" },
+        });
+        if (!owners.length)
+          throw new HttpError(403, "A verified hotel owner is required");
+        for (const owner of owners) await verifiedUser(owner.userId, tx);
+      }
       const revision = h.revision + 1;
       await tx.hotel.update({
         where: { id: h.id },

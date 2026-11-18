@@ -310,7 +310,7 @@ test("hotel registration isolation, serialized revisions, verified operators, re
     );
     assert.equal((await hotelOverview(a)).bookingEnabled, false);
     await db.user.update({ where: { id: a }, data: { emailVerified: false } });
-    await assert.rejects(hotelOverview(a), /verified/);
+    assert.equal((await hotelOverview(a)).emailVerified, false);
     await db.user.update({
       where: { id: a },
       data: { emailVerified: true, disabled: true },

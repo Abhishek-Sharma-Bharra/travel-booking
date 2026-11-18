@@ -236,3 +236,124 @@ test("CRM gateway retains JSON permission failures and auth redirect behavior", 
   assert.equal(redirected.status, 302);
   assert.equal(redirected.headers.get("location"), origin + "/workspace");
 });
+
+test("Pages handles page and hotel API binding failures without exposing exception details", async () => {
+  for (const path of [
+    "/workspace",
+    "/hotelier",
+    "/api/hotelier",
+    "/api/auth/sign-in/email",
+  ]) {
+    let calls = 0;
+    const response = await gateway.fetch(new Request(origin + path), {
+      PUBLIC_ORIGIN: origin,
+      ASSETS: { fetch: async () => new Response("unused") },
+      TRAVELOS_BACKEND: {
+        fetch: async () => {
+          calls++;
+          throw new Error("private-secret-and-customer-data");
+        },
+      },
+    });
+    assert.equal(calls, 1);
+    assert.equal(response.status, 503);
+    assert.match(
+      response.headers.get("content-type")!,
+      path.startsWith("/api/") ? /application\/json/ : /text\/html/,
+    );
+    assert.ok(response.headers.get("x-travelos-request-id"));
+    assert.doesNotMatch(
+      await response.text(),
+      /private-secret-and-customer-data/,
+    );
+  }
+});
+test("cleanup failures cannot turn a completed request into an unhandled exception", async () => {
+  let closed = 0;
+  const scope: RequestResources = {
+    databaseUrl: "",
+    values: new Map(),
+    cleanup: [
+      async () => {
+        throw new Error("private-cleanup-details");
+      },
+      async () => {
+        closed++;
+      },
+    ],
+  };
+  await closeResources(scope);
+  await closeResources(scope);
+  assert.equal(closed, 1);
+});
+
+test("hashed chunk rollout falls back to backend assets when Pages has a different build", async () => {
+  let calls = 0;
+  const env = {
+    PUBLIC_ORIGIN: origin,
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+    TRAVELOS_BACKEND: {
+      fetch: async (request: Request) => {
+        calls++;
+        assert.match(new URL(request.url).pathname, /^\/_next\/static\//);
+        return new Response("backend chunk", {
+          headers: { "Content-Type": "application/javascript" },
+        });
+      },
+    },
+  };
+  assert.equal(
+    await (
+      await gateway.fetch(
+        new Request(origin + "/_next/static/old-build.js"),
+        env,
+      )
+    ).text(),
+    "backend chunk",
+  );
+  assert.equal(calls, 1);
+  assert.equal(
+    (await gateway.fetch(new Request(origin + "/images/missing.webp"), env))
+      .status,
+    404,
+  );
+  assert.equal(calls, 1);
+});
+
+test("hotel JSON endpoints reject HTML upstream failures while OAuth redirects remain unchanged", async () => {
+  const env = {
+    PUBLIC_ORIGIN: origin,
+    ASSETS: { fetch: async () => new Response("unused") },
+    TRAVELOS_BACKEND: {
+      fetch: async () =>
+        new Response("<!doctype html><p>upstream error</p>", {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        }),
+    },
+  };
+  for (const path of [
+    "/api/hotelier",
+    "/api/hotelier/booking",
+    "/api/public/hotels/example",
+    "/api/campaigns",
+  ]) {
+    const response = await gateway.fetch(new Request(origin + path), env);
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).code, "BACKEND_NON_JSON_RESPONSE");
+  }
+  const redirect = await gateway.fetch(
+    new Request(origin + "/api/integrations/meta/callback"),
+    {
+      ...env,
+      TRAVELOS_BACKEND: {
+        fetch: async () =>
+          new Response(null, {
+            status: 302,
+            headers: { Location: origin + "/workspace" },
+          }),
+      },
+    },
+  );
+  assert.equal(redirect.status, 302);
+});

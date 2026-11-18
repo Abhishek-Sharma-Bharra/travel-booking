@@ -15,5 +15,9 @@ const shared = globalThis as unknown as Record<
 export const requestResources = (shared[key] ??=
   new AsyncLocalStorage<RequestResources>());
 export async function closeResources(resources: RequestResources) {
-  await Promise.all(resources.cleanup.splice(0).map((close) => close()));
+  const results = await Promise.allSettled(
+    resources.cleanup.splice(0).map((close) => Promise.resolve().then(close)),
+  );
+  if (results.some((result) => result.status === "rejected"))
+    console.error("REQUEST_RESOURCE_CLEANUP_FAILED");
 }

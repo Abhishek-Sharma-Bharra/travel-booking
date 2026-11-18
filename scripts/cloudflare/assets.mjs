@@ -13,5 +13,5 @@ await build({
 });
 await writeFile(
   "cloudflare/pages-dist/_routes.json",
-  JSON.stringify({ version: 1, include: ["/*"], exclude: ["/_next/static/*"] }),
+  JSON.stringify({ version: 1, include: ["/*"], exclude: [] }),
 );

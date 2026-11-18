@@ -6,6 +6,10 @@ import {
   closeResources,
   type RequestResources,
 } from "../../src/lib/request-resources";
+import {
+  logRuntimeFailure,
+  runtimeUnavailable,
+} from "../../src/lib/runtime-failure";
 interface Environment {
   BETTER_AUTH_SECRET?: string;
   HOTELS_ENABLED?: string;
@@ -48,6 +52,7 @@ export default {
         },
         { status: 503, headers: { "Cache-Control": "private, no-store" } },
       );
+    const requestId = crypto.randomUUID();
     const resources: RequestResources = {
       databaseUrl: env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL ?? "",
       databaseEngine:
@@ -67,13 +72,20 @@ export default {
         ctx.waitUntil(
           response.body
             .pipeTo(stream.writable)
-            .catch(() => undefined)
+            .catch((error) =>
+              logRuntimeFailure(
+                "WORKER_RESPONSE_STREAM_FAILED",
+                requestId,
+                error,
+              ),
+            )
             .finally(() => closeResources(resources)),
         );
         return new Response(stream.readable, response);
       } catch (error) {
         await closeResources(resources);
-        throw error;
+        logRuntimeFailure("WORKER_REQUEST_FAILED", requestId, error);
+        return runtimeUnavailable(request, requestId);
       }
     });
   },

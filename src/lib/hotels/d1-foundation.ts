@@ -4,12 +4,12 @@ import { D1Unit, insertD1, newD1Record, updateD1 } from "../d1/unit";
 import { HttpError } from "../http";
 import { requireOperator } from "../operator-access";
 import { hotelActionSchema, hotelReviewSchema } from "./validation";
-export async function hotelUnit(userId: string) {
+export async function hotelUnit(userId: string, requireVerified = true) {
   const binding = d1Binding();
   if (!binding) throw new HttpError(503, "Native D1 hotel context required");
   const u = new D1Unit(binding);
   const user = (await u.read<User>("User", '"id"=?', [userId]))[0];
-  if (!user || user.disabled || !user.emailVerified)
+  if (!user || user.disabled || (requireVerified && !user.emailVerified))
     throw new HttpError(
       403,
       "A verified, enabled account is required for hotel access",
@@ -70,7 +70,7 @@ export function hotelAudit(
 }
 export async function mutateHotelD1(userId: string, input: unknown) {
   const v = hotelActionSchema.parse(input),
-    unit = await hotelUnit(userId);
+    unit = await hotelUnit(userId, v.action === "submit");
   if (v.action === "create") {
     const count = Number(
       (await unit.db
@@ -229,6 +229,31 @@ export async function reviewHotelD1(
       409,
       "Decision is not allowed for current hotel status",
     );
+  if (v.decision === "APPROVED") {
+    const owners = await unit.db
+      .prepare(
+        `SELECT "userId" FROM "HotelMember" WHERE "hotelId"=? AND role='OWNER'`,
+      )
+      .bind(hotel.id)
+      .all<{ userId: string }>();
+    if (!owners.results.length)
+      throw new HttpError(403, "A verified hotel owner is required");
+    for (const owner of owners.results) {
+      const identity = (
+        await unit.read<User>("User", '"id"=?', [owner.userId])
+      )[0];
+      if (!identity || identity.disabled || !identity.emailVerified)
+        throw new HttpError(403, "A verified hotel owner is required");
+    }
+    unit.guard(
+      `SELECT COUNT(*)>0 FROM "HotelMember" WHERE "hotelId"=? AND role='OWNER'`,
+      hotel.id,
+    );
+    unit.guard(
+      `SELECT COUNT(*)=0 FROM "HotelMember" m JOIN "User" u ON u.id=m."userId" WHERE m."hotelId"=? AND m.role='OWNER' AND (u."emailVerified"=0 OR u.disabled=1)`,
+      hotel.id,
+    );
+  }
   const revision = hotel.revision + 1;
   unit.writes.push(
     updateD1("Hotel", hotel.id, {
