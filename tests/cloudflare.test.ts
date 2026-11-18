@@ -142,7 +142,7 @@ test("Pages gateway uses the trusted Cloudflare client IP instead of user-suppli
       fetch: async (received: Request) => {
         assert.equal(received.headers.get("X-Forwarded-For"), "198.51.100.23");
         assert.equal(received.headers.get("X-Real-IP"), "198.51.100.23");
-        return new Response("ok");
+        return Response.json({ ok: true });
       },
     },
   };
@@ -156,4 +156,83 @@ test("Pages gateway uses the trusted Cloudflare client IP instead of user-suppli
     }),
     env,
   );
+});
+
+test("CRM gateway reports HTML/redirect/failed upstream responses as safe JSON and never retries writes", async () => {
+  for (const outcome of ["html", "redirect", "throw"] as const) {
+    let calls = 0;
+    const response = await gateway.fetch(
+      new Request(origin + "/api/action", {
+        method: "POST",
+        body: '{"action":"lead"}',
+      }),
+      {
+        PUBLIC_ORIGIN: origin,
+        ASSETS: {
+          fetch: async () => {
+            throw Error("unexpected asset fallback");
+          },
+        },
+        TRAVELOS_BACKEND: {
+          fetch: async () => {
+            calls++;
+            if (outcome === "throw")
+              throw Error("private-token-never-log-this");
+            if (outcome === "redirect")
+              return new Response(null, {
+                status: 302,
+                headers: { Location: origin + "/login" },
+              });
+            return new Response("<!DOCTYPE html><p>private diagnostic</p>", {
+              status: 500,
+              headers: { "content-type": "text/html" },
+            });
+          },
+        },
+      },
+    );
+    assert.equal(calls, 1);
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("cache-control"), "private, no-store");
+    const body = await response.json();
+    assert.equal(body.requestId, response.headers.get("x-travelos-request-id"));
+    assert.match(body.error, /not confirmed/);
+    assert.doesNotMatch(
+      JSON.stringify(body),
+      /private diagnostic|private-token/,
+    );
+  }
+});
+
+test("CRM gateway retains JSON permission failures and auth redirect behavior", async () => {
+  const env = {
+    PUBLIC_ORIGIN: origin,
+    ASSETS: { fetch: async () => new Response("unused") },
+    TRAVELOS_BACKEND: {
+      fetch: async () =>
+        Response.json(
+          { error: "Please sign in" },
+          { status: 401, headers: { "set-cookie": "session=; Max-Age=0" } },
+        ),
+    },
+  };
+  const response = await gateway.fetch(new Request(origin + "/api/data"), env);
+  assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), { error: "Please sign in" });
+  assert.match(response.headers.get("set-cookie")!, /Max-Age=0/);
+  const redirected = await gateway.fetch(
+    new Request(origin + "/api/auth/verify-email"),
+    {
+      ...env,
+      TRAVELOS_BACKEND: {
+        fetch: async () =>
+          new Response(null, {
+            status: 302,
+            headers: { Location: origin + "/workspace" },
+          }),
+      },
+    },
+  );
+  assert.equal(redirected.status, 302);
+  assert.equal(redirected.headers.get("location"), origin + "/workspace");
 });

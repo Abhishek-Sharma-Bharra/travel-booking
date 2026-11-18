@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
+import { readApiJson } from "@/lib/api-response";
 import dynamic from "next/dynamic";
 import {
   AssistantPanel,
@@ -320,12 +321,24 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, input }),
       });
-      const result = await r.json();
-      if (!r.ok) throw new Error(result.error);
-      const reload = await fetch("/api/data", { cache: "no-store" });
-      if (!reload.ok)
-        throw new Error("Your session expired. Please sign in again.");
-      setData(await reload.json());
+      const result = await readApiJson<{
+        message: string;
+        leadId?: string;
+        quoteId?: string;
+        bookingId?: string;
+      }>(r);
+      try {
+        const reload = await fetch("/api/data", { cache: "no-store" });
+        setData(await readApiJson<Dataset>(reload));
+      } catch {
+        // The write was acknowledged. Never invite a duplicate submission just
+        // because the following read failed.
+        notify(
+          "Your change was saved, but the workspace could not refresh. Reload the page before making another change.",
+        );
+        onSuccess?.(result);
+        return true;
+      }
       notify(result.message);
       onSuccess?.(result);
       return true;
