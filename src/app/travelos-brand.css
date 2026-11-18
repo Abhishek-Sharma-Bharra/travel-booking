@@ -21,15 +21,16 @@
     gap: 28px;
   }
   body.premium-theme.dark-theme main.landing .brand {
-    color: #18372d;
-    font-size: 29px;
-    letter-spacing: -1px;
+    color: #55744c;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.7px;
   }
   body.premium-theme.dark-theme main.landing .brand svg {
-    color: #315e45;
+    color: #55744c;
   }
   body.premium-theme.dark-theme main.landing .brand-sub {
-    color: #647763;
+    color: #52664b;
     letter-spacing: 3.7px;
     font-size: 8px;
   }
@@ -661,7 +662,7 @@
       gap: 15px;
     }
     body.premium-theme.dark-theme main.landing .marketing-nav .brand {
-      font-size: 25px;
+      font-size: 29px;
     }
     body.premium-theme.dark-theme main.landing .marketing-nav .btn {
       margin-left: auto;
