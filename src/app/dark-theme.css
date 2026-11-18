@@ -13,6 +13,40 @@
     background: #191c22;
     color: #dce2ec;
   }
+  /* Pair foreground and background explicitly: the light secondary button
+     inherited pale dark-theme text on a white surface outside the workspace. */
+  body.premium-theme.dark-theme .btn.secondary {
+    background: #2b3543;
+    color: #f1f5fb;
+    border-color: #66768b;
+  }
+  body.premium-theme.dark-theme .btn.secondary:hover {
+    background: #39495d;
+    color: #ffffff;
+    border-color: #8799b0;
+  }
+  body.premium-theme.dark-theme .btn.primary {
+    background: #086fa3;
+    color: #ffffff;
+    border-color: #268fc4;
+  }
+  body.premium-theme.dark-theme .btn.primary:hover {
+    background: #075b87;
+    color: #ffffff;
+    border-color: #63b5de;
+  }
+  body.premium-theme.dark-theme .btn:focus-visible {
+    outline: 3px solid #90d5fa;
+    outline-offset: 3px;
+  }
+  body.premium-theme.dark-theme .btn:is(:disabled, [aria-disabled="true"]) {
+    background: #303a48;
+    color: #bcc9da;
+    border-color: #66768b;
+    opacity: 1;
+    cursor: not-allowed;
+    transform: none;
+  }
   .dark-theme .premium-workspace.studio-workspace {
     --paper: #191c22;
     --ink: #e2e7ee;
