@@ -106,12 +106,13 @@ and policy snapshots have separate retention; they are not erased with chat.
 
 ## Safe rollout
 
-Both flags default false in the committed Worker configuration:
+Development defaults remain off in .env.example. The approved Worker rollout enables registration and holds, with live money off:
 
-    HOTELS_ENABLED=false
-    HOTEL_BOOKING_ENABLED=false
+    HOTELS_ENABLED=true
+    HOTEL_BOOKING_ENABLED=true
+    HOTEL_LIVE_PAYMENTS_APPROVED=false
 
-No production migration or deployment is authorized/executed by this implementation.
+Production deployment was subsequently approved; see the deployment section below. No remote migration or backup has been executed from the local session.
 Before enabling the first-stage hold flow:
 
 1. Export/back up D1 in a private encrypted location and rehearse restore into a
@@ -126,8 +127,9 @@ Before enabling the first-stage hold flow:
    review, public quotes, simultaneous holds, release, expiry and handoff.
 5. Test Gateway/provider processing with explicit AI consent and private keys.
    Inspect actual Gateway logging, response usage, costs and rate limits.
-6. Obtain separate approval before any production migration/deployment. Enabling
-   holds does not enable payment or confirmed-booking functionality.
+6. Verify the approved rollout in Cloudflare before inviting hotel owners.
+   Live-money enablement requires separate approval after real TEST acceptance;
+   hotel flags alone do not authorize real payments.
 
 ## Hotel-specific payment setup and safeguards
 
@@ -214,3 +216,19 @@ A scoped guest capability is currently retained in the browser for seven days;
 hotel staff must handle later identity-based booking recovery. Refunds and
 chargebacks require hotel/provider operational handling. Do not launch
 unrestricted real sales before those support/recovery procedures are reviewed.
+
+## Approved deployment — 18 November 2026
+
+The user explicitly approved deployment after reviewing this implementation.
+Committed runtime flags now enable hotel registration and the hotel inventory /
+public stay flow. HOTEL_LIVE_PAYMENTS_APPROVED remains false. AI and TEST checkout
+still require privately configured credentials; provider acceptance is pending.
+Previous rollout sections describe the original disabled implementation baseline.
+
+The Cloudflare build now uses the same hotel flags for prerendered navigation as
+for Worker runtime. The release command checks the remote D1 Time Travel bookmark
+before applying migrations; failure stops the Worker release before schema writes.
+The bookmark is retained in the deployment log, not a public customer-data export.
+Cloudflare account authentication is unavailable from the local execution session,
+so actual remote restore-point/migration/deployment status must be verified in the
+Cloudflare build. This is not a claim that a remote backup was already exported.

@@ -756,7 +756,14 @@ test("D1 blocks unported provider and hotel entry points before network calls", 
       receiveWhatsAppEvents(new Uint8Array(), null),
       /not enabled on this D1 staging/,
     );
-    assert.throws(requireHotels, /Hotel module is not enabled/);
+    const hotelFlag = process.env.HOTELS_ENABLED;
+    process.env.HOTELS_ENABLED = "false";
+    try {
+      assert.throws(requireHotels, /Hotel module is not enabled/);
+    } finally {
+      if (hotelFlag === undefined) delete process.env.HOTELS_ENABLED;
+      else process.env.HOTELS_ENABLED = hotelFlag;
+    }
   });
   assert.equal(calls, 0);
 });

@@ -6,6 +6,19 @@ import { access } from "node:fs/promises";
 await access(".open-next/worker.js");
 const config = "cloudflare/worker/wrangler.jsonc";
 for (const [command, ...args] of [
+  // Read-only pre-migration restore-point check. Keep the bookmark in the build
+  // log; abort before schema writes if the deployment token cannot verify it.
+  [
+    "npx",
+    "wrangler",
+    "d1",
+    "time-travel",
+    "info",
+    "TRAVELOS_DB",
+    "--config",
+    config,
+    "--json",
+  ],
   [
     "npx",
     "wrangler",

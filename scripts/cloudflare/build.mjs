@@ -1,4 +1,8 @@
 import { spawnSync } from "node:child_process";
+import { unstable_readConfig } from "wrangler";
+const workerConfig = unstable_readConfig({
+  config: "cloudflare/worker/wrangler.jsonc",
+});
 const revision =
   process.env.TRAVELOS_BUILD_ID ||
   spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).stdout?.trim();
@@ -7,6 +11,11 @@ if (!revision || !/^[a-f0-9]{40,64}$/.test(revision))
 const env = {
   ...process.env,
   TRAVELOS_BUILD_ID: revision,
+  // Keep prerendered navigation aligned with the runtime feature flags.
+  HOTELS_ENABLED: String(workerConfig.vars.HOTELS_ENABLED ?? "false"),
+  HOTEL_BOOKING_ENABLED: String(
+    workerConfig.vars.HOTEL_BOOKING_ENABLED ?? "false",
+  ),
   SITE_INDEXING_ENABLED: "false",
   PUBLIC_SITE_URL: "https://travel-booking-dnn.pages.dev",
 };
