@@ -12,7 +12,17 @@ export function HotelBrandHeader({
 }) {
   return (
     <nav className="hotel-brand-nav" aria-label="Hotel workspace navigation">
-      <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
+      <Link
+        href={review ? "/" : publicView ? "/stays" : "/hotel-business"}
+        className="brand"
+        aria-label={
+          review
+            ? "Vashisht TravelOS home"
+            : publicView
+              ? "Vashisht hotel stays"
+              : "Vashisht hotel business home"
+        }
+      >
         <Compass size={31} />
         <span>
           Vashisht<span className="brand-sub">TRAVELOS</span>
@@ -29,14 +39,18 @@ export function HotelBrandHeader({
       <Link
         className="btn secondary"
         href={
-          review ? "/admin" : publicView ? "/login?next=hotelier" : "/workspace"
+          review
+            ? "/admin"
+            : publicView
+              ? "/login?next=hotelier"
+              : "/hotel-business"
         }
       >
         {review
           ? "Platform administration"
           : publicView
             ? "Hotel owner sign in"
-            : "Agency CRM"}{" "}
+            : "Hotel business home"}{" "}
         <ArrowUpRight size={15} />
       </Link>
     </nav>

@@ -112,24 +112,46 @@ export default function Login() {
   }
   return (
     <main className="auth-page">
-      <Link className="brand" href="/">
+      <Link className="brand" href={hotelIntent ? "/hotel-business" : "/"}>
         <Compass size={32} />
         Vashisht <small>TRAVELOS</small>
       </Link>
       <section className="auth-card">
-        <span className="eyebrow">YOUR NEXT CHAPTER</span>
+        {/* Switching the same login path must refresh query-derived form state. */}
+        <nav
+          className="auth-workspace-switch"
+          aria-label="Choose account workspace"
+        >
+          <a
+            href={signup ? "/login?signup=1" : "/login"}
+            aria-current={!hotelIntent ? "page" : undefined}
+          >
+            Travel agency
+          </a>
+          <a
+            href={
+              signup ? "/login?signup=1&next=hotelier" : "/login?next=hotelier"
+            }
+            aria-current={hotelIntent ? "page" : undefined}
+          >
+            Hotel owner
+          </a>
+        </nav>
+        <span className="eyebrow">
+          {hotelIntent ? "HOTEL OWNER WORKSPACE" : "TRAVEL AGENCY WORKSPACE"}
+        </span>
         <h1>
           {hotelIntent
             ? signup
-              ? "Create your TravelOS account."
+              ? "Create your hotel-owner account."
               : "Hotel owner sign in."
             : signup
               ? "Let’s build your agency."
-              : "Welcome back."}
+              : "Travel agency sign in."}
         </h1>
         <p className="muted">
           {hotelIntent
-            ? "Use your existing TravelOS login or create an account. Verified email is required for hotel registration. An agency workspace is also created by the current shared signup flow."
+            ? "Manage your property, room inventory and guest requests in the hotel workspace. Use your existing account or register; verified email is required."
             : signup
               ? "A dedicated workspace for your team and your journeys."
               : "Your journeys, people and numbers, together."}
@@ -192,7 +214,14 @@ export default function Login() {
           </button>
         </form>
         <div className="auth-help">
-          <Link href="/forgot-password" className="text-button">
+          <Link
+            href={
+              hotelIntent
+                ? "/forgot-password?next=hotelier"
+                : "/forgot-password"
+            }
+            className="text-button"
+          >
             Forgot password?
           </Link>
           <button
@@ -248,10 +277,17 @@ export default function Login() {
         >
           {signup
             ? "Already have an account? Sign in"
-            : "New here? Create an agency"}
+            : hotelIntent
+              ? "New here? Create a hotel account"
+              : "New here? Create an agency"}
         </button>
-        <Link className="demo-link" href="/demo">
-          Just looking? Explore the read-only demo →
+        <Link
+          className="demo-link"
+          href={hotelIntent ? "/hotel-business" : "/demo"}
+        >
+          {hotelIntent
+            ? "Explore the hotel owner workspace →"
+            : "Just looking? Explore the read-only demo →"}
         </Link>
       </section>
       <p className="auth-foot">

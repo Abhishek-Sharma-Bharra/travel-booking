@@ -80,7 +80,7 @@ test("public marketing pages have distinct server-rendered SEO and honest pricin
       ),
     ).toBe(true);
     await expect(
-      page.getByRole("link", { name: "Sign in", exact: true }),
+      page.getByRole("link", { name: "Agency sign in", exact: true }),
     ).toBeVisible();
   }
   await page.goto("/contact");

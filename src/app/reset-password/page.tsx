@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 export default function Reset() {
+  const [hotelIntent, setHotelIntent] = useState(false);
   const [token, setToken] = useState(""),
     [busy, setBusy] = useState(false),
     [done, setDone] = useState(false),
@@ -10,6 +11,7 @@ export default function Reset() {
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     setToken(query.get("token") || "");
+    setHotelIntent(query.get("next") === "hotelier");
     if (query.get("error"))
       setError(
         "This password-reset link is invalid or expired. Request a new one.",
@@ -25,7 +27,10 @@ export default function Reset() {
             <p role="status" className="info-box">
               Password changed. All previous sessions have been revoked.
             </p>
-            <Link href="/login" className="btn primary">
+            <Link
+              href={hotelIntent ? "/login?next=hotelier" : "/login"}
+              className="btn primary"
+            >
               Sign in
             </Link>
           </>
@@ -64,7 +69,13 @@ export default function Reset() {
                   throw new Error(
                     r.error.message || "The reset link is invalid or expired.",
                   );
-                history.replaceState(null, "", "/reset-password");
+                history.replaceState(
+                  null,
+                  "",
+                  hotelIntent
+                    ? "/reset-password?next=hotelier"
+                    : "/reset-password",
+                );
                 setToken("");
                 setDone(true);
               } catch (e) {
@@ -107,7 +118,14 @@ export default function Reset() {
             <button className="btn primary" disabled={busy}>
               {busy ? "Saving…" : "Reset password"}
             </button>
-            <Link className="text-button" href="/forgot-password">
+            <Link
+              className="text-button"
+              href={
+                hotelIntent
+                  ? "/forgot-password?next=hotelier"
+                  : "/forgot-password"
+              }
+            >
               Request a new link
             </Link>
           </form>

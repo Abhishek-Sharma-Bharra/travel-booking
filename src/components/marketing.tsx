@@ -7,37 +7,80 @@ const links = [
   ["/product-demo", "Demo"],
   ["/contact", "Contact"],
 ];
-export function MarketingHeader({ path = "/" }: { path?: string }) {
+export function MarketingHeader({
+  path = "/",
+  audience = "agency",
+}: {
+  path?: string;
+  audience?: "agency" | "hotel";
+}) {
+  const hotelsEnabled = process.env.HOTELS_ENABLED === "true";
+  const hotelAudience = audience === "hotel";
+  const navigation = hotelAudience
+    ? [
+        ["/hotel-business#hotel-features", "Hotel features"],
+        ["/hotel-business#how-it-works", "How it works"],
+      ]
+    : links;
   return (
-    <nav className="landing-nav marketing-nav" aria-label="Main navigation">
-      <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
-        <Compass size={32} />
-        <span>
-          Vashisht<span className="brand-sub">TRAVELOS</span>
-        </span>
-      </Link>
-      <div className="marketing-links">
-        {links.map(([href, label]) => (
-          <Link
-            key={href}
-            href={href}
-            aria-current={path === href ? "page" : undefined}
-          >
-            {label}
-          </Link>
-        ))}
-        {process.env.HOTELS_ENABLED === "true" &&
-          process.env.HOTEL_BOOKING_ENABLED === "true" && (
-            <Link href="/stays">Hotels</Link>
+    <>
+      {hotelsEnabled && (
+        <nav
+          className="business-audience-nav"
+          aria-label="Choose your business workspace"
+        >
+          <span>CHOOSE YOUR WORKSPACE</span>
+          <div>
+            <Link href="/" aria-current={!hotelAudience ? "page" : undefined}>
+              Travel agencies
+            </Link>
+            <Link
+              href="/hotel-business"
+              aria-current={hotelAudience ? "page" : undefined}
+            >
+              Hotel owners
+            </Link>
+          </div>
+        </nav>
+      )}
+      <nav className="landing-nav marketing-nav" aria-label="Main navigation">
+        <Link
+          href={hotelAudience ? "/hotel-business" : "/"}
+          className="brand"
+          aria-label={
+            hotelAudience
+              ? "Vashisht hotel business home"
+              : "Vashisht TravelOS home"
+          }
+        >
+          <Compass size={32} />
+          <span>
+            Vashisht<span className="brand-sub">TRAVELOS</span>
+          </span>
+        </Link>
+        <div className="marketing-links">
+          {navigation.map(([href, label]) => (
+            <Link
+              key={href}
+              href={href}
+              aria-current={path === href ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+          {hotelAudience && process.env.HOTEL_BOOKING_ENABLED === "true" && (
+            <Link href="/stays">Find a hotel · for guests</Link>
           )}
-        {process.env.HOTELS_ENABLED === "true" && (
-          <Link href="/hotelier">Hotel owners</Link>
-        )}
-      </div>
-      <Link className="btn secondary" href="/login">
-        Sign in <ArrowUpRight size={16} />
-      </Link>
-    </nav>
+        </div>
+        <Link
+          className="btn secondary"
+          href={hotelAudience ? "/login?next=hotelier" : "/login"}
+        >
+          {hotelAudience ? "Hotel owner sign in" : "Agency sign in"}{" "}
+          <ArrowUpRight size={16} />
+        </Link>
+      </nav>
+    </>
   );
 }
 export function MarketingFooter() {
@@ -45,9 +88,13 @@ export function MarketingFooter() {
     <footer className="marketing-footer">
       <div>
         <strong>Vashisht TravelOS</strong>
-        <p>by Vashisht Analytics · Built for travel agencies in India</p>
+        <p>by Vashisht Analytics · Workspaces for travel and hospitality</p>
       </div>
       <nav aria-label="Footer navigation">
+        <Link href="/">Travel agency CRM</Link>
+        {process.env.HOTELS_ENABLED === "true" && (
+          <Link href="/hotel-business">Hotel owner workspace</Link>
+        )}
         <Link href="/guides/enquiry-to-booking">Enquiry to booking guide</Link>
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Terms</Link>

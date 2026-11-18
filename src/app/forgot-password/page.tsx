@@ -1,15 +1,25 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 export default function Forgot() {
+  const [hotelIntent, setHotelIntent] = useState(false);
+  useEffect(
+    () =>
+      setHotelIntent(
+        new URLSearchParams(location.search).get("next") === "hotelier",
+      ),
+    [],
+  );
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [error, setError] = useState("");
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <span className="eyebrow">ACCOUNT RECOVERY</span>
+        <span className="eyebrow">
+          {hotelIntent ? "HOTEL ACCOUNT RECOVERY" : "AGENCY ACCOUNT RECOVERY"}
+        </span>
         <h1>Forgot your password?</h1>
         <p className="muted">
           We will email a one-time reset link if an account exists.
@@ -26,7 +36,9 @@ export default function Forgot() {
             try {
               const r = await authClient.requestPasswordReset({
                 email,
-                redirectTo: "/reset-password",
+                redirectTo: hotelIntent
+                  ? "/reset-password?next=hotelier"
+                  : "/reset-password",
               });
               if (r.error)
                 throw new Error(
@@ -64,7 +76,10 @@ export default function Forgot() {
             {busy ? "Sending…" : "Send reset link"}
           </button>
         </form>
-        <Link className="demo-link" href="/login">
+        <Link
+          className="demo-link"
+          href={hotelIntent ? "/login?next=hotelier" : "/login"}
+        >
           Back to sign in
         </Link>
       </section>
