@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { readApiJson } from "@/lib/api-response";
 import type { Dataset } from "@/lib/data";
 import type { integrationOverview } from "@/lib/integrations/service";
 import type { AdAccount } from "@/lib/integrations/meta";
@@ -20,8 +21,7 @@ export default function Integrations({ data }: { data: Dataset }) {
           cache: "no-store",
           signal: AbortSignal.timeout(20000),
         }),
-        body = await r.json();
-      if (!r.ok) throw Error(body.error);
+        body = await readApiJson<Overview>(r);
       setReport(body);
     } catch (e) {
       setError((e as Error).message);
@@ -47,7 +47,11 @@ export default function Integrations({ data }: { data: Dataset }) {
           body: JSON.stringify({ action, ...input }),
           signal: AbortSignal.timeout(55000),
         }),
-        body = await r.json();
+        body = await readApiJson<{
+          error?: string;
+          accounts: AdAccount[];
+          message: string;
+        }>(r);
       if (!r.ok) throw Error(body.error);
       if (action === "accounts")
         setAccounts((a) => ({ ...a, [String(input.id)]: body.accounts }));
@@ -69,7 +73,7 @@ export default function Integrations({ data }: { data: Dataset }) {
           `/api/integrations/${provider.toLowerCase()}/start`,
           { method: "POST", signal: AbortSignal.timeout(15000) },
         ),
-        b = await r.json();
+        b = await readApiJson<{ error?: string; url: string }>(r);
       if (!r.ok) throw Error(b.error);
       location.assign(b.url);
     } catch (e) {
@@ -110,6 +114,28 @@ export default function Integrations({ data }: { data: Dataset }) {
                 ? "Server configured; account authorization still required."
                 : "Not configured. Ask the administrator to complete provider approvals and encryption setup."}
             </p>
+            {report?.owner && report.setup && (
+              <details style={{ margin: "12px 0", overflowWrap: "anywhere" }}>
+                <summary>Connection setup requirements</summary>
+                <p>{report.setup[provider].mode}</p>
+                <p>Callback URL for the platform administrator:</p>
+                <code>{report.setup[provider].callbackUrl}</code>
+                {report.setup[provider].missing.length > 0 && (
+                  <p>
+                    Backend configuration pending:{" "}
+                    {report.setup[provider].missing.join(", ")}. The
+                    administrator must save these privately; do not send secret
+                    values in chat.
+                  </p>
+                )}
+                <p>
+                  Provider permission:{" "}
+                  <code>{report.setup[provider].permission}</code>. App approval
+                  and advertising-account access must be granted by the
+                  provider.
+                </p>
+              </details>
+            )}
             <button
               className="btn primary"
               disabled={

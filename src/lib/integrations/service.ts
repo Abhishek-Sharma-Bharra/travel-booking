@@ -1,7 +1,13 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { db } from "../db";
-import { requirePostgresIntegration } from "../d1/availability";
+import { db, d1Binding } from "../db";
+import {
+  d1SaveAuthorization,
+  d1SelectAccount,
+  d1Disconnect,
+  d1StartSync,
+  d1Checkpoint,
+} from "./d1-advertising";
 import { requireOwner, canManage, type Actor } from "../access";
 import { HttpError, trustedOrigin } from "../http";
 import { requireSubscription } from "../subscriptions";
@@ -25,6 +31,7 @@ import {
   googleRefresh,
 } from "./google";
 import { ProviderError } from "./provider-http";
+import { integrationSetup } from "./setup";
 export const providerSchema = z.enum(["META", "GOOGLE"]);
 export async function integrationActor(
   a: Actor,
@@ -48,7 +55,6 @@ export async function integrationActor(
 const callback = (provider: string) =>
   `${trustedOrigin()}/api/integrations/${provider.toLowerCase()}/callback`;
 export async function startAuthorization(inputActor: Actor, provider: string) {
-  requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true);
   providerSchema.parse(provider);
   if (!vaultReady() || !(provider === "META" ? metaReady() : googleReady()))
@@ -106,7 +112,6 @@ export async function finishAuthorization(
   code: string,
   transport: typeof fetch = fetch,
 ) {
-  requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true);
   providerSchema.parse(provider);
   if (!/^[A-Za-z0-9_-]{43}$/.test(state) || !code || code.length > 4000)
@@ -154,6 +159,10 @@ export async function finishAuthorization(
   await (provider === "META"
     ? metaAccounts(token, transport)
     : googleAccounts(token, transport));
+  if (d1Binding()) {
+    await d1SaveAuthorization(a, provider, token);
+    return;
+  }
   await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Agency" WHERE id=${a.agencyId} FOR UPDATE`;
     const existing = await tx.integrationConnection.findUnique({
@@ -223,7 +232,6 @@ export async function selectAdAccount(
   accountId: string,
   transport: typeof fetch = fetch,
 ) {
-  requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true),
     c = await permittedConnection(a, id);
   if (c.status !== "SELECT_ACCOUNT")
@@ -238,6 +246,7 @@ export async function selectAdAccount(
   const selected = accounts.find((x) => x.id === accountId);
   if (!selected)
     throw new HttpError(403, "Advertising account is not authorized");
+  if (d1Binding()) return d1SelectAccount(a, c, selected, token);
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Agency" WHERE id=${a.agencyId} FOR UPDATE`;
     const existing = await tx.integrationConnection.findUnique({
@@ -317,7 +326,8 @@ export async function selectAdAccount(
   });
 }
 export async function disconnectAdAccount(inputActor: Actor, id: string) {
-  requirePostgresIntegration("Live advertising integration");
+  if (d1Binding())
+    return d1Disconnect(await integrationActor(inputActor, true, true), id);
   const a = await integrationActor(inputActor, true, true),
     c = await db.integrationConnection.findFirst({
       where: { id, agencyId: a.agencyId },
@@ -410,6 +420,7 @@ export async function integrationOverview(
     take: 100,
   });
   return {
+    setup: a.role === "OWNER" ? integrationSetup() : undefined,
     configured: {
       META: metaReady() && vaultReady(),
       GOOGLE: googleReady() && vaultReady(),
@@ -433,7 +444,6 @@ export async function syncAds(
   to: string,
   transport: typeof fetch = fetch,
 ) {
-  requirePostgresIntegration("Live advertising integration");
   const c = await permittedConnection(
     { id: "sync-worker", agencyId, role: "OWNER" },
     connectionId,
@@ -447,48 +457,50 @@ export async function syncAds(
       "Sync 1–31 closed account-calendar days at a time",
     );
   const leaseToken = randomUUID();
-  let run = await db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "IntegrationConnection" WHERE id=${c.id} AND "agencyId"=${agencyId} FOR UPDATE`;
-    if (
-      await tx.integrationSyncRun.findFirst({
-        where: {
-          connectionId: c.id,
-          agencyId,
-          status: "RUNNING",
-          leaseUntil: { gt: new Date() },
-        },
-      })
-    )
-      throw new HttpError(409, "Sync already running");
-    const resume = await tx.integrationSyncRun.findFirst({
-      where: {
-        connectionId: c.id,
-        agencyId,
-        status: "RUNNING",
-        fromDate: from,
-        toDate: to,
-        revision: c.revision,
-        leaseUntil: { lte: new Date() },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-    return resume
-      ? tx.integrationSyncRun.update({
-          where: { id: resume.id },
-          data: { leaseToken, leaseUntil: new Date(Date.now() + 45000) },
-        })
-      : tx.integrationSyncRun.create({
-          data: {
-            agencyId,
+  let run = d1Binding()
+    ? await d1StartSync(c, from, to, leaseToken)
+    : await db.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT id FROM "IntegrationConnection" WHERE id=${c.id} AND "agencyId"=${agencyId} FOR UPDATE`;
+        if (
+          await tx.integrationSyncRun.findFirst({
+            where: {
+              connectionId: c.id,
+              agencyId,
+              status: "RUNNING",
+              leaseUntil: { gt: new Date() },
+            },
+          })
+        )
+          throw new HttpError(409, "Sync already running");
+        const resume = await tx.integrationSyncRun.findFirst({
+          where: {
             connectionId: c.id,
+            agencyId,
+            status: "RUNNING",
             fromDate: from,
             toDate: to,
             revision: c.revision,
-            leaseToken,
-            leaseUntil: new Date(Date.now() + 45000),
+            leaseUntil: { lte: new Date() },
           },
+          orderBy: { createdAt: "desc" },
         });
-  });
+        return resume
+          ? tx.integrationSyncRun.update({
+              where: { id: resume.id },
+              data: { leaseToken, leaseUntil: new Date(Date.now() + 45000) },
+            })
+          : tx.integrationSyncRun.create({
+              data: {
+                agencyId,
+                connectionId: c.id,
+                fromDate: from,
+                toDate: to,
+                revision: c.revision,
+                leaseToken,
+                leaseUntil: new Date(Date.now() + 45000),
+              },
+            });
+      });
   let facts = run.staged as unknown as AdFact[],
     cursor = run.cursor;
   try {
@@ -516,58 +528,61 @@ export async function syncAds(
       const keys = facts.map((r) => `${r.day}:${r.campaignId}:${r.adSetId}`);
       if (new Set(keys).size !== keys.length)
         throw new ProviderError("DUPLICATE_DIMENSIONS");
-      await db.$transaction(async (tx) => {
-        await tx.$queryRaw`SELECT id FROM "IntegrationConnection" WHERE id=${c.id} AND "agencyId"=${agencyId} FOR UPDATE`;
-        const active = await tx.integrationConnection.findFirst({
-          where: {
-            id: c.id,
-            agencyId,
-            status: "CONNECTED",
-            revision: c.revision,
-          },
-        });
-        if (!active) throw new ProviderError("CONNECTION_CHANGED");
-        const lease = await tx.integrationSyncRun.updateMany({
-          where: { id: run.id, agencyId, leaseToken, status: "RUNNING" },
-          data: {
-            staged: facts,
-            cursor: result.cursor || "",
-            leaseUntil: new Date(Date.now() + 45000),
-          },
-        });
-        if (lease.count !== 1) throw new ProviderError("LEASE_LOST");
-        if (!result.cursor) {
-          await tx.adDailyMetric.deleteMany({
+      if (d1Binding())
+        await d1Checkpoint(c, run, leaseToken, facts, result.cursor || "");
+      else
+        await db.$transaction(async (tx) => {
+          await tx.$queryRaw`SELECT id FROM "IntegrationConnection" WHERE id=${c.id} AND "agencyId"=${agencyId} FOR UPDATE`;
+          const active = await tx.integrationConnection.findFirst({
             where: {
+              id: c.id,
               agencyId,
-              connectionId: c.id,
-              day: { gte: from, lte: to },
+              status: "CONNECTED",
+              revision: c.revision,
             },
           });
-          if (facts.length)
-            await tx.adDailyMetric.createMany({
-              data: facts.map((f) => ({
-                ...f,
-                id: randomUUID(),
+          if (!active) throw new ProviderError("CONNECTION_CHANGED");
+          const lease = await tx.integrationSyncRun.updateMany({
+            where: { id: run.id, agencyId, leaseToken, status: "RUNNING" },
+            data: {
+              staged: facts,
+              cursor: result.cursor || "",
+              leaseUntil: new Date(Date.now() + 45000),
+            },
+          });
+          if (lease.count !== 1) throw new ProviderError("LEASE_LOST");
+          if (!result.cursor) {
+            await tx.adDailyMetric.deleteMany({
+              where: {
                 agencyId,
                 connectionId: c.id,
-                currency: c.currency,
-                timezone: c.timezone,
-                spendMicros: BigInt(f.spendMicros),
-                impressions: BigInt(f.impressions),
-                clicks: BigInt(f.clicks),
-              })),
+                day: { gte: from, lte: to },
+              },
             });
-          await tx.integrationSyncRun.update({
-            where: { id: run.id },
-            data: { status: "COMPLETE", completedAt: new Date(), staged: [] },
-          });
-          await tx.integrationConnection.update({
-            where: { id: c.id },
-            data: { lastSyncedAt: new Date(), errorCode: "" },
-          });
-        }
-      });
+            if (facts.length)
+              await tx.adDailyMetric.createMany({
+                data: facts.map((f) => ({
+                  ...f,
+                  id: randomUUID(),
+                  agencyId,
+                  connectionId: c.id,
+                  currency: c.currency,
+                  timezone: c.timezone,
+                  spendMicros: BigInt(f.spendMicros),
+                  impressions: BigInt(f.impressions),
+                  clicks: BigInt(f.clicks),
+                })),
+              });
+            await tx.integrationSyncRun.update({
+              where: { id: run.id },
+              data: { status: "COMPLETE", completedAt: new Date(), staged: [] },
+            });
+            await tx.integrationConnection.update({
+              where: { id: c.id },
+              data: { lastSyncedAt: new Date(), errorCode: "" },
+            });
+          }
+        });
       if (!result.cursor)
         return {
           message:

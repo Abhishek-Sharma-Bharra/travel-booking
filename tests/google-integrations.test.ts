@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { advertisingTest as test } from "./support/advertising-test";
 import assert from "node:assert/strict";
 import { randomUUID, createHash } from "node:crypto";
 import { db } from "../src/lib/db";

@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { advertisingTest as test } from "./support/advertising-test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { db } from "../src/lib/db";
@@ -139,7 +139,12 @@ test("Meta OAuth, authorized account selection, atomic paginated snapshots, retr
       selectAdAccount(a, pending.id, "act_999", transport),
       /not authorized/,
     );
-    await selectAdAccount(a, pending.id, "act_123", transport);
+    const selection = await Promise.allSettled([
+      selectAdAccount(a, pending.id, "act_123", transport),
+      selectAdAccount(a, pending.id, "act_123", transport),
+    ]);
+    assert.equal(selection.filter((r) => r.status === "fulfilled").length, 1);
+    assert.equal(selection.filter((r) => r.status === "rejected").length, 1);
     const c = await db.integrationConnection.findFirstOrThrow({
       where: { agencyId: a.agencyId, status: "CONNECTED" },
     });
