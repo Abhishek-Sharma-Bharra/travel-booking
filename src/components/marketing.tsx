@@ -13,7 +13,7 @@ export function MarketingHeader({ path = "/" }: { path?: string }) {
       <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
         <Compass size={32} />
         <span>
-          vashisht<span className="brand-sub">TRAVELOS</span>
+          Vashisht<span className="brand-sub">TRAVELOS</span>
         </span>
       </Link>
       <div className="marketing-links">

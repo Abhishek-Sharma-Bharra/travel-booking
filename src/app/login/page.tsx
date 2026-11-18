@@ -114,7 +114,7 @@ export default function Login() {
     <main className="auth-page">
       <Link className="brand" href="/">
         <Compass size={32} />
-        vashisht <small>TRAVELOS</small>
+        Vashisht <small>TRAVELOS</small>
       </Link>
       <section className="auth-card">
         <span className="eyebrow">YOUR NEXT CHAPTER</span>

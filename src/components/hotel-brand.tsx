@@ -9,7 +9,7 @@ export function HotelBrandHeader({ review = false }: { review?: boolean }) {
       <Link href="/" className="brand" aria-label="Vashisht TravelOS home">
         <Compass size={31} />
         <span>
-          vashisht<span className="brand-sub">TRAVELOS</span>
+          Vashisht<span className="brand-sub">TRAVELOS</span>
         </span>
       </Link>
       <span className="hotel-brand-divider" />
