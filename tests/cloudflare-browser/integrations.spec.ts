@@ -42,6 +42,7 @@ test("agency owner sees provider setup readiness on D1 without exposing or inven
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("aside.sidebar")).not.toBeInViewport();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth + 1,
