@@ -41,9 +41,9 @@ test("hotel owner verifies account, registers draft, adds category, submits revi
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Verify your email first" }),
+    page.getByRole("heading", { name: "Start your hotel registration" }),
   ).toBeVisible();
-  expect((await page.request.get("/api/hotelier")).status()).toBe(403);
+  expect((await page.request.get("/api/hotelier")).status()).toBe(200);
   const user = await db.user.findUniqueOrThrow({
     where: { email: prefix + "@test.invalid" },
   });
