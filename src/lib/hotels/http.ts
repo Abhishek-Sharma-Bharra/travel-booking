@@ -1,6 +1,7 @@
 import { ZodError } from "zod";
 import { auth } from "../auth";
 import { HttpError, errorResponse, privateHeaders } from "../http";
+import { hotelValidationMessage } from "./validation";
 export async function hotelSession(req: Request) {
   const s = await auth.api.getSession({ headers: req.headers });
   if (!s) throw new HttpError(401, "Please sign in");
@@ -10,7 +11,7 @@ export function hotelError(e: unknown) {
   if (e instanceof HttpError) return errorResponse(e);
   if (e instanceof ZodError)
     return Response.json(
-      { error: "Review the hotel fields, occupancy and required values" },
+      { error: hotelValidationMessage(e) },
       { status: 400, headers: privateHeaders },
     );
   const code = (e as { code?: string })?.code;

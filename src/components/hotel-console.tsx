@@ -432,9 +432,44 @@ function ProfileForm({
                 name={key}
                 defaultValue={p[key]}
                 required
-                maxLength={key === "countryCode" ? 2 : 254}
-                type={key === "contactEmail" ? "email" : "text"}
+                maxLength={
+                  {
+                    name: 150,
+                    city: 100,
+                    region: 100,
+                    countryCode: 2,
+                    postalCode: 20,
+                    timezone: 80,
+                    contactEmail: 254,
+                    contactPhone: 16,
+                  }[key]
+                }
+                type={
+                  key === "contactEmail"
+                    ? "email"
+                    : key === "contactPhone"
+                      ? "tel"
+                      : "text"
+                }
+                placeholder={
+                  key === "contactPhone" ? "+919876543210" : undefined
+                }
               />
+              {key === "contactPhone" && (
+                <small>
+                  Include + and country code, without spaces. Example:
+                  +919876543210.
+                </small>
+              )}
+              {key === "countryCode" && (
+                <small>Two capital letters, for example IN.</small>
+              )}
+              {key === "timezone" && (
+                <small>Use an IANA timezone, for example Asia/Kolkata.</small>
+              )}
+              {key === "contactEmail" && (
+                <small>Your agency account email can also be used here.</small>
+              )}
             </label>
           ))}
           <label className="span-2">

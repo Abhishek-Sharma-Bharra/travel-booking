@@ -98,3 +98,43 @@ export const hotelReviewSchema = z
     (v) => v.decision !== "APPROVED" || v.businessVerified,
     "Business verification must be attested before approval",
   );
+
+// Static, allowlisted guidance only: never echo submitted values or raw issues.
+export function hotelValidationMessage(error: z.ZodError) {
+  const hints: Record<string, string> = {
+    name: "Name: use 2–150 characters (room names: 2–100).",
+    address: "Address: use no more than 500 characters.",
+    city: "City: use no more than 100 characters.",
+    region: "State / region: use no more than 100 characters.",
+    countryCode: "Country code: use two capital letters, for example IN.",
+    postalCode: "Postal code: use no more than 20 characters.",
+    timezone: "Hotel timezone: use an IANA timezone, for example Asia/Kolkata.",
+    contactEmail: "Hotel contact email: enter a valid email address.",
+    contactPhone:
+      "Hotel phone: include + and country code, for example +919876543210, without spaces.",
+    amenities:
+      "Amenities: use up to 30 unique entries, each at most 80 characters.",
+    photoUrls: "Photo URLs: use up to 12 complete URLs, one per line.",
+    policies: "Hotel policies: use no more than 6000 characters.",
+    cancellationPolicy:
+      "Cancellation policy: use no more than 6000 characters.",
+    taxBps: "Tax percentage: enter a number from 0 to 100.",
+    totalRooms: "Room count: enter a whole number from 1 to 10000.",
+    maxAdults: "Maximum adults: enter a whole number from 1 to 20.",
+    maxChildren: "Maximum children: enter a whole number from 0 to 20.",
+    maxOccupancy: "Combined occupancy: enter a whole number from 1 to 20.",
+    room: "Combined occupancy must cover each guest limit and cannot exceed adults plus children.",
+    description: "Room description: use no more than 3000 characters.",
+    reason: "Review reason: use 10–1000 characters.",
+  };
+  const messages = error.issues.map((issue) => {
+    const key =
+      issue.path[0] === "profile" || issue.path[0] === "room"
+        ? String(issue.path[1] ?? issue.path[0])
+        : String(issue.path[0] ?? "");
+    return (
+      hints[key] ?? "Check required hotel values and remove unsupported fields."
+    );
+  });
+  return "Please correct: " + [...new Set(messages)].join(" ");
+}

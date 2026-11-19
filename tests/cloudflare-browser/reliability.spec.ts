@@ -47,6 +47,32 @@ test("unverified hotel owner can open onboarding and save a private draft withou
   expect(response.ok(), await response.text()).toBeTruthy();
   const draft = await response.json();
   expect(draft.status).toBe("DRAFT");
+  const invalidPhone = await page.request.post("/api/hotelier", {
+    headers: { Origin: "http://localhost:3000" },
+    data: {
+      action: "profile",
+      hotelId: draft.hotelId,
+      revision: 0,
+      profile: {
+        name: "Fictional Private Draft",
+        address: "123 Fictional Hotel Road",
+        city: "Manali",
+        region: "Himachal Pradesh",
+        countryCode: "IN",
+        postalCode: "175131",
+        timezone: "Asia/Kolkata",
+        contactEmail: "draft@test.invalid",
+        contactPhone: "8123456789",
+        amenities: [],
+        photoUrls: [],
+        policies: "Check in at 14:00.",
+        cancellationPolicy: "Contact the hotel for terms.",
+        taxBps: 0,
+      },
+    },
+  });
+  expect(invalidPhone.status()).toBe(400);
+  expect((await invalidPhone.json()).error).toContain("Hotel phone");
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Submit for verification", exact: true }),
