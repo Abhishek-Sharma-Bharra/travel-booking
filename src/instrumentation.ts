@@ -1,5 +1,6 @@
 import type { Instrumentation } from "next";
 import { logRuntimeFailure } from "./lib/runtime-failure";
+import { requestResources } from "./lib/request-resources";
 export const onRequestError: Instrumentation.onRequestError = (
   error,
   _request,
@@ -13,10 +14,12 @@ export const onRequestError: Instrumentation.onRequestError = (
     /^[a-zA-Z0-9_-]{1,100}$/.test(error.digest)
       ? error.digest
       : crypto.randomUUID();
-  logRuntimeFailure("NEXT_REQUEST_FAILED", digest, error);
+  const requestId = requestResources.getStore()?.requestId ?? digest;
+  logRuntimeFailure("NEXT_REQUEST_FAILED", requestId, error);
   // Route template, not the URL/query, so tokens and customer identifiers stay out.
   console.error("NEXT_ERROR_CONTEXT", {
-    requestId: digest,
+    requestId,
+    digest,
     route: context.routePath,
     type: context.routeType,
   });

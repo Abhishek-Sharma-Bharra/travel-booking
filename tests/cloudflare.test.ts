@@ -394,3 +394,102 @@ test("only public marketplace plan prices may be cached; booking and CSV respons
   assert.equal(await csv.text(), "id,amount");
   assert.equal(csv.headers.get("cache-control"), "private, no-store");
 });
+
+test("Pages logs document HTTP 500 failures and correlates the backend without trusting a client reference", async () => {
+  const messages: unknown[][] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => {
+    messages.push(args);
+  };
+  let backendId: string | null = null;
+  try {
+    const response = await gateway.fetch(
+      new Request(origin + "/?secret=never-log-this", {
+        headers: {
+          "X-TravelOS-Request-ID": "forged-client-reference",
+          Cookie: "private-cookie",
+        },
+      }),
+      {
+        PUBLIC_ORIGIN: origin,
+        ASSETS: { fetch: async () => new Response("unused") },
+        TRAVELOS_BACKEND: {
+          fetch: async (request: Request) => {
+            backendId = request.headers.get("X-TravelOS-Request-ID");
+            return new Response("Internal Server Error", {
+              status: 500,
+              headers: { "Content-Type": "text/html" },
+            });
+          },
+        },
+      },
+    );
+    assert.equal(response.status, 500);
+    assert.match(backendId!, /^[a-f0-9-]{36}$/);
+    assert.equal(response.headers.get("X-TravelOS-Request-ID"), backendId);
+    assert.deepEqual(messages, [
+      [
+        "PAGES_UPSTREAM_HTTP_FAILURE",
+        {
+          requestId: backendId,
+          method: "GET",
+          upstreamStatus: 500,
+        },
+      ],
+    ]);
+    assert.doesNotMatch(
+      JSON.stringify(messages),
+      /never-log-this|private-cookie|forged-client-reference/,
+    );
+  } finally {
+    console.error = original;
+  }
+});
+
+test("Next error logs retain the gateway support reference inside the request scope", async () => {
+  const { onRequestError } = await import("../src/instrumentation");
+  const messages: unknown[][] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => {
+    messages.push(args);
+  };
+  const requestId = "40ac46bd-8e90-4f26-b8e4-280055bca118";
+  try {
+    await requestResources.run(
+      { requestId, databaseUrl: "", values: new Map(), cleanup: [] },
+      async () => {
+        await onRequestError(
+          Object.assign(new Error("private-customer-diagnostic"), {
+            digest: "12345",
+          }),
+          {
+            path: "/?private-query",
+            method: "GET",
+            headers: { cookie: "private-cookie" },
+          },
+          {
+            routerKind: "App Router",
+            routePath: "/",
+            routeType: "render",
+            revalidateReason: undefined,
+          },
+        );
+      },
+    );
+    assert.equal(messages[0][0], "NEXT_REQUEST_FAILED");
+    assert.equal(
+      (messages[0][1] as { requestId: string }).requestId,
+      requestId,
+    );
+    assert.deepEqual(messages[1], [
+      "NEXT_ERROR_CONTEXT",
+      { requestId, digest: "12345", route: "/", type: "render" },
+    ]);
+    assert.doesNotMatch(
+      JSON.stringify(messages),
+      /private-customer|private-query|private-cookie/,
+    );
+  } finally {
+    console.error = original;
+  }
+});

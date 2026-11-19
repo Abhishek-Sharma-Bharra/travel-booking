@@ -1,6 +1,7 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import { AsyncLocalStorage } from "node:async_hooks";
 export type RequestResources = {
+  requestId?: string;
   databaseUrl: string;
   databaseEngine?: "postgresql" | "d1";
   d1?: D1Database;

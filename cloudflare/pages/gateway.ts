@@ -48,6 +48,9 @@ export default {
       path === "/api/messaging" ||
       path === "/api/integrations";
     const requestId = crypto.randomUUID();
+    // Overwrite client-supplied IDs so the same support reference can be
+    // followed through Pages, the backend Worker and Next's error handler.
+    headersToBackend.set("X-TravelOS-Request-ID", requestId);
     const unavailable = (code: string, upstreamStatus?: number) => {
       console.error("APP_API_UPSTREAM_FAILURE", {
         requestId,
@@ -83,6 +86,12 @@ export default {
       if (!jsonApi) return runtimeUnavailable(request, requestId);
       return unavailable("BACKEND_UNAVAILABLE");
     }
+    if (response.status >= 500)
+      console.error("PAGES_UPSTREAM_HTTP_FAILURE", {
+        requestId,
+        method: request.method,
+        upstreamStatus: response.status,
+      });
     if (
       jsonApi &&
       path !== "/api/marketplace/report" &&

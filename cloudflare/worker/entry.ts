@@ -52,8 +52,14 @@ export default {
         },
         { status: 503, headers: { "Cache-Control": "private, no-store" } },
       );
-    const requestId = crypto.randomUUID();
+    const incomingId = request.headers.get("X-TravelOS-Request-ID");
+    const requestId =
+      incomingId &&
+      /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(incomingId)
+        ? incomingId
+        : crypto.randomUUID();
     const resources: RequestResources = {
+      requestId,
       databaseUrl: env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL ?? "",
       databaseEngine:
         env.TRAVELOS_DATABASE_ENGINE === "d1" ? "d1" : "postgresql",
@@ -64,6 +70,12 @@ export default {
     return requestResources.run(resources, async () => {
       try {
         const response: Response = await app.fetch(request, env, ctx);
+        if (response.status >= 500)
+          console.error("WORKER_HTTP_FAILURE", {
+            requestId,
+            method: request.method,
+            status: response.status,
+          });
         if (!response.body) {
           await closeResources(resources);
           return response;
