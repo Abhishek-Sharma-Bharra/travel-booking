@@ -4,6 +4,14 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 export default function Forgot() {
   const [hotelIntent, setHotelIntent] = useState(false);
+  const [operatorIntent, setOperatorIntent] = useState(false);
+  useEffect(
+    () =>
+      setOperatorIntent(
+        new URLSearchParams(location.search).get("next") === "operator",
+      ),
+    [],
+  );
   useEffect(
     () =>
       setHotelIntent(
@@ -36,9 +44,11 @@ export default function Forgot() {
             try {
               const r = await authClient.requestPasswordReset({
                 email,
-                redirectTo: hotelIntent
-                  ? "/reset-password?next=hotelier"
-                  : "/reset-password",
+                redirectTo: operatorIntent
+                  ? "/reset-password?next=operator"
+                  : hotelIntent
+                    ? "/reset-password?next=hotelier"
+                    : "/reset-password",
               });
               if (r.error)
                 throw new Error(
@@ -78,7 +88,13 @@ export default function Forgot() {
         </form>
         <Link
           className="demo-link"
-          href={hotelIntent ? "/login?next=hotelier" : "/login"}
+          href={
+            operatorIntent
+              ? "/login?next=operator"
+              : hotelIntent
+                ? "/login?next=hotelier"
+                : "/login"
+          }
         >
           Back to sign in
         </Link>

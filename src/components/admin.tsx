@@ -22,6 +22,9 @@ export default function Admin({ initial }: { initial: Agency[] }) {
     <main className="page-content">
       <span className="eyebrow">VERIFIED SERVICE ADMINISTRATOR</span>
       <h1>Client subscriptions</h1>
+      <Link className="btn primary" href="/admin/marketplace">
+        Marketplace administration
+      </Link>
       <p className="method-note">
         For Vashisht Analytics service operators only. Record agreed
         subscription access after arranging payment separately. This page never

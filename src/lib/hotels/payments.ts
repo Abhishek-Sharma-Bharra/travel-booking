@@ -496,6 +496,16 @@ async function recordCapture(
         m.hotelId,
       ],
     });
+    // Linked B2B booking changes in the SAME verified-capture batch. Test mode
+    // and late capture never become real marketplace confirmations.
+    unit.writes.push({
+      sql: "UPDATE MPBooking SET status=?,paymentStatus=?,revision=revision+1 WHERE hotelStayId=? AND status='HELD'",
+      values: [
+        confirm ? "CONFIRMED" : "EXPIRED",
+        confirm ? "PROVIDER_VERIFIED" : "UNPAID",
+        s.id,
+      ],
+    });
     hotelAudit(
       unit,
       m.hotelId,

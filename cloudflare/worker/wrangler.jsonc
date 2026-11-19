@@ -41,6 +41,7 @@
     "PUBLIC_SITE_URL": "https://travel-booking-dnn.pages.dev",
     "SITE_INDEXING_ENABLED": "false",
     "HOTELS_ENABLED": "true",
+    "PAID_AI_ENABLED": "false",
     "HOTEL_BOOKING_ENABLED": "true",
     "HOTEL_LIVE_PAYMENTS_APPROVED": "false",
     "WHATSAPP_LIVE_SEND_APPROVED": "false",

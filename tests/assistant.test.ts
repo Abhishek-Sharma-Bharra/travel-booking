@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import {
   fictionalExtraction,
@@ -110,4 +110,13 @@ test("WhatsApp uses explicit international phones and safely encodes the reviewe
   assert.equal(url.origin, "https://wa.me");
   assert.equal(url.pathname, "/12025550123");
   assert.equal(url.searchParams.get("text"), draft);
+});
+
+const priorPaidFlag = process.env.PAID_AI_ENABLED;
+before(() => {
+  process.env.PAID_AI_ENABLED = "true";
+});
+after(() => {
+  if (priorPaidFlag === undefined) delete process.env.PAID_AI_ENABLED;
+  else process.env.PAID_AI_ENABLED = priorPaidFlag;
 });

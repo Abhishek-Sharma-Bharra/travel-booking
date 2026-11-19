@@ -89,6 +89,9 @@ export default function HotelConsole({
   return (
     <main className="hotel-shell hotel-branded">
       <HotelBrandHeader />
+      <a className="btn secondary" href="/operator">
+        Marketplace listing &amp; agency requests
+      </a>
       <header className="hotel-header">
         <div>
           <span className="eyebrow">VASHISHT TRAVELOS</span>

@@ -8,11 +8,15 @@ export default function Login() {
   const formRef = useRef<HTMLFormElement>(null);
   const [notice, setNotice] = useState("");
   const [hotelIntent, setHotelIntent] = useState(false);
+  const [operatorIntent, setOperatorIntent] = useState(false);
   const [signup, setSignup] = useState(false),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useEffect(() => {
     setSignup(new URLSearchParams(location.search).has("signup"));
+    setOperatorIntent(
+      new URLSearchParams(location.search).get("next") === "operator",
+    );
     setHotelIntent(
       new URLSearchParams(location.search).get("next") === "hotelier",
     );
@@ -79,10 +83,15 @@ export default function Login() {
         "twoFactorRedirect" in result.data &&
         result.data.twoFactorRedirect
       ) {
-        location.href =
-          next === "hotelier" || next === "hotel-admin"
-            ? "/two-factor?next=" + next
-            : "/two-factor";
+        location.href = [
+          "hotelier",
+          "hotel-admin",
+          "operator",
+          "marketplace",
+          "marketplace-admin",
+        ].includes(next || "")
+          ? "/two-factor?next=" + next
+          : "/two-factor";
         return;
       }
       if (!result.data?.user?.id)
@@ -124,7 +133,7 @@ export default function Login() {
         >
           <a
             href={signup ? "/login?signup=1" : "/login"}
-            aria-current={!hotelIntent ? "page" : undefined}
+            aria-current={!hotelIntent && !operatorIntent ? "page" : undefined}
           >
             Travel agency
           </a>
@@ -136,25 +145,43 @@ export default function Login() {
           >
             Hotel owner
           </a>
+          <a
+            href={
+              signup ? "/login?signup=1&next=operator" : "/login?next=operator"
+            }
+            aria-current={operatorIntent ? "page" : undefined}
+          >
+            Bus / car operator
+          </a>
         </nav>
         <span className="eyebrow">
-          {hotelIntent ? "HOTEL OWNER WORKSPACE" : "TRAVEL AGENCY WORKSPACE"}
+          {operatorIntent
+            ? "BUS & CAR OPERATOR WORKSPACE"
+            : hotelIntent
+              ? "HOTEL OWNER WORKSPACE"
+              : "TRAVEL AGENCY WORKSPACE"}
         </span>
         <h1>
-          {hotelIntent
+          {operatorIntent
             ? signup
-              ? "Create your hotel-owner account."
-              : "Hotel owner sign in."
-            : signup
-              ? "Let’s build your agency."
-              : "Travel agency sign in."}
+              ? "Create your operator account."
+              : "Operator sign in."
+            : hotelIntent
+              ? signup
+                ? "Create your hotel-owner account."
+                : "Hotel owner sign in."
+              : signup
+                ? "Let’s build your agency."
+                : "Travel agency sign in."}
         </h1>
         <p className="muted">
-          {hotelIntent
-            ? "Manage your property, room inventory and guest requests in the hotel workspace. Use your existing account or register; verified email is required."
-            : signup
-              ? "A dedicated workspace for your team and your journeys."
-              : "Your journeys, people and numbers, together."}
+          {operatorIntent
+            ? "Register your bus or car business, manage vehicles and respond to charter requests."
+            : hotelIntent
+              ? "Manage your property, room inventory and guest requests in the hotel workspace. Use your existing account or register; verified email is required."
+              : signup
+                ? "A dedicated workspace for your team and your journeys."
+                : "Your journeys, people and numbers, together."}
         </p>
         <form
           ref={formRef}
@@ -216,9 +243,11 @@ export default function Login() {
         <div className="auth-help">
           <Link
             href={
-              hotelIntent
-                ? "/forgot-password?next=hotelier"
-                : "/forgot-password"
+              operatorIntent
+                ? "/forgot-password?next=operator"
+                : hotelIntent
+                  ? "/forgot-password?next=hotelier"
+                  : "/forgot-password"
             }
             className="text-button"
           >
@@ -277,9 +306,11 @@ export default function Login() {
         >
           {signup
             ? "Already have an account? Sign in"
-            : hotelIntent
-              ? "New here? Create a hotel account"
-              : "New here? Create an agency"}
+            : operatorIntent
+              ? "New here? Create an operator account"
+              : hotelIntent
+                ? "New here? Create a hotel account"
+                : "New here? Create an agency"}
         </button>
         <Link
           className="demo-link"

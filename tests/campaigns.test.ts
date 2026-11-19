@@ -42,7 +42,9 @@ async function scoped<T>(fn: () => Promise<T>, override = binding) {
     }
   });
 }
+const priorPaidFlag = process.env.PAID_AI_ENABLED;
 before(async () => {
+  process.env.PAID_AI_ENABLED = "true";
   binding = await mf.getD1Database("DB");
   const { unstable_splitSqlQuery } = await import("wrangler");
   for (const file of (await readdir("cloudflare/d1/migrations"))
@@ -55,6 +57,8 @@ before(async () => {
     );
 });
 after(async () => {
+  if (priorPaidFlag === undefined) delete process.env.PAID_AI_ENABLED;
+  else process.env.PAID_AI_ENABLED = priorPaidFlag;
   await mf.dispose();
   await db.$disconnect();
 });

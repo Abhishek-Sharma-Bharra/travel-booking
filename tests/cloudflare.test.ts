@@ -357,3 +357,40 @@ test("hotel JSON endpoints reject HTML upstream failures while OAuth redirects r
   );
   assert.equal(redirect.status, 302);
 });
+
+test("only public marketplace plan prices may be cached; booking and CSV responses stay private", async () => {
+  const binding = {
+    fetch: async () =>
+      Response.json(
+        { plans: [] },
+        { headers: { "Cache-Control": "public,max-age=3600" } },
+      ),
+  };
+  const env = {
+    PUBLIC_ORIGIN: origin,
+    ASSETS: binding,
+    TRAVELOS_BACKEND: binding,
+  };
+  for (const [path, cache] of [
+    ["/api/marketplace/plans", "public, max-age=60"],
+    ["/api/marketplace", "private, no-store"],
+  ] as const) {
+    const response = await gateway.fetch(new Request(origin + path), env);
+    assert.equal(response.headers.get("cache-control"), cache);
+  }
+  const csv = await gateway.fetch(
+    new Request(origin + "/api/marketplace/report"),
+    {
+      ...env,
+      TRAVELOS_BACKEND: {
+        fetch: async () =>
+          new Response("id,amount", {
+            headers: { "Content-Type": "text/csv" },
+          }),
+      },
+    },
+  );
+  assert.equal(csv.status, 200);
+  assert.equal(await csv.text(), "id,amount");
+  assert.equal(csv.headers.get("cache-control"), "private, no-store");
+});

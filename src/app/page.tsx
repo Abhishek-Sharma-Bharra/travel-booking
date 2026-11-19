@@ -1,10 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
+import MarketplacePricing from "@/components/marketplace-pricing";
 import {
   ArrowUpRight,
   Check,
   Building2,
   BriefcaseBusiness,
+  Bus,
+  Car,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing";
 import { publicMetadata, publicOrigin } from "@/lib/seo";
@@ -49,7 +52,7 @@ export default function Home() {
             <span className="live-dot" /> YOUR BUSINESS, CONNECTED
           </span>
           <p className="hero-product-category">
-            Travel agency CRM &amp; hotel management workspaces
+            Travel CRM, hotel stays &amp; vehicle charter operations
           </p>
           <h1>
             Less admin.
@@ -58,9 +61,9 @@ export default function Home() {
           </h1>
           <p>
             Vashisht TravelOS brings travel enquiries, packages, quotations,
-            bookings and collections together. Hotel owners have a separate
-            workspace for property registration, room inventory and guest
-            enquiries.
+            bookings and collections together. Hotel, bus and car businesses can
+            manage inventory and supplier requests in their own workspace, all
+            within one connected platform.
           </p>
           <div className="hero-actions">
             <Link href="/demo" className="btn primary">
@@ -132,8 +135,110 @@ export default function Home() {
               </Link>
             </article>
           )}
+          <article>
+            <Bus size={28} />
+            <h3>Bus operators</h3>
+            <p>
+              Register your fleet, manage charter dates, assign drivers and
+              respond to full-bus booking requests.
+            </p>
+            <Link className="btn secondary" href="/operator">
+              Bus operator workspace <ArrowUpRight size={16} />
+            </Link>
+            <Link
+              className="workspace-signin"
+              href="/login?signup=1&next=operator"
+            >
+              Create an operator account
+            </Link>
+          </article>
+          <article>
+            <Car size={28} />
+            <h3>Car rental businesses</h3>
+            <p>
+              Set vehicle rates and availability, review rental requests and
+              track your bookings and expenses.
+            </p>
+            <Link className="btn secondary" href="/operator?kind=CAR">
+              Car rental workspace <ArrowUpRight size={16} />
+            </Link>
+            <Link className="workspace-signin" href="/login?next=operator">
+              Operator sign in
+            </Link>
+          </article>
         </nav>
       </section>
+      <section className="market-section" aria-labelledby="services-title">
+        <span className="eyebrow">ONE PLATFORM FOR TRAVEL BUSINESSES</span>
+        <h2 id="services-title">Your operations, connected.</h2>
+        <div className="market-service-grid">
+          <article id="agency-crm" className="panel">
+            <h3>Travel Agency CRM</h3>
+            <p>
+              Capture enquiries, build packages and quotations, manage bookings
+              and collections, and understand your reports.
+            </p>
+            <Link className="btn secondary" href="/workspace">
+              Open agency workspace
+            </Link>
+          </article>
+          <article id="hotels" className="panel">
+            <h3>Hotel Management &amp; Booking</h3>
+            <p>
+              Register your property, manage rooms and nightly rates, and review
+              reservations, guests and inventory. Approved hotels can receive
+              agency booking requests.
+            </p>
+            <Link className="btn secondary" href="/hotelier">
+              Hotel dashboard
+            </Link>
+          </article>
+          <article id="bus-charters" className="panel">
+            <h3>Bus Operator Management &amp; Booking</h3>
+            <p>
+              Offer complete 26, 35, 40 or 50-seater charters, or a custom
+              capacity. Manage trip pricing, dates, drivers and booking
+              requests.
+            </p>
+            <Link className="btn secondary" href="/operator">
+              Bus operator dashboard
+            </Link>
+          </article>
+          <article id="car-rental" className="panel">
+            <h3>Car Rental</h3>
+            <p>
+              List your vehicles, set trip or kilometer rates, block unavailable
+              dates and respond to full-vehicle rental requests.
+            </p>
+            <Link className="btn secondary" href="/operator">
+              Car rental dashboard
+            </Link>
+          </article>
+          <article id="ai-assistant" className="panel">
+            <h3>AI Booking Assistant</h3>
+            <p>
+              Existing package and hotel guides use published facts and
+              backend-verified prices. Paid AI, WhatsApp and third-party APIs
+              are off by default; guided booking remains available.
+            </p>
+            <Link className="btn secondary" href="/marketplace">
+              Explore booking partners
+            </Link>
+          </article>
+          <article className="panel">
+            <h3>Travel Agency Cross-booking</h3>
+            <p>
+              Find approved hotels, buses and cars. Review a fresh quote and
+              track your supplier requests without sharing unrelated customer
+              records.
+            </p>
+            <Link className="btn primary" href="/marketplace">
+              Search the marketplace
+            </Link>
+          </article>
+        </div>
+      </section>
+      <MarketplacePricing />
       <section className="landing-features">
         {[
           [

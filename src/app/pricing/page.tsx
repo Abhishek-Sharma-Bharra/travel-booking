@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MarketplacePricing from "@/components/marketplace-pricing";
 import MarketingPage, { DemoCallout } from "@/components/marketing";
 import { planLimits } from "@/lib/subscriptions";
 import { publicMetadata } from "@/lib/seo";
@@ -12,9 +13,15 @@ export default function Pricing() {
     <MarketingPage
       path="/pricing"
       eyebrow="PLANS FOR YOUR AGENCY"
-      title="Choose the capacity. Agree the costs."
-      intro="Subscription prices are available on request. Confirm your requirements, fees and support terms in writing before purchasing."
+      title="Choose your business plan."
+      intro="Explore proposed business subscriptions, then confirm fees, taxes and support in writing. Existing customer contracts remain unchanged."
     >
+      <MarketplacePricing />
+      <h2>Legacy CRM capacity and custom upgrades</h2>
+      <p>
+        Existing Starter, Growth and Professional capacity agreements are
+        managed separately; request a written quote before changing them.
+      </p>
       <section className="marketing-grid" aria-label="Plan comparison">
         {Object.entries(planLimits).map(([name, limits]) => (
           <article className="marketing-card pricing-card" key={name}>

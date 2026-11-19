@@ -59,6 +59,7 @@ async function scoped<T>(fn: () => Promise<T>) {
   });
 }
 before(async () => {
+  process.env.PAID_AI_ENABLED = "true";
   process.env.WRANGLER_LOG_PATH ||= ".local/cloudflare-logs";
   process.env.HOTELS_ENABLED = "true";
   process.env.HOTEL_BOOKING_ENABLED = "true";
@@ -77,6 +78,7 @@ before(async () => {
 });
 after(async () => {
   for (const k of [
+    "PAID_AI_ENABLED",
     "HOTELS_ENABLED",
     "HOTEL_BOOKING_ENABLED",
     "HOTEL_AI_API_KEY",

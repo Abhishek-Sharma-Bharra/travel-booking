@@ -4,6 +4,7 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 export default function Reset() {
   const [hotelIntent, setHotelIntent] = useState(false);
+  const [operatorIntent, setOperatorIntent] = useState(false);
   const [token, setToken] = useState(""),
     [busy, setBusy] = useState(false),
     [done, setDone] = useState(false),
@@ -12,6 +13,7 @@ export default function Reset() {
     const query = new URLSearchParams(location.search);
     setToken(query.get("token") || "");
     setHotelIntent(query.get("next") === "hotelier");
+    setOperatorIntent(query.get("next") === "operator");
     if (query.get("error"))
       setError(
         "This password-reset link is invalid or expired. Request a new one.",
@@ -28,7 +30,13 @@ export default function Reset() {
               Password changed. All previous sessions have been revoked.
             </p>
             <Link
-              href={hotelIntent ? "/login?next=hotelier" : "/login"}
+              href={
+                operatorIntent
+                  ? "/login?next=operator"
+                  : hotelIntent
+                    ? "/login?next=hotelier"
+                    : "/login"
+              }
               className="btn primary"
             >
               Sign in
@@ -72,9 +80,11 @@ export default function Reset() {
                 history.replaceState(
                   null,
                   "",
-                  hotelIntent
-                    ? "/reset-password?next=hotelier"
-                    : "/reset-password",
+                  operatorIntent
+                    ? "/reset-password?next=operator"
+                    : hotelIntent
+                      ? "/reset-password?next=hotelier"
+                      : "/reset-password",
                 );
                 setToken("");
                 setDone(true);
@@ -121,9 +131,11 @@ export default function Reset() {
             <Link
               className="text-button"
               href={
-                hotelIntent
-                  ? "/forgot-password?next=hotelier"
-                  : "/forgot-password"
+                operatorIntent
+                  ? "/forgot-password?next=operator"
+                  : hotelIntent
+                    ? "/forgot-password?next=hotelier"
+                    : "/forgot-password"
               }
             >
               Request a new link

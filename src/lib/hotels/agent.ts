@@ -1,3 +1,4 @@
+import { paidAiEnabled } from "../paid-services";
 import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { d1Binding } from "../db";
@@ -79,7 +80,7 @@ export async function hotelChat(
             : "rooms";
   let aiUsed = false;
   const key = process.env.HOTEL_AI_API_KEY || process.env.AI_API_KEY;
-  if (v.aiConsent && key) {
+  if (paidAiEnabled() && v.aiConsent && key) {
     const unit = new D1Unit(binding),
       day = now.slice(0, 10);
     unit.guard(

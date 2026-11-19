@@ -1,3 +1,4 @@
+import { paidAiEnabled } from "../paid-services";
 import { z } from "zod";
 import { chatSchema, priceSummary, type PublicCampaign } from "./contracts";
 import { minimiseMessage } from "../ai-provider";
@@ -50,7 +51,7 @@ export async function campaignReply(
   // The model classifies intent only. It cannot emit customer-facing facts,
   // prices, policy prose, links, SQL or booking actions. All replies below are
   // assembled from the current approved server snapshot.
-  if (v.aiConsent && process.env.AI_API_KEY) {
+  if (paidAiEnabled() && v.aiConsent && process.env.AI_API_KEY) {
     try {
       const response = await transport(
         "https://api.openai.com/v1/chat/completions",

@@ -128,8 +128,6 @@ export async function publicHotels(destination = "") {
     orderBy: { name: "asc" },
   });
 }
-const usedSql =
-  'SELECT COALESCE(SUM(n.rooms),0) AS n FROM "HotelStayNight" n JOIN "HotelStayRequest" s ON s.id=n."stayId" AND s."hotelId"=n."hotelId" WHERE n."hotelId"=? AND n."roomId"=? AND n.day=? AND (s.status=\'CONFIRMED\' OR (s.status=\'HELD\' AND s."holdUntil">?))';
 async function quoteInUnit(unit: D1Unit, hotelId: string, input: unknown) {
   const v = staySchema.parse(input),
     hotel = (await unit.read<Hotel>("Hotel", '"id"=?', [hotelId]))[0];
@@ -182,38 +180,40 @@ async function quoteInUnit(unit: D1Unit, hotelId: string, input: unknown) {
   const now = new Date().toISOString();
   let subtotal = 0,
     available = room.totalRooms;
+  const usedRows = (
+    await unit.db
+      .prepare(
+        `SELECT n.day,SUM(n.rooms) used FROM "HotelStayNight" n JOIN "HotelStayRequest" s ON s.id=n."stayId" AND s."hotelId"=n."hotelId" WHERE n."hotelId"=? AND n."roomId"=? AND n.day>=? AND n.day<? AND (s.status='CONFIRMED' OR (s.status='HELD' AND s."holdUntil">?)) GROUP BY n.day`,
+      )
+      .bind(hotelId, room.id, v.checkIn, v.checkOut, now)
+      .all<{ day: string; used: number }>()
+  ).results;
+  const usedByDay = new Map(usedRows.map((n) => [n.day, Number(n.used)]));
   for (const n of rows) {
-    const used = Number(
-      (
-        await unit.db
-          .prepare(usedSql)
-          .bind(hotelId, room.id, n.day, now)
-          .first<{ n: number }>()
-      )?.n || 0,
-    );
+    const used = usedByDay.get(n.day) || 0;
     if (n.allotment > room.totalRooms || n.allotment - used < v.rooms)
       throw new HttpError(409, "Not enough rooms remain for these dates");
     available = Math.min(available, n.allotment - used);
     subtotal += n.ratePaise * v.rooms;
-    unit.guard(
-      'SELECT revision=? FROM "HotelRoomNight" WHERE "hotelId"=? AND "roomId"=? AND day=?',
-      n.revision,
-      hotelId,
-      room.id,
-      n.day,
-    );
-    unit.guard(
-      `SELECT (${usedSql})+? <= (SELECT allotment FROM "HotelRoomNight" WHERE "hotelId"=? AND "roomId"=? AND day=?)`,
-      hotelId,
-      room.id,
-      n.day,
-      now,
-      v.rooms,
-      hotelId,
-      room.id,
-      n.day,
-    );
   }
+  // Guard every nightly revision and aggregate capacity inside the same native
+  // batch without issuing two queries per night (important on Workers Free).
+  unit.guard(
+    `SELECT COUNT(*)=? FROM "HotelRoomNight" n JOIN json_each(?) j ON n.day=json_extract(j.value,'$.day') AND n.revision=json_extract(j.value,'$.revision') WHERE n."hotelId"=? AND n."roomId"=?`,
+    rows.length,
+    JSON.stringify(rows.map((n) => ({ day: n.day, revision: n.revision }))),
+    hotelId,
+    room.id,
+  );
+  unit.guard(
+    `SELECT COUNT(*)=0 FROM "HotelRoomNight" r WHERE r."hotelId"=? AND r."roomId"=? AND r.day>=? AND r.day<? AND r.allotment < ? + (SELECT COALESCE(SUM(n.rooms),0) FROM "HotelStayNight" n JOIN "HotelStayRequest" s ON s.id=n."stayId" AND s."hotelId"=n."hotelId" WHERE n."hotelId"=r."hotelId" AND n."roomId"=r."roomId" AND n.day=r.day AND (s.status='CONFIRMED' OR (s.status='HELD' AND s."holdUntil">?)))`,
+    hotelId,
+    room.id,
+    v.checkIn,
+    v.checkOut,
+    v.rooms,
+    now,
+  );
   const tax = Number(
       (BigInt(subtotal) * BigInt(hotel.taxBps) + 5000n) / 10000n,
     ),
@@ -283,6 +283,10 @@ export async function holdHotelRoom(
   hotelId: string,
   input: unknown,
   existingSecret?: string,
+  onReserved?: (
+    unit: D1Unit,
+    stay: { id: string; holdUntil: string },
+  ) => Promise<void>,
 ) {
   requireHotelBooking();
   const v = holdSchema.parse(input),
@@ -374,11 +378,16 @@ export async function holdHotelRoom(
       now,
     ],
   });
-  for (const n of rows)
-    unit.writes.push({
-      sql: 'INSERT INTO "HotelStayNight" ("stayId","hotelId","roomId",day,rooms,"ratePaise") VALUES (?,?,?,?,?,?)',
-      values: [id, hotelId, v.stay.roomId, n.day, v.stay.rooms, n.ratePaise],
-    });
+  unit.writes.push({
+    sql: `INSERT INTO "HotelStayNight" ("stayId","hotelId","roomId",day,rooms,"ratePaise") SELECT ?,?,?,json_extract(value,'$.day'),?,json_extract(value,'$.ratePaise') FROM json_each(?)`,
+    values: [
+      id,
+      hotelId,
+      v.stay.roomId,
+      v.stay.rooms,
+      JSON.stringify(rows.map((n) => ({ day: n.day, ratePaise: n.ratePaise }))),
+    ],
+  });
   hotelAudit(unit, hotelId, "customer", "ROOM_HOLD_CREATED", 0, {
     stayId: id,
     rooms: v.stay.rooms,
@@ -386,6 +395,7 @@ export async function holdHotelRoom(
     checkOut: v.stay.checkOut,
     total: quote.total,
   });
+  if (onReserved) await onReserved(unit, { id, holdUntil });
   await unit.commit();
   return {
     secret,
@@ -476,41 +486,40 @@ export async function updateHotelInventory(
   const days = nightsBetween(v.from, v.to);
   if (v.from < calendarDate(new Date(), hotel.timezone))
     throw new HttpError(400, "Past inventory cannot be changed");
-  for (const day of days) {
-    const used = Number(
-      (
-        await unit.db
-          .prepare(usedSql)
-          .bind(hotelId, room.id, day, new Date().toISOString())
-          .first<{ n: number }>()
-      )?.n || 0,
+  const capacitySql = `SELECT NOT EXISTS (SELECT n.day FROM "HotelStayNight" n JOIN "HotelStayRequest" s ON s.id=n."stayId" AND s."hotelId"=n."hotelId" WHERE n."hotelId"=? AND n."roomId"=? AND n.day>=? AND n.day<? AND (s.status='CONFIRMED' OR (s.status='HELD' AND s."holdUntil">?)) GROUP BY n.day HAVING SUM(n.rooms)>?) AS ok`;
+  const capacityValues = [
+    hotelId,
+    room.id,
+    v.from,
+    v.to,
+    new Date().toISOString(),
+    v.allotment,
+  ];
+  if (
+    !(
+      await unit.db
+        .prepare(capacitySql)
+        .bind(...capacityValues)
+        .first<{ ok: number }>()
+    )?.ok
+  )
+    throw new HttpError(
+      409,
+      "Existing holds or reservations exceed the proposed allotment",
     );
-    if (v.allotment < used)
-      throw new HttpError(
-        409,
-        "Existing holds or reservations exceed the proposed allotment",
-      );
-    unit.guard(
-      `SELECT (${usedSql})<=?`,
+  unit.guard(capacitySql, ...capacityValues);
+  unit.writes.push({
+    sql: `INSERT INTO "HotelRoomNight" ("hotelId","roomId",day,allotment,"ratePaise","minStay",closed) SELECT ?,?,value,?,?,?,? FROM json_each(?) WHERE 1 ON CONFLICT("roomId",day) DO UPDATE SET allotment=excluded.allotment,"ratePaise"=excluded."ratePaise","minStay"=excluded."minStay",closed=excluded.closed,revision=revision+1`,
+    values: [
       hotelId,
       room.id,
-      day,
-      new Date().toISOString(),
       v.allotment,
-    );
-    unit.writes.push({
-      sql: 'INSERT INTO "HotelRoomNight" ("hotelId","roomId",day,allotment,"ratePaise","minStay",closed) VALUES (?,?,?,?,?,?,?) ON CONFLICT("roomId",day) DO UPDATE SET allotment=excluded.allotment,"ratePaise"=excluded."ratePaise","minStay"=excluded."minStay",closed=excluded.closed,revision=revision+1',
-      values: [
-        hotelId,
-        room.id,
-        day,
-        v.allotment,
-        v.ratePaise,
-        v.minStay,
-        v.closed ? 1 : 0,
-      ],
-    });
-  }
+      v.ratePaise,
+      v.minStay,
+      v.closed ? 1 : 0,
+      JSON.stringify(days),
+    ],
+  });
   hotelAudit(unit, hotelId, userId, "INVENTORY_UPDATED", hotel.revision, {
     roomId: room.id,
     from: v.from,

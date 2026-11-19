@@ -1,10 +1,11 @@
+import { paidAiEnabled } from "./paid-services";
 import { extractionSchema } from "./assistant";
 import { HttpError } from "./http";
 export async function extractMessage(
   message: string,
   transport: typeof fetch = fetch,
 ) {
-  if (!process.env.AI_API_KEY)
+  if (!paidAiEnabled() || !process.env.AI_API_KEY)
     throw new HttpError(
       503,
       "Live AI is not configured. Your message is retained; use manual entry or the fictional preview.",

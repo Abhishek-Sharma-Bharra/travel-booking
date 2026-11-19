@@ -42,7 +42,7 @@ export default {
     // Application APIs are JSON-only. Keep OAuth/auth redirects and webhook
     // challenge responses untouched; they legitimately return other formats.
     const jsonApi =
-      /^\/api\/(?:action|data|hotelier|admin|public|analytics|assistant|automation|tour|campaigns|invitations|health|payments)(?:\/|$)/.test(
+      /^\/api\/(?:action|data|hotelier|admin|public|analytics|assistant|automation|tour|campaigns|invitations|health|payments|marketplace)(?:\/|$)/.test(
         path,
       ) ||
       path === "/api/messaging" ||
@@ -85,6 +85,7 @@ export default {
     }
     if (
       jsonApi &&
+      path !== "/api/marketplace/report" &&
       !/^application\/(?:[a-z0-9.+-]+\+)?json(?:\s*;|$)/i.test(
         response.headers.get("Content-Type") || "",
       )
@@ -93,7 +94,12 @@ export default {
       return unavailable("BACKEND_NON_JSON_RESPONSE", response.status);
     }
     const headers = new Headers(response.headers);
-    headers.set("Cache-Control", "private, no-store");
+    headers.set(
+      "Cache-Control",
+      path === "/api/marketplace/plans" && response.status === 200
+        ? "public, max-age=60"
+        : "private, no-store",
+    );
     if (requestId) headers.set("X-TravelOS-Request-ID", requestId);
     headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     return new Response(response.body, {

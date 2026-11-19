@@ -1005,6 +1005,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         <button className="studio-create" onClick={() => enquiryForm()}>
           <Plus size={17} /> Create enquiry <span>+</span>
         </button>
+        <Link className="nav-item" href="/marketplace">
+          Hotel, bus &amp; car marketplace
+        </Link>
+        <Link className="nav-item" href="/operator">
+          Supplier booking requests
+        </Link>
         <nav aria-label="Workspace navigation">
           {navigation.map((g) => (
             <div key={g.group}>

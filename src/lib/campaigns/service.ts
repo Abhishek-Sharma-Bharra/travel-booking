@@ -1,3 +1,4 @@
+import { paidAiEnabled } from "../paid-services";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Agency, User, Package, Prisma } from "@prisma/client";
 import type { D1Database } from "@cloudflare/workers-types";
@@ -186,7 +187,7 @@ export async function getPublicCampaign(slug: string): Promise<PublicCampaign> {
     expiresAt: c.expiresAt,
     taxBps: c.taxBps,
     offers: z.array(offerSchema).min(1).max(12).parse(JSON.parse(c.snapshot)),
-    aiAvailable: !!process.env.AI_API_KEY,
+    aiAvailable: paidAiEnabled() && !!process.env.AI_API_KEY,
     timezone: agency.timezone,
   };
 }
