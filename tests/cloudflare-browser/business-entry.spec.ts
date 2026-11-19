@@ -2,6 +2,15 @@ import { test, expect } from "@playwright/test";
 test("agency, hotel owner and guest entry points are explicit and keep their own navigation", async ({
   page,
 }) => {
+  const serverFailures: string[] = [];
+  const pageErrors: string[] = [];
+  page.on("response", (response) => {
+    if (response.status() >= 500)
+      serverFailures.push(
+        `${response.status()} ${new URL(response.url()).pathname}`,
+      );
+  });
+  page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("/");
   const business = page.getByRole("navigation", {
       name: "Choose your business workspace",
@@ -39,6 +48,23 @@ test("agency, hotel owner and guest entry points are explicit and keep their own
     .getByRole("link", { name: "Hotel owners", exact: true })
     .click();
   await expect(page).toHaveURL(/\/hotel-business$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Your hotel workspace.",
+  );
+  // The supplied WebP is already compressed. Owner entry must work without
+  // Cloudflare Images, which is intentionally not provisioned on this app.
+  const welcomeImage = page.locator(".hotel-welcome-photo img");
+  await expect(welcomeImage).not.toHaveAttribute("src", /\/_next\/image/);
+  await expect
+    .poll(() =>
+      welcomeImage.evaluate(
+        (image) =>
+          (image as HTMLImageElement).complete &&
+          (image as HTMLImageElement).naturalWidth > 0,
+      ),
+    )
+    .toBe(true);
+  await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Your hotel workspace.",
   );
@@ -95,6 +121,8 @@ test("agency, hotel owner and guest entry points are explicit and keep their own
         fullPage: true,
       });
   }
+  expect(serverFailures).toEqual([]);
+  expect(pageErrors).toEqual([]);
 });
 test("hotel password recovery preserves the hotel destination and agency recovery keeps its default", async ({
   page,

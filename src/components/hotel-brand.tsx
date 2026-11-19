@@ -78,6 +78,7 @@ export function HotelWelcomeImage() {
       <figure className="hotel-welcome-photo">
         <Image
           src={hotelLounge}
+          unoptimized
           alt=""
           fill
           sizes="(max-width: 700px) 100vw, (max-width: 1300px) 60vw, 760px"
