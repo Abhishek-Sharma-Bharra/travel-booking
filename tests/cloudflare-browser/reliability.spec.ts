@@ -101,6 +101,10 @@ test("light homepage explains the product before workspace choice and has readab
         (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
       ),
     ).toBe(true);
+    if (width < 951)
+      await page
+        .getByRole("button", { name: "Open navigation", exact: true })
+        .click();
     const colors = await page
       .getByRole("navigation", { name: "Main navigation" })
       .getByRole("link", { name: "Agency sign in", exact: true })

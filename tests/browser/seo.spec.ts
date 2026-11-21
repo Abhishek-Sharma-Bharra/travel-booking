@@ -74,11 +74,17 @@ test("public marketing pages have distinct server-rendered SEO and honest pricin
     "/guides/enquiry-to-booking",
   ]) {
     await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 1,
       ),
     ).toBe(true);
+    const menu = page.getByRole("button", {
+      name: "Open navigation",
+      exact: true,
+    });
+    if (await menu.isVisible()) await menu.click();
     await expect(
       page
         .getByRole("navigation", { name: "Main navigation" })

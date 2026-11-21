@@ -1,5 +1,5 @@
 import Link from "next/link";
-import MarketplacePricing from "@/components/marketplace-pricing";
+import { proposedAgencyOffers } from "@/lib/public-offers";
 import MarketingPage, { DemoCallout } from "@/components/marketing";
 import { planLimits } from "@/lib/subscriptions";
 import { publicMetadata } from "@/lib/seo";
@@ -16,7 +16,39 @@ export default function Pricing() {
       title="Choose your business plan."
       intro="Explore proposed business subscriptions, then confirm fees, taxes and support in writing. Existing customer contracts remain unchanged."
     >
-      <MarketplacePricing />
+      <section
+        className="marketing-grid"
+        aria-label="Proposed agency subscriptions"
+      >
+        {proposedAgencyOffers.map((plan) => (
+          <article className="marketing-card pricing-card" key={plan.name}>
+            <h2>{plan.name}</h2>
+            <p className="marketing-price">₹{plan.price} / month</p>
+            <p>Proposed offer · Checkout not active</p>
+            <ul>
+              {plan.features.map((feature) => (
+                <li key={feature}>{feature}</li>
+              ))}
+            </ul>
+            <Link href="/login?signup=1" className="btn secondary">
+              Start an agency trial
+            </Link>
+          </article>
+        ))}
+      </section>
+      <section className="marketing-copy">
+        <h2>Subscription-only offers, without booking commissions</h2>
+        <p>
+          These are proposed new agency offers. Hotel and transport plans are
+          configured separately. Confirm entitlements, AI credits, applicable
+          taxes and annual terms in writing. Checkout for these offers is not
+          active. Existing contracts, marketplace agreements and historical
+          ledgers remain unchanged until an explicit transition is accepted.
+        </p>
+        <Link href="/contact" className="btn secondary">
+          Discuss hotel and transport plans
+        </Link>
+      </section>
       <h2>Legacy CRM capacity and custom upgrades</h2>
       <p>
         Existing Starter, Growth and Professional capacity agreements are
