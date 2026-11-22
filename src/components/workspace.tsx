@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
+import AgencyStudioWelcome from "./agency-studio-welcome";
 import { readApiJson } from "@/lib/api-response";
 import dynamic from "next/dynamic";
 import {
@@ -15,6 +16,10 @@ const loadingPanel = () => (
   <p role="status" aria-live="polite">
     Loading this section…
   </p>
+);
+const WorkspaceAssistantConsole = dynamic(
+  () => import("./workspace-assistant-console"),
+  { loading: loadingPanel },
 );
 const BookingDocument = dynamic(() => import("./booking-document"));
 const AgencyOperations = dynamic(() => import("./agency-operations"), {
@@ -198,6 +203,9 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     values?: Record<string, unknown>;
     extra?: Record<string, unknown>;
   } | null>(null);
+  const [assistantSelection, setAssistantSelection] = useState<
+    { leadId: string; packageId: string } | undefined
+  >();
   const [travelDocument, setTravelDocument] = useState<Booking | null>(null);
   const [salesFocus, setSalesFocus] = useState<string | null>(null);
   useEffect(() => {
@@ -1016,7 +1024,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     }
   }
   return (
-    <div className="app-shell studio-workspace premium-workspace">
+    <div className="app-shell studio-workspace premium-workspace agency-studio">
       <aside className={`sidebar ${menu ? "open" : ""}`}>
         <Link href="/" className="brand">
           <Compass size={34} />
@@ -1271,6 +1279,14 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               </button>
             </section>
           )}
+          {page === "Overview" && (
+            <AgencyStudioWelcome
+              data={data}
+              onPage={changePage}
+              onEnquiry={() => enquiryForm()}
+              onPackage={() => packageForm()}
+            />
+          )}
           <div
             className={
               showWorkspaceFilters
@@ -1388,6 +1404,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 (data.access.workspaceOperationsEnabled && !data.demo ? (
                   <ItineraryBuilder
                     data={data}
+                    initialSelection={assistantSelection}
                     onDirtyChange={(v) => {
                       pendingItinerary.current = v;
                     }}
@@ -1457,6 +1474,39 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                       </div>
                     </div>
                   </section>
+                  {data.access.workspaceAssistantEnabled && !data.demo && (
+                    <WorkspaceAssistantConsole
+                      data={data}
+                      onReview={(result) => {
+                        const next = result.next;
+                        if (!next) return;
+                        const selected = next.leadId
+                          ? data.leads.find((l) => l.id === next.leadId)
+                          : undefined;
+                        if (result.draft?.kind === "quotation" && selected) {
+                          quotationForm(selected, {
+                            packageId: next.packageId,
+                            proposal: result.draft.text,
+                          });
+                          return;
+                        }
+                        if (
+                          next.page === "Itineraries & costing" &&
+                          next.leadId &&
+                          next.packageId
+                        )
+                          setAssistantSelection({
+                            leadId: next.leadId,
+                            packageId: next.packageId,
+                          });
+                        if (next.page === "Enquiries" && selected) {
+                          setDetail(selected);
+                          return;
+                        }
+                        changePage(next.page);
+                      }}
+                    />
+                  )}
                   <AssistantPanel
                     data={data}
                     onReview={(draft) => enquiryForm(undefined, draft)}

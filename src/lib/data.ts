@@ -105,6 +105,7 @@ export async function workspaceData(a: Actor) {
     },
     access: {
       canViewCosts: a.role !== "AGENT",
+      workspaceAssistantEnabled: process.env.WORKSPACE_ASSISTANT_ENABLED === "true",
       workspaceOperationsEnabled:
         process.env.WORKSPACE_OPERATIONS_ENABLED === "true",
       canWrite: !a.demo && subscriptionAccess(agency),

@@ -26,8 +26,10 @@ export default function ItineraryBuilder({
   data,
   onQuote,
   onDirtyChange,
+  initialSelection,
 }: {
   data: Dataset;
+  initialSelection?: { leadId: string; packageId: string };
   onDirtyChange: (value: boolean) => void;
   onQuote: (input: Record<string, unknown>) => Promise<boolean>;
 }) {
@@ -37,8 +39,12 @@ export default function ItineraryBuilder({
     [doc, setDoc] = useState<Detail | null>(null),
     [versions, setVersions] = useState<Version[]>([]),
     [historical, setHistorical] = useState(false),
-    [leadId, setLeadId] = useState(data.leads[0]?.id || ""),
-    [packageId, setPackageId] = useState(data.packages[0]?.id || ""),
+    [leadId, setLeadId] = useState(
+      initialSelection?.leadId || data.leads[0]?.id || "",
+    ),
+    [packageId, setPackageId] = useState(
+      initialSelection?.packageId || data.packages[0]?.id || "",
+    ),
     [payload, setPayload] = useState<ItineraryPayload | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
