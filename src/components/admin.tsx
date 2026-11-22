@@ -19,7 +19,7 @@ export default function Admin({ initial }: { initial: Agency[] }) {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   return (
-    <main className="page-content">
+    <main className="page-content admin-studio">
       <span className="eyebrow">VERIFIED SERVICE ADMINISTRATOR</span>
       <h1>Client subscriptions</h1>
       <Link className="btn primary" href="/admin/marketplace">

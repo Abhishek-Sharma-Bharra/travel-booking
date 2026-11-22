@@ -1,0 +1,673 @@
+/* Shared screen system derived from the public homepage. No print or data behavior. */
+@media screen {
+  .site-studio .agency-studio .kpi-bars {
+    height: auto;
+    padding: 12px 0;
+    gap: 8px;
+  }
+  .site-studio .agency-studio .kpi-bar {
+    min-height: 40px;
+    padding: 9px 12px;
+    border: 1px solid #e2d8f3;
+    border-radius: 9px;
+    background: #f3eefe;
+    color: #59388e;
+    font:
+      500 12px "Segoe UI",
+      Arial,
+      sans-serif;
+  }
+  .site-studio .agency-studio .kpi-bar[aria-pressed="true"] {
+    background: #6541b7;
+    border-color: #6541b7;
+    color: #fff;
+  }
+  body.premium-theme.light-theme.site-studio {
+    --paper: #f8f7fd;
+    --surface: #fff;
+    --ink: #1b2943;
+    --muted: #65728a;
+    --line: #e7e7f1;
+    --accent: #7044d9;
+    --accent-soft: #f0ebfc;
+    --copper: #7044d9;
+    --copper-strong: #5831ba;
+    --copper-dark: #49269f;
+    --navy: #1b2943;
+    --navy-dark: #15213a;
+    --navy-light: #f0ebfc;
+    background: #f8f7fd;
+    color: #1b2943;
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    ) {
+    --hotel-accent: #7044d9;
+    --hotel-ink: #1b2943;
+    --hotel-muted: #65728a;
+    --hotel-line: #e7e7f1;
+    --accent: #7044d9;
+    --copper: #7044d9;
+    --copper-strong: #5831ba;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #1b2943;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(h1, h2, h3, h4, .brand) {
+    font-family: inherit;
+    color: #1b2943;
+    letter-spacing: -0.035em;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(p, .method-note, .muted) {
+    color: #65728a;
+    line-height: 1.8;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    .eyebrow {
+    color: #7953b2;
+    font-weight: 650;
+    letter-spacing: 1.6px;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(.btn, button.primary) {
+    min-height: 44px;
+    border-radius: 10px;
+    font:
+      600 13px/1.5 "Segoe UI",
+      Arial,
+      sans-serif;
+    box-shadow: none;
+    gap: 9px;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(.btn.primary, button.primary) {
+    color: #fff !important;
+    background: linear-gradient(110deg, #7044d9, #4264d6) !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 5px 14px #7044d919;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    .btn.secondary {
+    background: #fff !important;
+    border: 1px solid #ded8ee !important;
+    color: #344363 !important;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(.text-button, .table-link) {
+    color: #6945b1;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(input, select, textarea) {
+    border: 1px solid #e1dbef;
+    background: #fff;
+    color: #344363;
+    border-radius: 10px;
+    font-family: inherit;
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    padding: 12px 14px;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :is(input[type="checkbox"], input[type="radio"]) {
+    accent-color: #7044d9;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    label {
+    color: #59657c;
+    font-weight: 550;
+  }
+  .site-studio
+    :is(
+      .auth-page,
+      .hotel-shell,
+      .landing:not(.saas-home),
+      .admin-studio,
+      .loading
+    )
+    :focus-visible {
+    outline: 3px solid #8059c2;
+    outline-offset: 3px;
+  }
+  .site-studio
+    :is(.auth-page, .hotel-shell, .landing:not(.saas-home), .admin-studio)
+    :is(
+      .panel,
+      .auth-card,
+      .hotel-content,
+      .hotel-properties,
+      .hotel-review-card
+    ) {
+    background: #fff;
+    border: 1px solid #e7e2f1;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px #34225f04;
+  }
+  .site-studio
+    :is(.hotel-shell, .landing:not(.saas-home), .admin-studio)
+    table
+    th {
+    background: #f8f5fe;
+    color: #68547d;
+    border-color: #e9e2f2;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+  }
+  .site-studio
+    :is(.hotel-shell, .landing:not(.saas-home), .admin-studio)
+    table
+    td {
+    color: #40516a;
+    border-color: #eee9f5;
+  }
+  .site-studio
+    :is(.hotel-shell, .landing:not(.saas-home), .admin-studio)
+    .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+  }
+  .site-studio
+    :is(.hotel-shell, .landing:not(.saas-home), .admin-studio)
+    :is(.market-kpis, .hotel-booking-grid, .marketing-grid)
+    > .panel {
+    border-radius: 18px;
+  }
+  .site-studio :is(.auth-page, .hotel-shell, .landing:not(.saas-home)) .brand {
+    color: #1b2943;
+    font-weight: 650;
+    letter-spacing: -1.2px;
+    gap: 12px;
+  }
+  .site-studio
+    :is(.auth-page, .hotel-shell, .landing:not(.saas-home))
+    .brand
+    > svg {
+    background: #f0e9ff;
+    color: #794add;
+    border-radius: 14px;
+    padding: 9px;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+  }
+  .site-studio
+    :is(.auth-page, .hotel-shell, .landing:not(.saas-home))
+    :is(.brand-sub, .brand small) {
+    color: #756786;
+    font-family: inherit;
+    font-size: 9px;
+    letter-spacing: 3px;
+  }
+  /* Marketing, hotel-business and marketplace entry pages. */
+  .site-studio .landing:not(.saas-home) {
+    max-width: 1408px;
+    padding: 0 40px;
+    background: transparent;
+  }
+  .site-studio .landing:not(.saas-home) .landing-nav {
+    background: #ffffffed;
+    border-bottom: 1px solid #ece7f7;
+    min-height: 88px;
+    margin-bottom: 0;
+    gap: 22px;
+  }
+  .site-studio .landing:not(.saas-home) .marketing-links a {
+    color: #59667e;
+    font-size: 13px;
+    font-weight: 550;
+  }
+  .site-studio
+    :is(.landing:not(.saas-home), .hotel-shell, .auth-page)
+    a:not(.btn):not(.brand):not(.marketing-logo) {
+    color: #6541ad;
+    text-underline-offset: 3px;
+  }
+  .site-studio .landing:not(.saas-home) .marketing-links a[aria-current] {
+    color: #7044d9;
+    background: #f4efff;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .site-studio
+    .landing:not(.saas-home)
+    :is(.marketing-intro, .hotel-business-intro) {
+    padding: 65px 40px;
+    margin: 28px 0 40px;
+    border: 1px solid #e9e0f9;
+    border-radius: 24px;
+    max-width: none;
+    background:
+      radial-gradient(ellipse at 90% 20%, #eae2fc99, transparent 60%),
+      linear-gradient(120deg, #fcfbff, #f7f3ff);
+  }
+  .site-studio
+    .landing:not(.saas-home)
+    :is(.marketing-intro h1, .hotel-business-intro h1) {
+    font-size: clamp(32px, 4.7vw, 58px);
+    font-weight: 600;
+    line-height: 1.16;
+    max-width: 950px;
+    margin: 20px 0;
+  }
+  .site-studio
+    .landing:not(.saas-home)
+    :is(.marketing-intro > p, .hotel-business-intro > p) {
+    max-width: 800px;
+    font-size: 16px;
+    line-height: 1.9;
+  }
+  .site-studio .landing:not(.saas-home) .hotel-business-intro h1 em {
+    font-style: normal;
+    color: #7650ce;
+  }
+  .site-studio
+    .landing:not(.saas-home)
+    :is(
+      .marketing-grid article,
+      .pricing-card,
+      .feature-card,
+      .demo-callout,
+      .marketing-callout,
+      .hotel-benefits article
+    ) {
+    background: #fff;
+    border: 1px solid #e6dff2;
+    border-radius: 18px;
+    box-shadow: 0 5px 24px #39286304;
+  }
+  .site-studio .landing:not(.saas-home) .marketing-callout {
+    background: linear-gradient(110deg, #f1eafd, #f7f5ff);
+    padding: 36px;
+    margin-top: 36px;
+  }
+  .site-studio .landing:not(.saas-home) .marketing-footer {
+    border-top: 1px solid #e7e0f3;
+    margin-top: 60px;
+    color: #65728a;
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+  .site-studio .landing:not(.saas-home) .marketing-footer a {
+    color: #6c558b;
+  }
+  /* Authentication, invitations, legal pages and account recovery. */
+  .site-studio .auth-page {
+    background:
+      radial-gradient(ellipse at 20% 0%, #ebe2fcaa, transparent 45%),
+      radial-gradient(ellipse at 100% 100%, #e9edff80, transparent 40%), #faf9ff;
+    padding: 48px 24px;
+    gap: 0;
+  }
+  .site-studio .auth-page > .brand {
+    margin-bottom: 30px;
+    font-size: 29px;
+  }
+  .site-studio .auth-card {
+    padding: 38px;
+    border-radius: 22px;
+    box-shadow: 0 20px 65px #3928630a;
+    border-color: #e4daf3;
+    width: 480px;
+  }
+  .site-studio .auth-card h1 {
+    font-size: 31px;
+    font-weight: 600;
+    line-height: 1.22;
+    letter-spacing: -1px;
+  }
+  .site-studio .auth-card > .muted {
+    font-size: 14px;
+  }
+  .site-studio .auth-card form {
+    gap: 20px;
+  }
+  .site-studio .auth-card form .btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+  .site-studio .auth-workspace-switch {
+    border-color: #e7dff2;
+    background: #f9f6ff;
+    border-radius: 11px;
+    gap: 5px;
+    padding: 5px;
+  }
+  .site-studio .auth-workspace-switch a {
+    color: #6d617d;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .site-studio .auth-workspace-switch a[aria-current] {
+    background: #efe7ff;
+    color: #6c42bd;
+    border-color: #e2d4f8;
+  }
+  .site-studio .auth-page :is(.auth-help, .auth-foot, .demo-link) {
+    color: #736383;
+    line-height: 1.8;
+  }
+  .site-studio .auth-page > .prose {
+    padding: 38px;
+    border-radius: 22px;
+  }
+  .site-studio .auth-page .prose h2 {
+    font-size: 22px;
+    margin-top: 30px;
+  }
+  /* Native hotel, guest, bus/car and review workspaces. */
+  .site-studio .hotel-shell {
+    max-width: 1408px;
+    padding: 0 40px 48px;
+    background: transparent;
+  }
+  .site-studio .hotel-brand-nav {
+    border-bottom: 1px solid #e7e0f3;
+    min-height: 90px;
+    background: #ffffffb8;
+    border-radius: 0;
+    gap: 20px;
+  }
+  .site-studio .hotel-brand-nav :is(.hotel-brand-area, .hotel-brand-divider) {
+    color: #78678d;
+  }
+  .site-studio .hotel-header {
+    padding: 32px 0;
+    margin-bottom: 16px;
+  }
+  .site-studio .hotel-header h1 {
+    font-size: clamp(29px, 3vw, 41px);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -1.1px;
+  }
+  .site-studio .hotel-header p {
+    font-size: 14px;
+  }
+  .site-studio .hotel-branded .hotel-welcome {
+    border: 1px solid #e3d8f2;
+    border-radius: 23px;
+    background: linear-gradient(120deg, #f2eaff, #f9f6ff);
+  }
+  .site-studio .hotel-branded .hotel-welcome-copy {
+    padding: 34px;
+  }
+  .site-studio .hotel-branded .hotel-welcome-copy > span {
+    color: #7b6095;
+  }
+  .site-studio .hotel-branded .hotel-welcome-copy h2 {
+    color: #1b2943;
+    font-weight: 600;
+  }
+  .site-studio .hotel-branded .hotel-welcome-copy p {
+    color: #65728a;
+  }
+  .site-studio .hotel-branded .hotel-property {
+    border-radius: 12px;
+  }
+  .site-studio .hotel-branded .hotel-property.selected {
+    background: #f1eafe;
+    border-color: #ddcff5;
+  }
+  .site-studio .hotel-branded .hotel-property.selected strong {
+    color: #62409f;
+  }
+  .site-studio .hotel-branded .hotel-tabs {
+    border-color: #e7e0f3;
+    gap: 7px;
+  }
+  .site-studio .hotel-branded .hotel-tabs button {
+    border-radius: 9px 9px 0 0;
+    color: #756486;
+    padding: 12px;
+  }
+  .site-studio .hotel-branded .hotel-tabs button[aria-current] {
+    color: #7044d9;
+    background: #f8f4ff;
+    border-color: #7044d9;
+  }
+  .site-studio :is(.verification-card, .hotel-stage-note) {
+    background: #f6f1ff;
+    border-color: #e0d4f4;
+    color: #66527e;
+    border-radius: 14px;
+  }
+  .site-studio .verification-card > svg {
+    color: #7950bd;
+  }
+  .site-studio .hotel-shell .market-toolbar {
+    gap: 10px;
+    margin: 22px 0;
+  }
+  .site-studio .hotel-shell :is(.calendar-day, .market-calendar article) {
+    background: #faf7ff;
+    border-color: #e7dff2;
+    border-radius: 11px;
+    color: #514063;
+  }
+  .site-studio .hotel-shell .calendar-day.confirmed {
+    background: #eee6fc;
+    border-color: #cbb6ed;
+  }
+  .site-studio .admin-studio {
+    max-width: 1440px;
+    margin: auto;
+    padding: 42px 36px;
+    min-height: 100vh;
+  }
+  .site-studio .admin-studio h1 {
+    font-size: 36px;
+    font-weight: 600;
+    margin: 14px 0 25px;
+  }
+  .site-studio .admin-studio > .btn {
+    margin: 0 10px 18px 0;
+  }
+  .site-studio .loading {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 50% 20%, #eee5fc, transparent 60%), #faf9ff;
+    padding: 12vh 24px;
+  }
+  .site-studio .loading h1,
+  .site-studio .loading h2 {
+    font-weight: 600;
+    letter-spacing: -0.8px;
+  }
+  /* Match the already-upgraded CRM controls to the homepage gradient. */
+  .site-studio
+    .agency-studio.premium-workspace.studio-workspace
+    :is(.studio-create, .btn.primary) {
+    background: linear-gradient(110deg, #7044d9, #4264d6) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+  }
+  .site-studio .agency-studio :focus-visible {
+    outline: 3px solid #7044d9;
+    outline-offset: 3px;
+  }
+}
+@media screen and (max-width: 900px) {
+  .site-studio .landing:not(.saas-home) {
+    padding: 0 24px;
+  }
+  .site-studio .landing:not(.saas-home) .landing-nav {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px 0;
+    gap: 16px;
+  }
+  .site-studio .landing:not(.saas-home) .marketing-links {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .site-studio .hotel-shell {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .site-studio .hotel-brand-nav {
+    flex-wrap: wrap;
+    padding: 18px 0;
+  }
+  .site-studio .hotel-brand-nav > .btn {
+    margin-left: auto;
+  }
+  .site-studio .hotel-welcome-photo {
+    min-height: 220px;
+  }
+}
+@media screen and (max-width: 600px) {
+  .site-studio .landing:not(.saas-home) {
+    padding: 0 18px;
+  }
+  .site-studio
+    .landing:not(.saas-home)
+    :is(.marketing-intro, .hotel-business-intro) {
+    padding: 30px 23px;
+    margin-top: 20px;
+    margin-bottom: 26px;
+    border-radius: 18px;
+  }
+  .site-studio
+    .landing:not(.saas-home)
+    :is(.marketing-intro > p, .hotel-business-intro > p) {
+    font-size: 14px;
+  }
+  .site-studio .landing:not(.saas-home) .landing-nav > .brand {
+    font-size: 25px;
+  }
+  .site-studio .landing:not(.saas-home) .landing-nav > .btn {
+    font-size: 11px;
+    padding: 10px;
+  }
+  .site-studio .auth-page {
+    padding: 30px 17px;
+  }
+  .site-studio .auth-card {
+    padding: 28px 23px;
+    border-radius: 19px;
+  }
+  .site-studio .auth-card h1 {
+    font-size: 28px;
+  }
+  .site-studio .auth-page > .prose {
+    padding: 25px;
+  }
+  .site-studio .hotel-shell {
+    padding: 0 18px 30px;
+  }
+  .site-studio .hotel-header {
+    padding: 25px 0;
+  }
+  .site-studio .hotel-brand-nav {
+    gap: 13px;
+  }
+  .site-studio .hotel-brand-nav .hotel-brand-divider {
+    display: none;
+  }
+  .site-studio .hotel-brand-nav .hotel-brand-area {
+    font-size: 11px;
+  }
+  .site-studio .hotel-brand-nav > .btn {
+    margin-left: 0;
+  }
+  .site-studio .hotel-branded .hotel-welcome-copy {
+    padding: 25px;
+  }
+  .site-studio .admin-studio {
+    padding: 30px 18px;
+  }
+  .site-studio .admin-studio h1 {
+    font-size: 29px;
+  }
+}

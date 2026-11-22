@@ -6,6 +6,7 @@ import "./dark-theme.css";
 import "./light-theme.css";
 import "./workspace-operations.css";
 import "./agency-studio.css";
+import "./unified-premium.css";
 import { publicOrigin } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(publicOrigin()),
@@ -24,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-IN">
-      <body className="premium-theme light-theme">{children}</body>
+      <body className="premium-theme light-theme site-studio">{children}</body>
     </html>
   );
 }
