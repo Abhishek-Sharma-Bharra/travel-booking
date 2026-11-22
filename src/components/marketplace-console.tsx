@@ -1,4 +1,5 @@
 "use client";
+import TransportOperations from "./transport-operations";
 import MarketplaceCalendar from "./marketplace-calendar";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -36,6 +37,7 @@ type Owned = Business & {
   occupancy?: { availableRoomNights: number; bookedRoomNights: number };
 };
 interface Data {
+  operationsEnabled?: boolean;
   businesses: Owned[];
   availableHotels: { id: string; name: string; status: string }[];
   bookings: Booking[];
@@ -53,20 +55,28 @@ interface Data {
   agencyReference: string | null;
   limitsNote: string;
 }
-export default function MarketplaceConsole({ initial }: { initial: unknown }) {
+export default function MarketplaceConsole({
+  initial,
+  preferredKind,
+}: {
+  initial: unknown;
+  preferredKind?: "BUS" | "CAR" | "HOTEL";
+}) {
   const [data, setData] = useState(initial as Data),
     [selected, setSelected] = useState(
-      (initial as Data).businesses[0]?.id || "",
+      (initial as Data).businesses.find(
+        (b) => !preferredKind || b.kind === preferredKind,
+      )?.id || "",
     ),
-    [creating, setCreating] = useState(!(initial as Data).businesses.length),
-    [kind, setKind] = useState("BUS"),
+    [creating, setCreating] = useState(
+      !(initial as Data).businesses.some(
+        (b) => !preferredKind || b.kind === preferredKind,
+      ),
+    ),
+    [kind, setKind] = useState<string>(preferredKind || "BUS"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
-  useEffect(() => {
-    if (new URLSearchParams(location.search).get("kind") === "CAR")
-      setKind("CAR");
-  }, []);
   const b = data.businesses.find((b) => b.id === selected);
   async function run(action: string, payload: unknown) {
     if (busy) return;
@@ -247,6 +257,12 @@ export default function MarketplaceConsole({ initial }: { initial: unknown }) {
           </form>
         </section>
       )}
+      {data.operationsEnabled &&
+        b &&
+        !creating &&
+        ["BUS", "CAR"].includes(b.kind) && (
+          <TransportOperations key={b.id} businessId={b.id} />
+        )}
       {b && !creating && (
         <>
           <section className="panel">
@@ -414,7 +430,7 @@ export default function MarketplaceConsole({ initial }: { initial: unknown }) {
           {["BUS", "CAR"].includes(b.kind) && (
             <>
               <section className="panel">
-                <h2>Fleet & charter pricing</h2>
+                <h2 id="operator-fleet">Fleet & charter pricing</h2>
                 <p>
                   Rates cover the full trip or the agreed kilometers. Add tolls,
                   driver allowance and inclusions explicitly to the policy. Seat
@@ -663,7 +679,7 @@ export default function MarketplaceConsole({ initial }: { initial: unknown }) {
                 </form>
               </section>
               <section className="panel">
-                <h2>Availability calendar</h2>
+                <h2 id="operator-calendar">Availability calendar</h2>
                 <MarketplaceCalendar
                   key={b.id}
                   businessId={b.id}
@@ -737,7 +753,7 @@ export default function MarketplaceConsole({ initial }: { initial: unknown }) {
                 ))}
               </section>
               <section className="panel">
-                <h2>Your drivers</h2>
+                <h2 id="operator-drivers">Your drivers</h2>
                 <p>
                   {b.drivers.map((d) => d.name).join(" · ") ||
                     "No drivers registered yet."}
@@ -778,7 +794,7 @@ export default function MarketplaceConsole({ initial }: { initial: unknown }) {
         </>
       )}
       <section className="panel">
-        <h2>Reservations & customer requests</h2>
+        <h2 id="operator-requests">Reservations & customer requests</h2>
         <p>
           {data.limitsNote} Customer details are shared only with the supplier
           and the requesting account/authorized agency managers.

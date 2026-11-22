@@ -105,6 +105,8 @@ export async function workspaceData(a: Actor) {
     },
     access: {
       canViewCosts: a.role !== "AGENT",
+      workspaceOperationsEnabled:
+        process.env.WORKSPACE_OPERATIONS_ENABLED === "true",
       canWrite: !a.demo && subscriptionAccess(agency),
       limits: limitsFor(agency.plan),
       emailConfigured: mailReady(),

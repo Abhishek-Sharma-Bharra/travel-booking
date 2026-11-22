@@ -47,7 +47,7 @@ export default function HotelBookingConsole({
   }, [hotelId]);
   return (
     <section className="panel hotel-reservation-console">
-      <h2>Room inventory &amp; guest requests</h2>
+      <h2 id="hotel-room-inventory">Room inventory &amp; guest requests</h2>
       <p>
         Rates are per room, per night in INR. Only explicitly configured dates
         can be booked. Keep these allotments synchronized with walk-in and
@@ -172,28 +172,30 @@ export default function HotelBookingConsole({
       </form>
       <h3>Upcoming inventory</h3>
       <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Room</th>
-              <th>Allotment</th>
-              <th>Rate</th>
-              <th>Blackout</th>
-            </tr>
-          </thead>
-          <tbody>
-            {report?.inventory.map((n) => (
-              <tr key={String(n.roomId) + String(n.day)}>
-                <td>{String(n.day)}</td>
-                <td>{rooms.find((r) => r.id === n.roomId)?.name}</td>
-                <td>{Number(n.allotment)}</td>
-                <td>{inr(Number(n.ratePaise))}</td>
-                <td>{n.closed ? "Yes" : "No"}</td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Room</th>
+                <th>Allotment</th>
+                <th>Rate</th>
+                <th>Blackout</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {report?.inventory.map((n) => (
+                <tr key={String(n.roomId) + String(n.day)}>
+                  <td>{String(n.day)}</td>
+                  <td>{rooms.find((r) => r.id === n.roomId)?.name}</td>
+                  <td>{Number(n.allotment)}</td>
+                  <td>{inr(Number(n.ratePaise))}</td>
+                  <td>{n.closed ? "Yes" : "No"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <h3>Guest requests and temporary holds</h3>
       <p>
@@ -202,42 +204,44 @@ export default function HotelBookingConsole({
         hold expiry.
       </p>
       <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Guest / contact</th>
-              <th>Dates</th>
-              <th>Rooms</th>
-              <th>Total</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {report?.reservations.map((r) => (
-              <tr key={String(r.id)}>
-                <td>
-                  {String(r.customer)}
-                  <br />
-                  {String(r.phone)}
-                </td>
-                <td>
-                  {String(r.checkIn)} → {String(r.checkOut)}
-                </td>
-                <td>{Number(r.rooms)}</td>
-                <td>{inr(Number(r.total))}</td>
-                <td>
-                  {r.status === "HELD" &&
-                  String(r.holdUntil) < new Date().toISOString()
-                    ? "EXPIRED"
-                    : String(r.status)}{" "}
-                  · {String(r.paymentStatus)}
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Guest / contact</th>
+                <th>Dates</th>
+                <th>Rooms</th>
+                <th>Total</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {report?.reservations.map((r) => (
+                <tr key={String(r.id)}>
+                  <td>
+                    {String(r.customer)}
+                    <br />
+                    {String(r.phone)}
+                  </td>
+                  <td>
+                    {String(r.checkIn)} → {String(r.checkOut)}
+                  </td>
+                  <td>{Number(r.rooms)}</td>
+                  <td>{inr(Number(r.total))}</td>
+                  <td>
+                    {r.status === "HELD" &&
+                    String(r.holdUntil) < new Date().toISOString()
+                      ? "EXPIRED"
+                      : String(r.status)}{" "}
+                    · {String(r.paymentStatus)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <h3>Guest conversations and handoffs</h3>
+      <h3 id="hotel-ai-history">Guest conversations and handoffs</h3>
       {report?.conversations.map((c) => (
         <details key={String(c.id)}>
           <summary>
@@ -353,33 +357,35 @@ export default function HotelBookingConsole({
       )}
       <h3>Payment reconciliation</h3>
       <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Stay reference</th>
-              <th>Order / payment</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {report?.payments.map((p) => (
-              <tr key={String(p.stayId)}>
-                <td>{String(p.stayId)}</td>
-                <td>
-                  {String(p.orderId || "Order unknown")}
-                  <br />
-                  {String(p.paymentId || "")}
-                </td>
-                <td>{inr(Number(p.amount))}</td>
-                <td>
-                  {String(p.status)}
-                  {p.lastFailure ? " · " + String(p.lastFailure) : ""}
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Stay reference</th>
+                <th>Order / payment</th>
+                <th>Amount</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {report?.payments.map((p) => (
+                <tr key={String(p.stayId)}>
+                  <td>{String(p.stayId)}</td>
+                  <td>
+                    {String(p.orderId || "Order unknown")}
+                    <br />
+                    {String(p.paymentId || "")}
+                  </td>
+                  <td>{inr(Number(p.amount))}</td>
+                  <td>
+                    {String(p.status)}
+                    {p.lastFailure ? " · " + String(p.lastFailure) : ""}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       {role === "OWNER" && (
         <form

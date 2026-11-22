@@ -122,6 +122,10 @@ export async function hotelOverview(userId: string) {
       !!d1Binding() &&
       process.env.HOTEL_BOOKING_ENABLED === "true" &&
       process.env.HOTEL_LIVE_PAYMENTS_APPROVED === "true",
+    operationsEnabled:
+      !!d1Binding() &&
+      process.env.WORKSPACE_OPERATIONS_ENABLED === "true" &&
+      process.env.HOTEL_BOOKING_ENABLED === "true",
     inventoryEnabled:
       !!d1Binding() && process.env.HOTEL_BOOKING_ENABLED === "true",
   };

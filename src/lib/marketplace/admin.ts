@@ -16,6 +16,31 @@ import {
   digest,
 } from "./core";
 import type { Plan, Business, Booking, Agreement, Snapshot } from "./types";
+// Remains enforced even when the new UI is disabled after rollout. Older
+// databases without the additive guest table retain their existing behavior.
+async function guardGuestDeparture(u: Unit, stayId: string) {
+  const installed = await u.db
+    .prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='HotelGuestStay'",
+    )
+    .first();
+  if (!installed) return;
+  const open = await u.db
+    .prepare(
+      'SELECT "stayId" FROM "HotelGuestStay" WHERE "stayId"=? AND "checkedOutAt" IS NULL',
+    )
+    .bind(stayId)
+    .first();
+  if (open)
+    throw new HttpError(
+      409,
+      "Record guest check-out before cancelling or fully refunding this reservation",
+    );
+  u.guard(
+    'SELECT COUNT(*)=0 FROM "HotelGuestStay" WHERE "stayId"=? AND "checkedOutAt" IS NULL',
+    stayId,
+  );
+}
 export async function adminUnit(userId: string, token: string) {
   await requireOperator(userId, token);
   const u = new Unit();
@@ -385,6 +410,7 @@ export async function adminCommand(
           refundedTax: v.refundedTax,
           ...(full ? { status: "REFUNDED", paymentStatus: "REFUNDED" } : {}),
         });
+        if (full && b.hotelStayId) await guardGuestDeparture(u, b.hotelStayId);
         if (full && b.hotelStayId)
           u.writes.push({
             sql: "UPDATE \"HotelStayRequest\" SET status='CANCELLED',\"paymentStatus\"='REFUND_REVIEW',revision=revision+1 WHERE id=?",
@@ -395,6 +421,7 @@ export async function adminCommand(
           throw new HttpError(409, "Only an open booking can be cancelled");
         update(u, "MPBooking", b.id, { status: "CANCELLED" });
         if (b.hotelStayId) {
+          await guardGuestDeparture(u, b.hotelStayId);
           u.guard(
             "SELECT COUNT(*)=0 FROM \"HotelPaymentAttempt\" WHERE \"stayId\"=? AND status IN('CREATING','PENDING','RECONCILIATION_REQUIRED')",
             b.hotelStayId,

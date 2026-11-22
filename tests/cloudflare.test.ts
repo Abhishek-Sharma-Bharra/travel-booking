@@ -204,6 +204,31 @@ test("CRM gateway reports HTML/redirect/failed upstream responses as safe JSON a
   }
 });
 
+test("new private workspace APIs turn non-JSON upstream failures into private JSON without leaking diagnostics", async () => {
+  for (const path of [
+    "/api/workspace/operations",
+    "/api/hotelier/operations",
+    "/api/marketplace/operations",
+  ]) {
+    const response = await gateway.fetch(new Request(origin + path), {
+      PUBLIC_ORIGIN: origin,
+      ASSETS: { fetch: async () => new Response("unused") },
+      TRAVELOS_BACKEND: {
+        fetch: async () =>
+          new Response("<html>private stack trace</html>", {
+            status: 500,
+            headers: { "content-type": "text/html" },
+          }),
+      },
+    });
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("cache-control"), "private, no-store");
+    const body = await response.json();
+    assert.equal(body.code, "BACKEND_NON_JSON_RESPONSE");
+    assert.doesNotMatch(JSON.stringify(body), /stack trace/);
+  }
+});
+
 test("CRM gateway retains JSON permission failures and auth redirect behavior", async () => {
   const env = {
     PUBLIC_ORIGIN: origin,

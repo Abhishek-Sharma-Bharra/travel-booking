@@ -457,6 +457,7 @@ export async function ownDashboard(userId: string) {
     plans: (await u.db.prepare("SELECT * FROM MPPlan ORDER BY id").all<Plan>())
       .results,
     emailVerified: user.emailVerified,
+    operationsEnabled: process.env.WORKSPACE_OPERATIONS_ENABLED === "true",
     agencyReference: user.agencyId,
     agencyBookingAllowed: !!user.agencyId,
     limitsNote:

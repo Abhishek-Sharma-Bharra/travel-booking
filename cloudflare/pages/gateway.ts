@@ -42,7 +42,7 @@ export default {
     // Application APIs are JSON-only. Keep OAuth/auth redirects and webhook
     // challenge responses untouched; they legitimately return other formats.
     const jsonApi =
-      /^\/api\/(?:action|data|hotelier|admin|public|analytics|assistant|automation|tour|campaigns|invitations|health|payments|marketplace)(?:\/|$)/.test(
+      /^\/api\/(?:action|data|hotelier|admin|public|analytics|assistant|automation|tour|campaigns|invitations|health|payments|marketplace|workspace)(?:\/|$)/.test(
         path,
       ) ||
       path === "/api/messaging" ||

@@ -4,6 +4,7 @@ import "./premium.css";
 import "./red-theme.css";
 import "./dark-theme.css";
 import "./light-theme.css";
+import "./workspace-operations.css";
 import { publicOrigin } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(publicOrigin()),

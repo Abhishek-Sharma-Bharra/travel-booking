@@ -1,3 +1,7 @@
+import {
+  itineraryQuoteSource,
+  itineraryQuoteLink,
+} from "../workspace-operations/quote-source";
 import type { D1Database } from "@cloudflare/workers-types";
 import type {
   Agency,
@@ -276,6 +280,8 @@ async function attempt(
         leadId: id,
         packageId: id,
         proposal: z.string().max(12000).default(""),
+        itineraryVersionId: id.optional(),
+        itineraryReviewed: z.boolean().default(false),
         pricingMode: z
           .enum(["Recorded selling rate", "Cost plus markup", "Target margin"])
           .default("Recorded selling rate"),
@@ -299,18 +305,35 @@ async function attempt(
         403,
         "Supplier-cost pricing requires manager permission",
       );
-    const unitPrice = pricedUnit(
-      pkg.estimatedCost,
-      v.pricingMode,
-      v.pricingPercent,
-      pkg.price,
-    );
+    if (v.itineraryVersionId && !v.itineraryReviewed)
+      throw new HttpError(
+        400,
+        "Review the saved itinerary prices and dates before creating the quotation",
+      );
+    const snapshot = v.itineraryVersionId
+      ? await itineraryQuoteSource(a, v.itineraryVersionId, lead, pkg.id, unit)
+      : null;
+    if (snapshot?.existingQuoteId)
+      return {
+        message: "Existing itemized quotation opened",
+        leadId: lead.id,
+        quoteId: snapshot.existingQuoteId,
+      };
+    const unitPrice =
+      snapshot?.unitPrice ??
+      pricedUnit(pkg.estimatedCost, v.pricingMode, v.pricingPercent, pkg.price);
     if (
       unitPrice <= 0 ||
-      (v.pricingMode !== "Recorded selling rate" && pkg.estimatedCost <= 0)
+      (!snapshot &&
+        v.pricingMode !== "Recorded selling rate" &&
+        pkg.estimatedCost <= 0)
     )
       throw new Error("Maintain a positive package rate/cost before quoting.");
-    const total = quoteTotal(unitPrice, lead.travellers, v.discount, v.tax);
+    const discount = snapshot?.discount ?? v.discount,
+      taxBps = snapshot?.taxBps ?? v.tax;
+    const total =
+      snapshot?.total ??
+      quoteTotal(unitPrice, lead.travellers, discount, taxBps);
     quoteTotal(pkg.estimatedCost, lead.travellers, 0, 0);
     const previous = Number(
       (await db
@@ -329,7 +352,7 @@ async function attempt(
     const quote = newD1Record("Quote", {
       agencyId: a.agencyId,
       version: previous + 1,
-      proposal: v.proposal,
+      proposal: snapshot?.proposal ?? v.proposal,
       paymentTerms: pkg.paymentTerms,
       cancellationTerms: pkg.cancellationTerms,
       leadId: lead.id,
@@ -340,16 +363,27 @@ async function attempt(
       travelEnd: lead.travelEnd,
       packageName: pkg.name,
       destination: pkg.destination,
-      duration: pkg.days,
-      inclusions: pkg.inclusions,
-      exclusions: pkg.exclusions,
-      discount: v.discount,
-      taxBps: v.tax,
+      duration: snapshot?.duration ?? pkg.days,
+      inclusions: snapshot?.inclusions ?? pkg.inclusions,
+      exclusions: snapshot?.exclusions ?? pkg.exclusions,
+      discount,
+      taxBps,
       total,
-      estimatedCost: pkg.estimatedCost * lead.travellers,
+      estimatedCost:
+        snapshot?.estimatedCost ?? pkg.estimatedCost * lead.travellers,
     });
+    if (snapshot)
+      unit.writes.push(
+        insertD1("Quote", quote),
+        itineraryQuoteLink(
+          snapshot.versionId,
+          a.agencyId,
+          lead.id,
+          String(quote.id),
+        ),
+      );
     unit.writes.push(
-      insertD1("Quote", quote),
+      ...(!snapshot ? [insertD1("Quote", quote)] : []),
       updateD1("Lead", lead.id, {
         stage: "Quoted",
         quotedPrice: unitPrice,

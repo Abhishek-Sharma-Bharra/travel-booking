@@ -1,0 +1,383 @@
+/* Private operations only: public homepage and existing print documents stay independent. */
+.ops-workspace {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+  color: #24334d;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+.ops-workspace .panel {
+  border: 1px solid #dedfeb;
+  border-radius: 18px;
+  background: #fff;
+  padding: 24px;
+  min-width: 0;
+}
+.ops-workspace h2 {
+  font-size: 24px;
+  letter-spacing: -0.5px;
+}
+.ops-workspace h3 {
+  font-size: 18px;
+}
+.ops-workspace p {
+  line-height: 1.65;
+  color: #53647d;
+}
+.ops-workspace label {
+  display: grid;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 12px 0;
+}
+.ops-workspace input,
+.ops-workspace select,
+.ops-workspace textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: #fbfaff !important;
+  color: #24334d !important;
+  border: 1px solid #c9cce0 !important;
+  border-radius: 9px;
+  padding: 11px;
+  font: inherit;
+}
+.ops-workspace textarea {
+  min-height: 96px;
+  line-height: 1.6;
+}
+.ops-workspace fieldset {
+  border: 1px solid #d8d9e6;
+  border-radius: 12px;
+  padding: 18px;
+  margin: 20px 0;
+  min-width: 0;
+}
+.ops-fields {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ops-fields > label {
+  flex: 1 1 170px;
+}
+.ops-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.ops-customer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(235px, 100%), 1fr));
+  gap: 12px;
+  margin: 18px 0;
+  max-height: 560px;
+  overflow: auto;
+}
+.ops-record {
+  display: grid;
+  text-align: left;
+  gap: 9px;
+  padding: 18px;
+  border: 1px solid #dcdced;
+  border-radius: 12px;
+  background: #faf9ff;
+  color: #24334d;
+  font: inherit;
+}
+.ops-record[aria-pressed="true"] {
+  border-color: #745ad3;
+  box-shadow: 0 0 0 2px #ded6fa;
+}
+.ops-record small,
+.ops-record span {
+  color: #576985;
+}
+.ops-timeline {
+  display: grid;
+  gap: 18px;
+  list-style: none;
+  padding: 0;
+}
+.ops-timeline li {
+  display: grid;
+  gap: 6px;
+  padding-left: 16px;
+  border-left: 3px solid #c8b9f6;
+}
+.ops-timeline time {
+  font-size: 12px;
+  color: #5b6980;
+}
+.ops-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+.ops-metrics article {
+  display: grid;
+  gap: 9px;
+  background: #f4f0ff;
+  border: 1px solid #dfd6fb;
+  border-radius: 12px;
+  padding: 20px;
+}
+.ops-metrics strong {
+  font-size: 22px;
+  color: #473681;
+}
+.ops-metrics small,
+.ops-metrics span {
+  color: #58657a;
+}
+.ops-day {
+  padding: 16px 0;
+  border-bottom: 1px solid #e0e2ec;
+}
+.ops-print-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 2px solid #7861b1;
+  padding: 16px 0;
+}
+.ops-check {
+  display: flex !important;
+  align-items: start;
+  gap: 12px !important;
+}
+.ops-check input {
+  width: 20px;
+  flex: none;
+}
+.ops-workspace .btn {
+  color: #283751 !important;
+  background: #f4f1fc !important;
+  border: 1px solid #c8bfdf !important;
+}
+.ops-workspace .btn.primary {
+  color: #fff !important;
+  background: #644bb5 !important;
+  border-color: #644bb5 !important;
+}
+.ops-workspace button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ops-workspace :focus-visible {
+  outline: 3px solid #9b80ee;
+  outline-offset: 3px;
+}
+.ops-workspace fieldset:disabled input,
+.ops-workspace fieldset:disabled textarea {
+  opacity: 1;
+}
+.ops-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.ops-nav button[aria-pressed="true"] {
+  background: #644bb5 !important;
+  color: white !important;
+}
+@media (max-width: 600px) {
+  .ops-workspace .panel {
+    padding: 16px;
+  }
+  .ops-print-heading {
+    display: grid;
+  }
+  .ops-metrics {
+    grid-template-columns: 1fr;
+  }
+  .ops-fields {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .ops-fields > label {
+    margin: 5px 0;
+  }
+}
+@media print {
+  body:has(.ops-itinerary-print) * {
+    visibility: hidden !important;
+  }
+  body:has(.ops-itinerary-print) .ops-itinerary-print,
+  body:has(.ops-itinerary-print) .ops-itinerary-print * {
+    visibility: visible !important;
+  }
+  body:has(.ops-itinerary-print) .ops-itinerary-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    color: #17283e !important;
+  }
+  body:has(.ops-itinerary-print) .ops-no-print {
+    display: none !important;
+  }
+  .ops-itinerary-print fieldset {
+    border: 0;
+    padding: 0;
+  }
+  .ops-itinerary-print input,
+  .ops-itinerary-print textarea {
+    border: 0 !important;
+    background: white !important;
+    resize: none;
+    overflow: visible;
+    color: #17283e !important;
+    opacity: 1 !important;
+  }
+  .ops-itinerary-print .ops-day {
+    break-inside: avoid;
+  }
+  .ops-itinerary-print label {
+    color: #17283e !important;
+  }
+}
+.ops-preserve-lines {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ops-print-document {
+  display: none;
+}
+.ops-document-overlay {
+  position: fixed;
+  inset: 0;
+  background: #dce0ecee;
+  z-index: 2000;
+  overflow: auto;
+  padding: 24px;
+}
+.ops-document-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.ops-booking-print {
+  box-sizing: border-box;
+  max-width: 800px;
+  margin: auto;
+  padding: 40px;
+  background: white;
+  color: #1d314a;
+  border-radius: 12px;
+  font:
+    15px/1.7 "Segoe UI",
+    Arial,
+    sans-serif;
+}
+.ops-booking-print header {
+  border-bottom: 2px solid #745bc3;
+}
+.ops-booking-print header strong {
+  font-size: 26px;
+}
+.ops-booking-print dl {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 10px;
+}
+.ops-booking-print dd {
+  margin: 0;
+}
+.ops-booking-print footer {
+  border-top: 1px solid #d9dce8;
+  padding-top: 18px;
+  font-size: 12px;
+}
+.ops-booking-print h1 {
+  font-size: 28px;
+}
+@media print {
+  .ops-itinerary-print .ops-screen-editor {
+    display: none !important;
+  }
+  .ops-itinerary-print .ops-print-document {
+    display: block !important;
+  }
+  .ops-print-document section {
+    break-inside: auto;
+  }
+  .ops-print-document h2 {
+    break-after: avoid;
+  }
+  body:has(.ops-booking-print) > *:not(.ops-document-overlay) {
+    display: none !important;
+  }
+  .ops-document-overlay {
+    position: static;
+    padding: 0;
+    background: white;
+  }
+  .ops-document-actions {
+    display: none;
+  }
+  .ops-booking-print {
+    max-width: none;
+    padding: 0;
+    border-radius: 0;
+  }
+  .ops-booking-print * {
+    color: #1d314a !important;
+  }
+  body:has(.ops-itinerary-print) .ops-itinerary-print .ops-no-print {
+    display: none !important;
+  }
+}
+@media (max-width: 600px) {
+  .ops-document-overlay {
+    padding: 12px;
+  }
+  .ops-booking-print {
+    padding: 22px;
+  }
+  .ops-booking-print dl {
+    grid-template-columns: 1fr;
+  }
+  .ops-booking-print dd {
+    margin-bottom: 12px;
+  }
+}
+@media print {
+  body:has(.ops-itinerary-print) .app-shell > .main-area {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body:has(.ops-itinerary-print) .workspace-records,
+  body:has(.ops-itinerary-print) .ops-workspace,
+  body:has(.ops-itinerary-print) .ops-workspace > .panel {
+    overflow: visible !important;
+    position: static !important;
+    max-height: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+.hotel-reservation-console {
+  min-width: 0;
+}
+.hotel-reservation-console .table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+.hotel-reservation-console code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

@@ -1,3 +1,6 @@
+import {
+  itineraryQuoteSource,
+} from "./workspace-operations/quote-source";
 import { requestSubscription } from "./subscription-requests";
 import {
   timezoneSchema,
@@ -314,6 +317,8 @@ export async function mutate(
         leadId: id,
         packageId: id,
         proposal: z.string().max(12000).default(""),
+        itineraryVersionId: id.optional(),
+        itineraryReviewed: z.boolean().default(false),
         pricingMode: z
           .enum(["Recorded selling rate", "Cost plus markup", "Target margin"])
           .default("Recorded selling rate"),
@@ -323,6 +328,8 @@ export async function mutate(
       })
       .parse(input);
     return db.$transaction(async (tx) => {
+      if (v.itineraryVersionId)
+        await tx.$queryRaw`SELECT id FROM "User" WHERE id=${a.id} FOR SHARE`;
       await leadAccess(tx, v.leadId);
       await tx.$queryRaw`SELECT id FROM "Lead" WHERE id=${v.leadId} AND "agencyId"=${a.agencyId} FOR UPDATE`;
       const l = await leadAccess(tx, v.leadId);
@@ -337,21 +344,37 @@ export async function mutate(
           403,
           "Supplier-cost pricing requires manager permission",
         );
-      const taxBps = v.tax;
-      const unitPrice = pricedUnit(
-        p.estimatedCost,
-        v.pricingMode,
-        v.pricingPercent,
-        p.price,
-      );
+      if (v.itineraryVersionId && !v.itineraryReviewed)
+        throw new HttpError(
+          400,
+          "Review the saved itinerary prices and dates before creating the quotation",
+        );
+      const snapshot = v.itineraryVersionId
+        ? await itineraryQuoteSource(a, v.itineraryVersionId, l, p.id, tx)
+        : null;
+      if (snapshot?.existingQuoteId)
+        return {
+          message: "Existing itemized quotation opened",
+          leadId: l.id,
+          quoteId: snapshot.existingQuoteId,
+        };
+      const taxBps = snapshot?.taxBps ?? v.tax,
+        discount = snapshot?.discount ?? v.discount;
+      const unitPrice =
+        snapshot?.unitPrice ??
+        pricedUnit(p.estimatedCost, v.pricingMode, v.pricingPercent, p.price);
       if (
         unitPrice <= 0 ||
-        (v.pricingMode !== "Recorded selling rate" && p.estimatedCost <= 0)
+        (!snapshot &&
+          v.pricingMode !== "Recorded selling rate" &&
+          p.estimatedCost <= 0)
       )
         throw new Error(
           "Maintain a positive package rate/cost before quoting.",
         );
-      const total = quoteTotal(unitPrice, l.travellers, v.discount, taxBps);
+      const total =
+        snapshot?.total ??
+        quoteTotal(unitPrice, l.travellers, discount, taxBps);
       quoteTotal(p.estimatedCost, l.travellers, 0, 0);
       const previousVersion = await tx.quote.aggregate({
         where: { leadId: l.id, agencyId: a.agencyId },
@@ -361,7 +384,7 @@ export async function mutate(
         data: {
           agencyId: a.agencyId,
           version: (previousVersion._max.version ?? 0) + 1,
-          proposal: v.proposal,
+          proposal: snapshot?.proposal ?? v.proposal,
           paymentTerms: p.paymentTerms,
           cancellationTerms: p.cancellationTerms,
           leadId: l.id,
@@ -372,15 +395,18 @@ export async function mutate(
           travelEnd: l.travelEnd,
           packageName: p.name,
           destination: p.destination,
-          duration: p.days,
-          inclusions: p.inclusions,
-          exclusions: p.exclusions,
-          discount: v.discount,
+          duration: snapshot?.duration ?? p.days,
+          inclusions: snapshot?.inclusions ?? p.inclusions,
+          exclusions: snapshot?.exclusions ?? p.exclusions,
+          discount,
           taxBps,
           total,
-          estimatedCost: p.estimatedCost * l.travellers,
+          estimatedCost:
+            snapshot?.estimatedCost ?? p.estimatedCost * l.travellers,
         },
       });
+      if (snapshot)
+        await tx.$executeRaw`INSERT INTO "WorkspaceItineraryQuote" ("versionId","agencyId","leadId","quoteId","createdAt") VALUES (${snapshot.versionId},${a.agencyId},${l.id},${q.id},${new Date().toISOString()})`;
       await tx.lead.update({
         where: { id: l.id },
         data: {

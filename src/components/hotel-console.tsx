@@ -2,6 +2,7 @@
 import { readApiJson } from "@/lib/api-response";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
+import HotelOperations from "./hotel-operations";
 import HotelBookingConsole from "./hotel-booking-console";
 import { HotelBrandHeader, HotelWelcomeImage } from "./hotel-brand";
 import { Building2, Plus, ShieldCheck } from "lucide-react";
@@ -361,6 +362,13 @@ export default function HotelConsole({
           )}
         </section>
       </div>
+      {data.emailVerified &&
+        data.operationsEnabled &&
+        hotel &&
+        !creating &&
+        ["OWNER", "MANAGER"].includes(hotel.role) && (
+          <HotelOperations key={hotel.id} hotelId={hotel.id} />
+        )}
       {data.emailVerified && data.inventoryEnabled && hotel && !creating && (
         <HotelBookingConsole
           key={hotel.id}

@@ -16,6 +16,13 @@ const loadingPanel = () => (
     Loading this section…
   </p>
 );
+const BookingDocument = dynamic(() => import("./booking-document"));
+const AgencyOperations = dynamic(() => import("./agency-operations"), {
+  loading: loadingPanel,
+});
+const ItineraryBuilder = dynamic(() => import("./itinerary-builder"), {
+  loading: loadingPanel,
+});
 const CampaignManager = dynamic(() => import("./campaign-manager"));
 const SubscriptionPage = dynamic(() => import("./subscription"), {
   loading: loadingPanel,
@@ -97,10 +104,16 @@ const navigation = [
       ["Analytics", BarChart3],
       ["BI Reports", FileText],
       ["Enquiries", Users],
+      ["Customers", Users],
+      ["Itineraries & costing", FileText],
+      ["Departure calendar", CalendarDays],
+      ["Suppliers", Wallet],
       ["Packages", Package],
       ["Quotations", FileText],
       ["Bookings", Plane],
       ["Transactions", Wallet],
+      ["Payments", Wallet],
+      ["Expenses", Wallet],
     ],
   },
   {
@@ -110,6 +123,9 @@ const navigation = [
       ["Ad campaigns", Megaphone],
       ["Monthly report", BarChart3],
       ["Lead intelligence", Sparkles],
+      ["AI Travel Agent", Sparkles],
+      ["Demand planning", BarChart3],
+      ["Business advisor", Sparkles],
     ],
   },
   {
@@ -119,6 +135,7 @@ const navigation = [
       ["Automation", Settings],
       ["Integrations", Settings],
       ["Subscription", Wallet],
+      ["Team", Users],
       ["Settings", Settings],
       ["Demo guide", BookOpen],
     ],
@@ -181,6 +198,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     values?: Record<string, unknown>;
     extra?: Record<string, unknown>;
   } | null>(null);
+  const [travelDocument, setTravelDocument] = useState<Booking | null>(null);
   const [salesFocus, setSalesFocus] = useState<string | null>(null);
   useEffect(() => {
     if (new URLSearchParams(location.search).has("integration"))
@@ -230,7 +248,14 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     setTimeout(() => setToast(""), 6000);
   };
   const manualNavigation = useRef(0);
+  const pendingItinerary = useRef(false);
   function changePage(p: string) {
+    if (
+      p !== page &&
+      pendingItinerary.current &&
+      !window.confirm("Discard unsaved itinerary edits?")
+    )
+      return;
     manualNavigation.current++;
     setSalesFocus(null);
     setFormError("");
@@ -964,6 +989,13 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     !salesFocus &&
     ![
       "Settings",
+      "Team",
+      "Customers",
+      "Itineraries & costing",
+      "Departure calendar",
+      "Suppliers",
+      "Demand planning",
+      "Business advisor",
       "Analytics",
       "BI Reports",
       "Integrations",
@@ -972,6 +1004,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       "Subscription",
       "Demo guide",
       "Lead intelligence",
+      "AI Travel Agent",
       "Packages",
       "Ad campaigns",
     ].includes(page);
@@ -1205,7 +1238,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   Build quotation
                 </button>
               )}
-              {page === "Transactions" && (
+              {["Transactions", "Payments", "Expenses"].includes(page) && (
                 <button
                   className="btn primary"
                   onClick={() => transactionForm()}
@@ -1336,6 +1369,48 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               className="workspace-records"
               data-feature={page.toLowerCase().replaceAll(" ", "-")}
             >
+              {[
+                "Customers",
+                "Departure calendar",
+                "Suppliers",
+                "Demand planning",
+                "Business advisor",
+              ].includes(page) && (
+                <AgencyOperations
+                  key={page}
+                  data={data}
+                  view={page}
+                  onLead={setDetail}
+                  onPage={changePage}
+                />
+              )}
+              {page === "Itineraries & costing" &&
+                (data.access.workspaceOperationsEnabled && !data.demo ? (
+                  <ItineraryBuilder
+                    data={data}
+                    onDirtyChange={(v) => {
+                      pendingItinerary.current = v;
+                    }}
+                    onQuote={(input) =>
+                      run("quote", input, () => changePage("Quotations"))
+                    }
+                  />
+                ) : (
+                  <section className="panel">
+                    <h2>Versioned itinerary workspace</h2>
+                    <p>
+                      {data.demo
+                        ? "The demo is read-only. Your live workspace can save versioned itineraries, private costing and itemized draft quotations."
+                        : "Itinerary saving is not available in this workspace yet. Continue using package quotations."}
+                    </p>
+                    <button
+                      className="btn secondary"
+                      onClick={() => changePage("Quotations")}
+                    >
+                      Open existing quotations
+                    </button>
+                  </section>
+                ))}
               {formError && !form && !detail && !printQuote && !importOpen && (
                 <p className="error-box" role="alert">
                   {formError}
@@ -1353,6 +1428,42 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                 <AdvancedAnalytics data={data} onChange={run} />
               )}
               {page === "BI Reports" && <BiReports data={data} />}
+              {page === "AI Travel Agent" && (
+                <>
+                  <section className="ops-workspace">
+                    <div className="panel">
+                      <h2>AI Travel Agent tools</h2>
+                      <p>
+                        Review enquiry requirements, prepare a draft and choose
+                        a maintained package. Live AI requires your approved
+                        service setup. Drafts need human review; no automatic
+                        payment or booking confirmation is performed.
+                      </p>
+                      <div className="ops-actions">
+                        <button
+                          className="btn secondary"
+                          onClick={() => changePage("Itineraries & costing")}
+                        >
+                          Open itinerary drafts
+                        </button>
+                        {manager && (
+                          <button
+                            className="btn secondary"
+                            onClick={() => changePage("Ad campaigns")}
+                          >
+                            Customer campaign conversations
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                  <AssistantPanel
+                    data={data}
+                    onReview={(draft) => enquiryForm(undefined, draft)}
+                  />
+                  <PrioritiesPanel data={data} onOpen={setDetail} />
+                </>
+              )}
               {page === "Enquiries" && (
                 <AssistantPanel
                   data={data}
@@ -1745,11 +1856,47 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                       </button>
                     </Empty>
                   ) : view === "pipeline" ? (
-                    <div className="pipeline">
+                    <div
+                      className="pipeline"
+                      aria-label="Sales stages. Drag a card to an open stage to review its update; keyboard users can open a card and select Edit enquiry."
+                    >
                       {stages
                         .filter((s) => !stage || s === stage)
                         .map((s) => (
-                          <section key={s} data-stage={s}>
+                          <section
+                            key={s}
+                            data-stage={s}
+                            onDragOver={(e) => {
+                              if (
+                                [
+                                  "New",
+                                  "Contacted",
+                                  "Qualified",
+                                  "Lost",
+                                ].includes(s)
+                              )
+                                e.preventDefault();
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const l = data.leads.find(
+                                (x) =>
+                                  x.id ===
+                                  e.dataTransfer.getData("text/travelos-lead"),
+                              );
+                              if (
+                                l &&
+                                !["Won", "Lost"].includes(l.stage) &&
+                                [
+                                  "New",
+                                  "Contacted",
+                                  "Qualified",
+                                  "Lost",
+                                ].includes(s)
+                              )
+                                enquiryForm(l, { stage: s });
+                            }}
+                          >
                             <div className="pipeline-title">
                               <Badge value={s} />
                               <strong>
@@ -1765,6 +1912,17 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                               .map((l) => (
                                 <button
                                   className="pipeline-card"
+                                  draggable={
+                                    !data.demo &&
+                                    !busy &&
+                                    !["Won", "Lost"].includes(l.stage)
+                                  }
+                                  onDragStart={(e) =>
+                                    e.dataTransfer.setData(
+                                      "text/travelos-lead",
+                                      l.id,
+                                    )
+                                  }
                                   key={l.id}
                                   onClick={() => setDetail(l)}
                                 >
@@ -2300,6 +2458,12 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                                     )}
                                   </td>
                                   <td>
+                                    <button
+                                      className="btn secondary small"
+                                      onClick={() => setTravelDocument(b)}
+                                    >
+                                      Travel document
+                                    </button>
                                     {manager && (
                                       <button
                                         className="btn secondary small"
@@ -2425,7 +2589,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   </p>
                 </>
               )}
-              {page === "Transactions" &&
+              {["Transactions", "Payments", "Expenses"].includes(page) &&
                 (() => {
                   const ids = new Set(
                     data.leads
@@ -2449,6 +2613,10 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                     )
                     .filter(
                       (t) =>
+                        (page !== "Payments" ||
+                          ["Receipt", "Refund"].includes(t.kind)) &&
+                        (page !== "Expenses" ||
+                          !["Receipt", "Refund"].includes(t.kind)) &&
                         t.date.slice(0, 10) >= filters.from &&
                         t.date.slice(0, 10) <= filters.to,
                     )
@@ -2995,7 +3163,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   busy={busy}
                 />
               )}
-              {page === "Settings" && (
+              {["Settings", "Team"].includes(page) && (
                 <>
                   <div className="report-columns">
                     <section className="panel prose">
@@ -3559,6 +3727,13 @@ export default function Workspace({ initial }: { initial: Dataset }) {
             <X size={15} />
           </button>
         </div>
+      )}
+      {travelDocument && (
+        <BookingDocument
+          data={data}
+          booking={travelDocument}
+          onClose={() => setTravelDocument(null)}
+        />
       )}
       {form && (
         <Modal
