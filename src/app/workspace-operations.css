@@ -381,3 +381,116 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+@media screen {
+  .ops-record-assistant {
+    border: 1px solid #e3d9f4;
+    background: #fcfaff;
+    border-radius: 17px;
+    padding: 24px;
+    margin: 22px 0;
+    color: #344363;
+    overflow-wrap: anywhere;
+  }
+  .ops-record-assistant header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .ops-record-assistant h3 {
+    font-size: 23px;
+    margin: 9px 0;
+    color: #202d49;
+  }
+  .ops-record-assistant .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #7044b9;
+  }
+  .ops-record-assistant p,
+  .ops-record-assistant small {
+    line-height: 1.8;
+  }
+  .ops-record-assistant form {
+    display: grid;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .ops-record-assistant form label {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+  .ops-record-assistant form .btn {
+    justify-self: start;
+  }
+  .ops-record-assistant :is(textarea, select) {
+    max-width: 100%;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .ops-assistant-prompts {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin: 15px 0;
+  }
+  .ops-record-assistant [role="log"] {
+    max-height: 620px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .ops-assistant-turn {
+    padding: 18px;
+    background: #fff;
+    border: 1px solid #e7dff2;
+    border-radius: 13px;
+    margin: 14px 0;
+  }
+  .ops-assistant-question {
+    background: #f1eafa;
+    border-radius: 10px;
+    padding: 12px 15px;
+    white-space: pre-wrap;
+  }
+  .ops-assistant-turn dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .ops-assistant-turn dl > div {
+    padding: 13px;
+    background: #faf8ff;
+    border-radius: 9px;
+  }
+  .ops-assistant-turn dt {
+    font-size: 12px;
+    color: #6d5c82;
+    line-height: 1.7;
+  }
+  .ops-assistant-turn dd {
+    margin: 7px 0 0;
+    font-weight: 600;
+    white-space: pre-wrap;
+  }
+  .ops-assistant-turn summary {
+    cursor: pointer;
+    color: #6844a7;
+  }
+}
+@media screen and (max-width: 600px) {
+  .ops-record-assistant {
+    padding: 17px;
+  }
+  .ops-assistant-turn dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ops-assistant-prompts .btn {
+    white-space: normal;
+    text-align: left;
+  }
+}

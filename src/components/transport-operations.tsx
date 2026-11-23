@@ -1,4 +1,5 @@
 "use client";
+import BusinessRecordAssistant from "./business-record-assistant";
 import { useState, useEffect } from "react";
 import { readApiJson } from "@/lib/api-response";
 import { inr, indiaToday } from "@/lib/money";
@@ -59,6 +60,12 @@ export default function TransportOperations({
             onChange={(e) => setMonth(e.target.value)}
           />
         </label>
+        <BusinessRecordAssistant
+          key={`TRANSPORT:${businessId}:${month}`}
+          kind="TRANSPORT"
+          businessId={businessId}
+          month={month}
+        />
         {error && (
           <p role="alert" className="error-box">
             {error}

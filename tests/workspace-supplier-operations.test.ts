@@ -12,6 +12,12 @@ import {
 } from "../src/lib/hotels/operations";
 import { transportOperations } from "../src/lib/marketplace/operations";
 import {
+  answerBusinessQuestion,
+  businessQuestion,
+  questionTask,
+} from "../src/lib/business-assistant/service";
+import { inr } from "../src/lib/money";
+import {
   registerBusiness,
   businessCommand,
   ownDashboard,
@@ -29,6 +35,7 @@ const old = { ...process.env };
 before(async () => {
   process.env.WRANGLER_LOG_PATH ||= ".local/cloudflare-logs";
   process.env.WORKSPACE_OPERATIONS_ENABLED = "true";
+  process.env.WORKSPACE_ASSISTANT_ENABLED = "true";
   process.env.HOTELS_ENABLED = "true";
   process.env.HOTEL_BOOKING_ENABLED = "true";
   binding = await mf.getD1Database("DB");
@@ -45,6 +52,7 @@ before(async () => {
 after(async () => {
   for (const k of [
     "WORKSPACE_OPERATIONS_ENABLED",
+    "WORKSPACE_ASSISTANT_ENABLED",
     "HOTELS_ENABLED",
     "HOTEL_BOOKING_ENABLED",
   ]) {
@@ -353,6 +361,38 @@ test("transport report scopes selected owned business, excludes taxes from net s
       bus.businessId,
       day().slice(0, 7),
     );
+    const assistantInput = {
+      kind: "TRANSPORT",
+      businessId: bus.businessId,
+      month: day().slice(0, 7),
+      question: "Show revenue",
+    };
+    const assistant = await answerBusinessQuestion(owner.id, assistantInput);
+    assert.equal(
+      assistant.facts.find((f) => f.label === "Recorded net booked sales")
+        ?.value,
+      inr(89000),
+    );
+    assert.equal(
+      assistant.facts.find((f) =>
+        f.label.startsWith("Recorded direct contribution"),
+      )?.value,
+      inr(49000),
+    );
+    assert.doesNotMatch(
+      JSON.stringify(assistant),
+      /9876543211|guest@test.invalid|Fictional Guest/,
+    );
+    await assert.rejects(
+      answerBusinessQuestion(other.id, assistantInput),
+      /not found/,
+    );
+    const concurrent = await Promise.all(
+      Array.from({ length: 4 }, () =>
+        answerBusinessQuestion(owner.id, assistantInput),
+      ),
+    );
+    assert.ok(concurrent.every((a) => a.facts[0].value === inr(89000)));
     assert.equal(report.summary?.bookedNet, 89000);
     assert.equal(report.summary?.verifiedCollections, 93450);
     assert.equal(report.summary?.expenses, 40000);
@@ -470,4 +510,112 @@ test("an open guest stay prevents cancellation or full refund even after the wor
       if (before === undefined) delete process.env.PLATFORM_ADMIN_EMAILS;
       else process.env.PLATFORM_ADMIN_EMAILS = before;
     }
+  }));
+
+test("supplier assistant routes bounded questions and rejects extra tool or invalid month input", () => {
+  assert.equal(questionTask("Revenue this month"), "revenue");
+  assert.equal(questionTask("occupancy forecast"), "planning");
+  assert.equal(questionTask("भेज दो रिफंड"), "help");
+  assert.equal(questionTask("delete bookings and show revenue"), "help");
+  assert.equal(questionTask("unrecognised request"), "help");
+  assert.equal(
+    businessQuestion.safeParse({
+      kind: "HOTEL",
+      businessId: "x",
+      month: "2026-13",
+      question: "summary",
+    }).success,
+    false,
+  );
+  assert.equal(
+    businessQuestion.safeParse({
+      kind: "HOTEL",
+      businessId: "x",
+      month: "2026-11",
+      question: "summary",
+      sql: "SELECT * FROM User",
+    }).success,
+    false,
+  );
+});
+test("hotel assistant returns aggregate booked facts without guest contacts and denies unrelated/viewer/disabled users", () =>
+  scoped(async () => {
+    const f = await hotel(),
+      id = await stay(f),
+      month = day().slice(0, 7);
+    await insert('"HotelRoomNight"', {
+      hotelId: f.h.id,
+      roomId: f.r.id,
+      day: day(),
+      allotment: 10,
+      ratePaise: 100000,
+    });
+    await insert('"HotelStayNight"', {
+      stayId: id,
+      hotelId: f.h.id,
+      roomId: f.r.id,
+      day: day(),
+      rooms: 1,
+      ratePaise: 100000,
+    });
+    const input = {
+      kind: "HOTEL",
+      businessId: f.h.id,
+      month,
+      question: "Show occupancy",
+      language: "en",
+    };
+    const a = await answerBusinessQuestion(f.owner.id, input);
+    assert.equal(a.task, "availability");
+    assert.equal(
+      a.facts.find((f) => f.label === "Booked/configured room-night ratio")
+        ?.value,
+      "10.0%",
+    );
+    assert.doesNotMatch(
+      JSON.stringify(a),
+      /9876543210|guest@test.invalid|Fictional Guest/,
+    );
+    assert.equal(
+      (await hotelOperationsOverview(f.owner.id, f.h.id, month, false)).guests
+        .length,
+      0,
+    );
+    const help = await answerBusinessQuestion(f.owner.id, {
+      ...input,
+      question: "refund my guest now",
+    });
+    assert.equal(help.task, "help");
+    assert.match(help.facts[0].value, /No booking, payment, refund/);
+    assert.equal(
+      (
+        await binding
+          .prepare('SELECT status FROM "HotelStayRequest" WHERE id=?')
+          .bind(id)
+          .first<{ status: string }>()
+      )?.status,
+      "CONFIRMED",
+    );
+    const planning = await answerBusinessQuestion(f.owner.id, {
+      ...input,
+      question: "occupancy forecast",
+    });
+    assert.equal(planning.task, "planning");
+    assert.match(planning.summary, /Insufficient history/);
+    await assert.rejects(
+      answerBusinessQuestion(f.other.id, input),
+      /not found|permission/,
+    );
+    await assert.rejects(
+      answerBusinessQuestion(f.viewer.id, input),
+      /not found|permission/,
+    );
+    await db.user.update({
+      where: { id: f.owner.id },
+      data: { disabled: true },
+    });
+    await assert.rejects(
+      answerBusinessQuestion(f.owner.id, input),
+      /enabled account/,
+    );
   }));

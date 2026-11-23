@@ -1,0 +1,9 @@
+# Supplier owner tools and paid-launch setup — 23 November 2026
+
+User asks how to finish live AI, subscriptions, ads/messaging, supplier assistants and production testing. Current live-provider and merchant credentials/approved commercial terms remain unverified. Preserve phased delivery and existing contracts/data.
+
+1. Add a read-only hotel/bus/car operational assistant over existing freshly authorised report services. Summaries distinguish gross captures, net booked sales, recorded costs, current fleet utilisation and booked room-night ratios. No contact/guest list in responses; no provider calls, reservations, financial mutations or outbound messages. Unsupported/action questions return capabilities and explicit non-execution.
+2. Expose the assistant inside the selected hotel/transport operations view with explicit month, English/Hindi preference, transient bounded conversation and source/timestamp. Clear context on business/month change; pending responses cannot cross context.
+3. Test factual arithmetic, lack of unsupported forecasts, supplier/tenant isolation, anonymous/disabled access, API validation and owner browser journeys. Reuse existing report guards and routes; no migration or paid service activation.
+4. Publish operator setup instructions for OpenAI, Razorpay, Meta, Google and WhatsApp. Distinguish implemented guided tools from live-provider validation and recurring SaaS billing code still requiring approved prices/taxes/merchant test flow. Do not instruct enabling finance from a browser success redirect or reuse a hotel's merchant as platform billing.
+5. A small local report-read concurrency smoke can detect regressions; it does not establish Cloudflare Free production capacity. Live load testing requires an agreed window/limits; do not stress the public deployment.

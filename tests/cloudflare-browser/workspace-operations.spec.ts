@@ -286,6 +286,10 @@ test("bus/car workspace selects matching owned business and serves scoped operat
 }) => {
   const user = await signup(page);
   expect(user.id).toMatch(/^[\w-]+$/);
+  const ads = await (await page.request.get("/api/integrations")).json();
+  expect(ads.availability.enabled).toBe(false);
+  expect(ads.configured).toEqual({ META: false, GOOGLE: false });
+  expect(ads.availability.note).toContain("Continue recording spend manually");
   sql(`UPDATE "User" SET "emailVerified"=1 WHERE id='${user.id}'`);
   const profile = {
     name: "P2 Bus Business",
@@ -327,6 +331,67 @@ test("bus/car workspace selects matching owned business and serves scoped operat
   await expect(
     page.getByRole("link", { name: "Fleet & pricing", exact: true }),
   ).toHaveAttribute("href", "#operator-fleet");
+  const assistant = page.getByRole("region", {
+    name: "Business operational assistant",
+    exact: true,
+  });
+  await assistant
+    .getByRole("button", { name: "Recorded revenue", exact: true })
+    .click();
+  await assistant
+    .getByRole("button", { name: "Ask about records", exact: true })
+    .click();
+  await expect(
+    assistant.getByRole("heading", {
+      name: "Your recorded business snapshot",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    assistant.getByText("Recorded direct contribution · not net profit", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    assistant
+      .getByRole("log", { name: "Business conversation" })
+      .locator("article"),
+  ).toHaveCount(1);
+  await page.getByLabel("Trip start month", { exact: true }).fill("2026-01");
+  await expect(
+    assistant
+      .getByRole("log", { name: "Business conversation" })
+      .locator("article"),
+  ).toHaveCount(0);
+  const crossOrigin = await page.request.post("/api/assistant/business", {
+    headers: { Origin: "https://other.example" },
+    data: {
+      kind: "TRANSPORT",
+      businessId: "unknown",
+      month: "2026-11",
+      question: "summary",
+    },
+  });
+  expect(crossOrigin.status()).toBe(403);
+  const guestContext = await page.context().browser()!.newContext();
+  try {
+    const denied = await guestContext.request.post(
+      origin + "/api/assistant/business",
+      {
+        headers: { Origin: origin },
+        data: {
+          kind: "TRANSPORT",
+          businessId: "unknown",
+          month: "2026-11",
+          question: "summary",
+        },
+      },
+    );
+    expect(denied.status()).toBe(401);
+    expect(denied.headers()["cache-control"]).toContain("no-store");
+  } finally {
+    await guestContext.close();
+  }
   await page.screenshot({
     path: "test-results/p2-car-dashboard.png",
     fullPage: true,
@@ -416,6 +481,28 @@ test("hotel workspace shows guest operations, preserves confirmed inventory thro
       exact: true,
     }),
   ).toBeVisible();
+  const assistant = page.getByRole("region", {
+    name: "Business operational assistant",
+    exact: true,
+  });
+  await assistant
+    .getByRole("button", { name: "Booked occupancy", exact: true })
+    .click();
+  await assistant
+    .getByRole("button", { name: "Ask about records", exact: true })
+    .click();
+  await expect(assistant.getByText("50.0%", { exact: true })).toBeVisible();
+  await expect(
+    assistant.getByRole("log", { name: "Business conversation" }),
+  ).not.toContainText("guest@test.invalid");
+  await assistant
+    .getByRole("button", { name: "New conversation", exact: true })
+    .click();
+  await expect(
+    assistant
+      .getByRole("log", { name: "Business conversation" })
+      .locator("article"),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Guest records", exact: true })
     .click();

@@ -1,4 +1,5 @@
 "use client";
+import BusinessRecordAssistant from "./business-record-assistant";
 import { useEffect, useRef, useState } from "react";
 import { readApiJson } from "@/lib/api-response";
 import { inr, indiaToday } from "@/lib/money";
@@ -122,6 +123,12 @@ export default function HotelOperations({ hotelId }: { hotelId: string }) {
             onChange={(e) => setMonth(e.target.value)}
           />
         </label>
+        <BusinessRecordAssistant
+          key={`HOTEL:${hotelId}:${month}`}
+          kind="HOTEL"
+          businessId={hotelId}
+          month={month}
+        />
         {error && (
           <p className="error-box" role="alert">
             {error}

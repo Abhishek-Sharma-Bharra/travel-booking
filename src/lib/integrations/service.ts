@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { db } from "../db";
+import { db, d1Binding } from "../db";
 import { requirePostgresIntegration } from "../d1/availability";
 import { requireOwner, canManage, type Actor } from "../access";
 import { HttpError, trustedOrigin } from "../http";
@@ -410,9 +410,15 @@ export async function integrationOverview(
     take: 100,
   });
   return {
+    availability: {
+      enabled: !d1Binding(),
+      note: d1Binding()
+        ? "Live ads connections await a platform upgrade. Continue recording spend manually; provider keys alone do not enable this connection."
+        : "Provider configuration and authorised account access are required.",
+    },
     configured: {
-      META: metaReady() && vaultReady(),
-      GOOGLE: googleReady() && vaultReady(),
+      META: !d1Binding() && metaReady() && vaultReady(),
+      GOOGLE: !d1Binding() && googleReady() && vaultReady(),
     },
     connections,
     accounts,

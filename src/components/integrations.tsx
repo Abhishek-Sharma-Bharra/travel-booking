@@ -106,9 +106,11 @@ export default function Integrations({ data }: { data: Dataset }) {
           >
             <h3>{provider === "META" ? "Meta Ads" : "Google Ads"}</h3>
             <p>
-              {report?.configured[provider]
-                ? "Server configured; account authorization still required."
-                : "Not configured. Ask the administrator to complete provider approvals and encryption setup."}
+              {report?.availability?.enabled === false
+                ? report.availability.note
+                : report?.configured[provider]
+                  ? "Server configured; account authorization still required."
+                  : "Not configured. Ask the administrator to complete provider approvals and encryption setup."}
             </p>
             <button
               className="btn primary"

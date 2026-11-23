@@ -152,6 +152,7 @@ export async function hotelOperationsOverview(
   userId: string,
   hotelId: string,
   month: string,
+  includeGuests = true,
 ) {
   enabled();
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))
@@ -164,14 +165,16 @@ export async function hotelOperationsOverview(
     )
       .toISOString()
       .slice(0, 10);
-  const guests = (
-    await unit.db
-      .prepare(
-        'SELECT s.id,s."roomId",s.customer,s.phone,s.email,s."checkIn",s."checkOut",s.rooms,s.adults,s.children,s.status,s."paymentStatus",s.revision,g."checkedInAt",g."checkedOutAt",r.name AS "roomName" FROM "HotelStayRequest" s LEFT JOIN "HotelGuestStay" g ON g."stayId"=s.id AND g."hotelId"=s."hotelId" JOIN "HotelRoomCategory" r ON r.id=s."roomId" AND r."hotelId"=s."hotelId" WHERE s."hotelId"=? AND ((s."checkIn"<? AND s."checkOut">?) OR (g."checkedInAt" IS NOT NULL AND g."checkedOutAt" IS NULL)) ORDER BY s."checkIn",s.id LIMIT 201',
-      )
-      .bind(hotelId, to, from)
-      .all<Record<string, unknown>>()
-  ).results;
+  const guests = includeGuests
+    ? (
+        await unit.db
+          .prepare(
+            'SELECT s.id,s."roomId",s.customer,s.phone,s.email,s."checkIn",s."checkOut",s.rooms,s.adults,s.children,s.status,s."paymentStatus",s.revision,g."checkedInAt",g."checkedOutAt",r.name AS "roomName" FROM "HotelStayRequest" s LEFT JOIN "HotelGuestStay" g ON g."stayId"=s.id AND g."hotelId"=s."hotelId" JOIN "HotelRoomCategory" r ON r.id=s."roomId" AND r."hotelId"=s."hotelId" WHERE s."hotelId"=? AND ((s."checkIn"<? AND s."checkOut">?) OR (g."checkedInAt" IS NOT NULL AND g."checkedOutAt" IS NULL)) ORDER BY s."checkIn",s.id LIMIT 201',
+          )
+          .bind(hotelId, to, from)
+          .all<Record<string, unknown>>()
+      ).results
+    : [];
   const nights = (
     await unit.db
       .prepare(
