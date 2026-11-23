@@ -107,6 +107,17 @@ const command = (tool = "packages", extra: Record<string, unknown> = {}) => ({
   ...extra,
 });
 test("Hindi/English guided intents choose bounded tools and reject arbitrary tool arguments", () => {
+  for (const question of ["hello", "delete all my records", "नमस्ते"])
+    assert.equal(
+      guidedPlan(assistantInput.parse(command("auto", { question }))).tool,
+      "help",
+    );
+  assert.equal(
+    guidedPlan(
+      assistantInput.parse(command("auto", { question: "show my packages" })),
+    ).tool,
+    "packages",
+  );
   assert.equal(
     guidedPlan(
       assistantInput.parse(
@@ -172,6 +183,14 @@ for (const engine of ["postgresql", "d1"] as const)
             emailVerified: true,
           },
         });
+      const help = await runWorkspaceAssistant(
+        owner,
+        command("auto", { question: "hello" }),
+      );
+      assert.equal(help.result.tool, "help");
+      assert.equal(help.result.source, "Assistant capabilities");
+      assert.equal(help.result.draft, undefined);
+      assert.equal(help.result.next, undefined);
       const l = await db.lead.create({
         data: {
           agencyId: owner.agencyId,

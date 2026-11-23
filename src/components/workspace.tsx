@@ -1476,6 +1476,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   </section>
                   {data.access.workspaceAssistantEnabled && !data.demo && (
                     <WorkspaceAssistantConsole
+                      key={`${data.agency.id}:${data.actor.id}`}
                       data={data}
                       onReview={(result) => {
                         const next = result.next;

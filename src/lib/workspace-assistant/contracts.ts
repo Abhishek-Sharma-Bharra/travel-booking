@@ -1,5 +1,6 @@
 import { z } from "zod";
 export const tools = [
+  "help",
   "packages",
   "lead",
   "itinerary",
@@ -72,7 +73,7 @@ export type ToolResult = {
   asOf: string;
 };
 export function guidedPlan(v: AssistantInput): Plan {
-  let tool: AssistantTool = v.tool === "auto" ? "packages" : v.tool;
+  let tool: AssistantTool = v.tool === "auto" ? "help" : v.tool;
   if (v.tool === "auto") {
     const q = v.question.toLowerCase();
     if (/payment|pay |paisa|paise|bhugtan|भुगतान/.test(q)) tool = "payment";
@@ -83,6 +84,7 @@ export function guidedPlan(v: AssistantInput): Plan {
     else if (/quotation|quote|proposal|कोटेशन/.test(q)) tool = "quotation";
     else if (/hotel|supplier|bus|car|होटल|बस/.test(q)) tool = "suppliers";
     else if (/lead|customer|enquiry|ग्राहक/.test(q)) tool = "lead";
+    else if (/package|पैकेज|पैकेजों/.test(q)) tool = "packages";
   }
   return { tool, query: "", language: v.language };
 }

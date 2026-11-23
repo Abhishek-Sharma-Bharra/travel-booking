@@ -36,6 +36,39 @@ export async function executeAssistantTool(
       : "Review these recorded facts. No customer message, payment request or booking action has been sent or executed.",
     ...extra,
   });
+  if (plan.tool === "help")
+    return result(
+      hi ? "मैं कैसे मदद कर सकता हूँ" : "How I can help",
+      hi
+        ? "मैं आपकी अनुमति वाले रिकॉर्ड से पैकेज, पूछताछ, फॉलो-अप और ड्राफ्ट तैयार करने में मदद कर सकता हूँ। नीचे काम और उसका संदर्भ चुनें।"
+        : "I can look up permitted records and prepare work for review. Choose a task and its enquiry, package or booking context below. Guided mode uses supported tools, not a general-purpose language model.",
+      [
+        {
+          id: "drafts",
+          label: hi ? "योजना और कोटेशन" : "Plan and quote",
+          detail:
+            "Maintained package facts → itinerary draft → recorded-rate quotation preview → existing review form.",
+        },
+        {
+          id: "operations",
+          label: hi ? "ग्राहक और बुकिंग" : "Customers and bookings",
+          detail:
+            "Selected enquiry, recorded follow-ups, booking status and current approved supplier lookup.",
+        },
+        {
+          id: "limits",
+          label: hi ? "अभी सक्रिय नहीं" : "Actions remain controlled",
+          detail:
+            "This chat does not send messages, create payment links, confirm bookings, charge, refund or activate subscriptions. Live AI needs approved provider setup.",
+        },
+      ],
+      {
+        source: "Assistant capabilities",
+        note: hi
+          ? "किसी ग्राहक रिकॉर्ड या भुगतान में बदलाव नहीं किया गया।"
+          : "No customer record or financial action was changed. Unsupported questions return this help; they are not treated as completed tasks.",
+      },
+    );
   const lead = async () => {
     if (!v.leadId) throw new HttpError(400, "Choose an enquiry for this tool");
     const l = await db.lead.findFirst({

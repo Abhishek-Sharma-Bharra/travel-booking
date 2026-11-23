@@ -174,6 +174,20 @@ test("signup opens a light premium studio with real onboarding and grounded assi
     name: "Grounded workspace assistant",
     exact: true,
   });
+  await console.getByRole("textbox", { name: /Your question/ }).fill("hello");
+  await console
+    .getByRole("button", { name: "Send message", exact: true })
+    .click();
+  await expect(
+    console.getByRole("heading", { name: "How I can help", exact: true }),
+  ).toBeVisible();
+  const conversation = console.getByRole("log", {
+    name: "Conversation messages",
+  });
+  await expect(conversation.getByText("hello", { exact: true })).toBeVisible();
+  await console
+    .getByRole("textbox", { name: /Your question/ })
+    .fill("Prepare my quotation draft");
   await console
     .getByRole("combobox", { name: /What would you like to review/ })
     .selectOption("quotation");
@@ -184,7 +198,7 @@ test("signup opens a light premium studio with real onboarding and grounded assi
     .getByRole("combobox", { name: /Package context/ })
     .selectOption(pkg.id);
   await console
-    .getByRole("button", { name: "Review records", exact: true })
+    .getByRole("button", { name: "Send message", exact: true })
     .click();
   await expect(
     console.getByRole("heading", {
@@ -193,6 +207,13 @@ test("signup opens a light premium studio with real onboarding and grounded assi
     }),
   ).toBeVisible();
   await expect(console.getByText("₹37,037.01", { exact: true })).toBeVisible();
+  await expect(conversation.locator(".conversation-turn")).toHaveCount(2);
+  await expect(
+    console.getByRole("combobox", { name: /What would you like to review/ }),
+  ).toHaveValue("auto");
+  await expect(
+    console.getByRole("textbox", { name: /Your question/ }),
+  ).toHaveValue("");
   expect(
     (await (await page.request.get("/api/data")).json()).quotes,
   ).toHaveLength(0);
@@ -217,7 +238,7 @@ test("signup opens a light premium studio with real onboarding and grounded assi
     .getByRole("combobox", { name: /What would you like to review/ })
     .selectOption("itinerary");
   await console
-    .getByRole("button", { name: "Review records", exact: true })
+    .getByRole("button", { name: "Send message", exact: true })
     .click();
   await expect(
     console.getByRole("heading", {
@@ -269,4 +290,37 @@ test("signup opens a light premium studio with real onboarding and grounded assi
     fullPage: true,
     animations: "disabled",
   });
+  await console
+    .getByRole("combobox", { name: /Enquiry context/ })
+    .selectOption(lead.id);
+  await console
+    .getByRole("combobox", { name: /Package context/ })
+    .selectOption(pkg.id);
+  await console.getByRole("textbox", { name: /Your question/ }).fill("नमस्ते");
+  await console
+    .getByRole("button", { name: "Send message", exact: true })
+    .click();
+  await expect(
+    console.getByRole("heading", { name: "How I can help", exact: true }),
+  ).toBeVisible();
+  await expect(conversation.locator(".conversation-turn")).toHaveCount(1);
+  await console
+    .getByRole("button", { name: "New conversation", exact: true })
+    .click();
+  await expect(conversation.locator(".conversation-turn")).toHaveCount(0);
+  await expect(
+    console.getByRole("textbox", { name: /Your question/ }),
+  ).toHaveValue("");
+  await expect(
+    console.getByRole("combobox", { name: /Enquiry context/ }),
+  ).toHaveValue("");
+  await expect(
+    console.getByRole("combobox", { name: /Package context/ }),
+  ).toHaveValue("");
+  await expect(
+    console.getByRole("heading", {
+      name: "What shall we work on today?",
+      exact: true,
+    }),
+  ).toBeVisible();
 });
