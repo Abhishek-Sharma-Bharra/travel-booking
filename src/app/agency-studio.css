@@ -1063,3 +1063,46 @@
     padding: 16px;
   }
 }
+
+@media screen {
+  .light-theme .agency-studio .sandbox-billing {
+    margin: 26px 0;
+    padding: 24px;
+    border: 1px dashed #bda6e1;
+    background: #fcf9ff;
+    border-radius: 16px;
+    overflow-wrap: anywhere;
+  }
+  .light-theme .agency-studio .sandbox-billing label {
+    display: grid;
+    gap: 9px;
+    margin: 18px 0;
+    font-size: 13px;
+    color: #58466e;
+  }
+  .light-theme
+    .agency-studio
+    .sandbox-billing
+    label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: flex-start;
+    line-height: 1.8;
+  }
+  .light-theme .agency-studio .sandbox-billing input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    min-width: 17px;
+    margin-top: 4px;
+  }
+  .light-theme .agency-studio .sandbox-billing .btn {
+    margin: 6px 8px 6px 0;
+    white-space: normal;
+  }
+  .light-theme .agency-studio .sandbox-billing li {
+    line-height: 1.8;
+    margin: 12px 0;
+  }
+  .light-theme .agency-studio .sandbox-billing :is(select, input) {
+    max-width: 100%;
+  }
+}

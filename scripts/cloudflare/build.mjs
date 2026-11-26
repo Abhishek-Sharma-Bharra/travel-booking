@@ -11,6 +11,9 @@ if (!revision || !/^[a-f0-9]{40,64}$/.test(revision))
 const env = {
   ...process.env,
   TRAVELOS_BUILD_ID: revision,
+  TRAVELOS_BUILD_DATABASE_ENGINE: String(
+    workerConfig.vars.TRAVELOS_DATABASE_ENGINE ?? "postgresql",
+  ),
   // Keep prerendered navigation aligned with the runtime feature flags.
   HOTELS_ENABLED: String(workerConfig.vars.HOTELS_ENABLED ?? "false"),
   HOTEL_BOOKING_ENABLED: String(
@@ -22,6 +25,7 @@ const env = {
 for (const args of [
   ["opennextjs-cloudflare", "build", "-c", "cloudflare/worker/wrangler.jsonc"],
   ["node", "scripts/cloudflare/assets.mjs"],
+  ["node", "scripts/cloudflare/check-worker-size.mjs"],
 ]) {
   const [command, ...rest] = args;
   const result = spawnSync(command, rest, { stdio: "inherit", env });

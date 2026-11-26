@@ -72,10 +72,10 @@ test("signup opens a light premium studio with real onboarding and grounded assi
   await expect(
     page.getByText("0 of 3 foundations in place", { exact: true }),
   ).toBeVisible();
-  const sidebar = await page
-    .locator(".sidebar")
-    .evaluate((e) => getComputedStyle(e).backgroundColor);
-  expect(sidebar).toBe("rgb(255, 255, 255)");
+  await expect(page.locator(".sidebar")).toHaveCSS(
+    "background-color",
+    "rgb(255, 255, 255)",
+  );
   await page.screenshot({
     path: "test-results/studio-new-agency-desktop.png",
     fullPage: true,

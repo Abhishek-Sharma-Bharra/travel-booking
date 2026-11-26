@@ -1,4 +1,5 @@
 "use client";
+import SaasBillingSandbox from "./saas-billing-sandbox";
 import { useState } from "react";
 import type { Dataset } from "@/lib/data";
 import { indianDate } from "@/lib/money";
@@ -89,13 +90,16 @@ export default function SubscriptionPage({
           </section>
         ))}
       </div>
+      {owner && !data.demo && (
+        <SaasBillingSandbox key={`${data.agency.id}:${data.actor.id}`} />
+      )}
       <h3>Payment and renewal</h3>
       <p>
-        Checkout and automatic billing are not connected. Request a plan below;
-        the service administrator will arrange a written quote and payment
-        instructions separately. Pay only through the verified business details
-        on that quote. Your access is changed by an authorised administrator
-        after verification, not by this form.
+        Production checkout and automatic billing are not active. Request a plan
+        below; the service administrator will arrange a written quote and
+        payment instructions separately. Pay only through the verified business
+        details on that quote. Your access is changed by an authorised
+        administrator after verification, not by this form.
       </p>
       <p>
         Receipts recorded against travel bookings are not payments for your

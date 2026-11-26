@@ -11,7 +11,13 @@ const cloudflareWebpack: NonNullable<NextConfig["webpack"]> = (
         { request }: { request?: string },
         callback: (error: Error | null, result?: string) => void,
       ) => {
-        if (request === "@travelos/d1-client")
+        // Native D1 builds need one generated client/compiler, not both SQL engines.
+        // Regular PostgreSQL/Render builds keep their original client resolution.
+        if (
+          request === "@travelos/d1-client" ||
+          (process.env.TRAVELOS_BUILD_DATABASE_ENGINE === "d1" &&
+            request === "@prisma/client")
+        )
           return callback(null, "commonjs @travelos/d1-client");
         callback(null);
       },

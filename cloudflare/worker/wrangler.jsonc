@@ -11,6 +11,7 @@
     "logs": { "enabled": true, "invocation_logs": true },
   },
   "preview_urls": false,
+  "minify": true,
   "triggers": { "crons": ["*/15 * * * *"] },
   "assets": {
     "directory": "../../.open-next/assets",
@@ -42,6 +43,7 @@
     "SITE_INDEXING_ENABLED": "false",
     "HOTELS_ENABLED": "true",
     "PAID_AI_ENABLED": "false",
+    "SAAS_BILLING_TEST_ENABLED": "false",
     "WORKSPACE_OPERATIONS_ENABLED": "true",
     "WORKSPACE_ASSISTANT_ENABLED": "true",
     "WORKSPACE_ASSISTANT_LIVE_APPROVED": "false",
