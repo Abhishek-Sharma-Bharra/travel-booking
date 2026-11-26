@@ -25,7 +25,7 @@ export function HotelBrandHeader({
       >
         <Compass size={31} />
         <span>
-          Vashisht<span className="brand-sub">TRAVELOS</span>
+          VASHISHT<span className="brand-sub">TRAVELOS</span>
         </span>
       </Link>
       <span className="hotel-brand-divider" />

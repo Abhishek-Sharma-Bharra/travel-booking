@@ -104,7 +104,7 @@ export default function MarketplaceConsole({
     <main className="hotel-shell hotel-branded market-console">
       <header className="hotel-brand-nav">
         <Link className="brand" href="/">
-          Vashisht <small>TRAVELOS</small>
+          VASHISHT <small>TRAVELOS</small>
         </Link>
         <span>Business marketplace workspace</span>
         <Link className="btn secondary" href="/marketplace">

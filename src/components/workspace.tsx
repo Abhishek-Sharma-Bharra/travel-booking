@@ -1029,7 +1029,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
         <Link href="/" className="brand">
           <Compass size={34} />
           <span>
-            Vashisht<span className="brand-sub">TRAVELOS</span>
+            VASHISHT<span className="brand-sub">TRAVELOS</span>
           </span>
         </Link>
         <div className="workspace-switch">

@@ -20,7 +20,7 @@ export default function HomepageNav() {
             <Compass size={25} />
           </span>
           <strong>
-            Vashisht<small>TRAVELOS</small>
+            VASHISHT<small>TRAVELOS</small>
           </strong>
         </a>
         <button

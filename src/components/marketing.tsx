@@ -37,7 +37,7 @@ export function MarketingHeader({
         >
           <Compass size={32} />
           <span>
-            Vashisht<span className="brand-sub">TRAVELOS</span>
+            VASHISHT<span className="brand-sub">TRAVELOS</span>
           </span>
         </Link>
         <div className="marketing-links">

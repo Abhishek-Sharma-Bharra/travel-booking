@@ -123,7 +123,7 @@ export default function Login() {
     <main className="auth-page">
       <Link className="brand" href={hotelIntent ? "/hotel-business" : "/"}>
         <Compass size={32} />
-        Vashisht <small>TRAVELOS</small>
+        VASHISHT <small>TRAVELOS</small>
       </Link>
       <section className="auth-card">
         {/* Switching the same login path must refresh query-derived form state. */}
