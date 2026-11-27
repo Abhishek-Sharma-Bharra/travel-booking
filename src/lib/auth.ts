@@ -155,4 +155,16 @@ export function createTravelAuth(
     },
   });
 }
-export const auth = createTravelAuth();
+// Better Auth inspects Prisma metadata during construction. In a native D1
+// build that must happen inside a request with its D1 binding, not while Next
+// imports route modules at build time (which has no database adapter).
+let defaultAuth: ReturnType<typeof createTravelAuth> | undefined;
+const instance = () => (defaultAuth ??= createTravelAuth());
+export const auth = new Proxy({} as ReturnType<typeof createTravelAuth>, {
+  get(_target, property) {
+    return Reflect.get(instance(), property);
+  },
+  has(_target, property) {
+    return Reflect.has(instance(), property);
+  },
+});

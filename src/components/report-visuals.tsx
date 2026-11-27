@@ -125,9 +125,7 @@ export function ReportTrend({
                       fill={s.color || palette[i % palette.length]}
                       rx="2"
                     >
-                      <title>
-                        {labels[p.index]} · {s.label}: {format(p.value)}
-                      </title>
+                      <title>{`${labels[p.index]} · ${s.label}: ${format(p.value)}`}</title>
                     </rect>
                   ))}
                 </g>
@@ -157,9 +155,7 @@ export function ReportTrend({
                       r="3.2"
                       fill={s.color || palette[i % palette.length]}
                     >
-                      <title>
-                        {labels[p.index]} · {s.label}: {format(p.value)}
-                      </title>
+                      <title>{`${labels[p.index]} · ${s.label}: ${format(p.value)}`}</title>
                     </circle>
                   ))}
               </g>
@@ -240,9 +236,7 @@ export function StageRing({
               strokeDashoffset={-previous}
               transform="rotate(-90 80 80)"
             >
-              <title>
-                {item.label}: {item.value}
-              </title>
+              <title>{`${item.label}: ${item.value}`}</title>
             </circle>
           );
         })}
