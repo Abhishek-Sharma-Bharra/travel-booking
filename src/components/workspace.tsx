@@ -101,6 +101,7 @@ import {
 type Lead = Dataset["leads"][number];
 type Booking = Dataset["bookings"][number];
 type Quote = Dataset["quotes"][number];
+const CrmReview = dynamic(() => import("./crm-review"));
 const navigation = [
   {
     group: "WORKSPACE",
@@ -110,6 +111,7 @@ const navigation = [
       ["BI Reports", FileText],
       ["Enquiries", Users],
       ["Customers", Users],
+      ["CRM review", Users],
       ["Itineraries & costing", FileText],
       ["Departure calendar", CalendarDays],
       ["Suppliers", Wallet],
@@ -999,6 +1001,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       "Settings",
       "Team",
       "Customers",
+      "CRM review",
       "Itineraries & costing",
       "Departure calendar",
       "Suppliers",
@@ -1399,6 +1402,9 @@ export default function Workspace({ initial }: { initial: Dataset }) {
                   onLead={setDetail}
                   onPage={changePage}
                 />
+              )}
+              {page === "CRM review" && (
+                <CrmReview data={data} onLead={setDetail} />
               )}
               {page === "Itineraries & costing" &&
                 (data.access.workspaceOperationsEnabled && !data.demo ? (

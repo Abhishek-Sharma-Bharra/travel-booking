@@ -22,14 +22,6 @@ test("sandbox billing defaults off, protects its APIs and never trusts browser p
     "X-Forwarded-For": address,
     "CF-Connecting-IP": address,
   });
-  await page.addLocatorHandler(
-    page.getByRole("dialog", { name: "Workspace tour", exact: true }),
-    async () => {
-      await page
-        .getByRole("button", { name: "Skip tour", exact: true })
-        .click();
-    },
-  );
   await page.goto("/login?signup=1");
   await page
     .getByLabel("Your name", { exact: true })
@@ -44,6 +36,15 @@ test("sandbox billing defaults off, protects its APIs and never trusts browser p
     .getByRole("button", { name: "Create workspace", exact: true })
     .click();
   await expect(page).toHaveURL(/\/workspace$/);
+  // Finish first-run onboarding before navigating: its async read can otherwise
+  // start the Overview walkthrough while this test clicks Subscription.
+  await expect(
+    page.getByRole("dialog", { name: "Workspace tour", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Skip tour", exact: true }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Workspace tour", exact: true }),
+  ).toBeHidden();
   const nav = page.getByRole("navigation", { name: "Workspace navigation" });
   await nav.getByRole("button", { name: "Subscription", exact: true }).click();
   await expect(
