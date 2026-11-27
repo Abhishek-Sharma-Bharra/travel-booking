@@ -362,6 +362,9 @@ test("hotel JSON endpoints reject HTML upstream failures while OAuth redirects r
     "/api/hotelier/booking",
     "/api/public/hotels/example",
     "/api/campaigns",
+    "/api/suppliers",
+    "/api/billing/sandbox",
+    "/api/billing/sandbox/webhook",
   ]) {
     const response = await gateway.fetch(new Request(origin + path), env);
     assert.equal(response.status, 503);

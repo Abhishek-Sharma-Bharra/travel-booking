@@ -1,6 +1,11 @@
+import { workspaceRoleAllowed } from "./access";
+import { transactionConflict } from "./db-conflicts";
 import {
-  itineraryQuoteSource,
-} from "./workspace-operations/quote-source";
+  AUTO_ASSIGNEE,
+  leastOpenAssignee,
+  openLeadStages,
+} from "./lead-assignment";
+import { itineraryQuoteSource } from "./workspace-operations/quote-source";
 import { requestSubscription } from "./subscription-requests";
 import {
   timezoneSchema,
@@ -49,7 +54,8 @@ export async function mutate(
   if (
     !currentUser ||
     currentUser.disabled ||
-    currentUser.agencyId !== a.agencyId
+    currentUser.agencyId !== a.agencyId ||
+    !workspaceRoleAllowed(currentUser.role)
   )
     throw new HttpError(403, "Workspace access unavailable");
   a = { ...a, role: currentUser.role };
@@ -106,76 +112,149 @@ export async function mutate(
       throw new Error(
         "Import new enquiries only; create quotations and bookings in the app",
       );
+    const automatic = parsed.some((l) => l.assignedId === AUTO_ASSIGNEE);
+    if (automatic) {
+      if (a.role === "AGENT")
+        throw new HttpError(
+          403,
+          "Only an owner or manager can automatically assign a new enquiry",
+        );
+      if (
+        action !== "lead" ||
+        wrapper.id ||
+        parsed.length !== 1 ||
+        parsed[0].stage !== "New"
+      )
+        throw new HttpError(
+          400,
+          "Automatic assignment is available only for one new enquiry at creation",
+        );
+    }
     for (const uid of new Set(parsed.map((l) => l.assignedId)))
-      await assignee(uid);
-    return db.$transaction(
-      async (tx) => {
-        if (!wrapper.id || action === "import") {
-          const existing = await tx.lead.count({
-            where: { agencyId: a.agencyId },
-          });
-          if (existing + parsed.length > limitsFor(agency.plan).leads)
-            throw new HttpError(
-              409,
-              "Your plan’s enquiry limit has been reached. Contact support before adding more records.",
-            );
-        }
-        if (action === "import") {
-          const created = await tx.lead.createManyAndReturn({
-            data: parsed.map((l) => ({
-              ...l,
-              agencyId: a.agencyId,
-              ...scoreLead(l),
-            })),
-            select: { id: true },
-          });
-          await tx.activity.createMany({
-            data: created.map((l) => ({
-              agencyId: a.agencyId,
-              actor: a.id,
-              action: "Enquiry imported",
-              leadId: l.id,
-            })),
-          });
-          return { message: `${created.length} enquiry record(s) saved` };
-        }
-        for (const l of parsed) {
-          if (wrapper.id && action === "lead") {
-            const old = await leadAccess(tx, wrapper.id);
-            if (l.stage === "Won" && old.stage !== "Won")
-              throw new Error(
-                "Use an accepted quotation to create a Won booking",
-              );
+      if (uid !== AUTO_ASSIGNEE) await assignee(uid);
+    const commitLead = () =>
+      db.$transaction(
+        async (tx) => {
+          if (automatic) {
+            await tx.$queryRaw`SELECT id FROM "Agency" WHERE id=${a.agencyId} FOR UPDATE`;
+            await tx.$queryRaw`SELECT id FROM "User" WHERE "agencyId"=${a.agencyId} FOR SHARE`;
+            const fresh = await tx.user.findUnique({
+              where: { id: a.id },
+              include: { agency: true },
+            });
             if (
-              old.stage === "Won" &&
-              (l.stage !== "Won" ||
-                old.travellers !== l.travellers ||
-                +old.travelStart !== +l.travelStart ||
-                +old.travelEnd !== +l.travelEnd)
+              !fresh ||
+              fresh.disabled ||
+              fresh.agencyId !== a.agencyId ||
+              !["OWNER", "MANAGER"].includes(fresh.role) ||
+              !fresh.agency ||
+              fresh.agency.demo
             )
-              throw new Error(
-                "Booked enquiry dates, travellers and Won stage are fixed; manage cancellation in Bookings",
-              );
-            const lead = await tx.lead.update({
-              where: { id: old.id },
-              data: { ...l, ...scoreLead(l) },
+              throw new HttpError(403, "Workspace access unavailable");
+            requireSubscription(fresh.agency);
+            const candidates = await tx.user.findMany({
+              where: {
+                agencyId: a.agencyId,
+                disabled: false,
+                role: { in: ["OWNER", "MANAGER", "AGENT"] },
+              },
+              select: { id: true },
             });
-            await audit(tx, "Enquiry updated", lead.id);
-          } else {
-            if (l.stage === "Won")
-              throw new Error(
-                "Create a booking through a quotation to mark Won",
-              );
-            const lead = await tx.lead.create({
-              data: { ...l, agencyId: a.agencyId, ...scoreLead(l) },
+            const counts = await tx.lead.groupBy({
+              by: ["assignedId"],
+              where: {
+                agencyId: a.agencyId,
+                stage: { in: [...openLeadStages] },
+              },
+              _count: { id: true },
             });
-            await audit(tx, "Enquiry created", lead.id);
+            parsed[0].assignedId = leastOpenAssignee(
+              candidates.map((u) => ({
+                id: u.id,
+                open: counts.find((c) => c.assignedId === u.id)?._count.id ?? 0,
+              })),
+            );
           }
-        }
-        return { message: `${parsed.length} enquiry record(s) saved` };
-      },
-      { isolationLevel: "Serializable" },
-    );
+          if (!wrapper.id || action === "import") {
+            const existing = await tx.lead.count({
+              where: { agencyId: a.agencyId },
+            });
+            if (existing + parsed.length > limitsFor(agency.plan).leads)
+              throw new HttpError(
+                409,
+                "Your plan’s enquiry limit has been reached. Contact support before adding more records.",
+              );
+          }
+          if (action === "import") {
+            const created = await tx.lead.createManyAndReturn({
+              data: parsed.map((l) => ({
+                ...l,
+                agencyId: a.agencyId,
+                ...scoreLead(l),
+              })),
+              select: { id: true },
+            });
+            await tx.activity.createMany({
+              data: created.map((l) => ({
+                agencyId: a.agencyId,
+                actor: a.id,
+                action: "Enquiry imported",
+                leadId: l.id,
+              })),
+            });
+            return { message: `${created.length} enquiry record(s) saved` };
+          }
+          for (const l of parsed) {
+            if (wrapper.id && action === "lead") {
+              const old = await leadAccess(tx, wrapper.id);
+              if (l.stage === "Won" && old.stage !== "Won")
+                throw new Error(
+                  "Use an accepted quotation to create a Won booking",
+                );
+              if (
+                old.stage === "Won" &&
+                (l.stage !== "Won" ||
+                  old.travellers !== l.travellers ||
+                  +old.travelStart !== +l.travelStart ||
+                  +old.travelEnd !== +l.travelEnd)
+              )
+                throw new Error(
+                  "Booked enquiry dates, travellers and Won stage are fixed; manage cancellation in Bookings",
+                );
+              const lead = await tx.lead.update({
+                where: { id: old.id },
+                data: { ...l, ...scoreLead(l) },
+              });
+              await audit(tx, "Enquiry updated", lead.id);
+            } else {
+              if (l.stage === "Won")
+                throw new Error(
+                  "Create a booking through a quotation to mark Won",
+                );
+              const lead = await tx.lead.create({
+                data: { ...l, agencyId: a.agencyId, ...scoreLead(l) },
+              });
+              await audit(
+                tx,
+                automatic
+                  ? "Enquiry created · automatically assigned by least-open workload"
+                  : "Enquiry created",
+                lead.id,
+              );
+            }
+          }
+          return { message: `${parsed.length} enquiry record(s) saved` };
+        },
+        { isolationLevel: "Serializable" },
+      );
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await commitLead();
+      } catch (error) {
+        if (automatic && attempt < 2 && transactionConflict(error)) continue;
+        throw error;
+      }
+    }
   }
   if (action === "followup") {
     const v = z

@@ -11,7 +11,7 @@ import type {
   Activity,
   Invitation,
 } from "@prisma/client";
-import type { Actor } from "../access";
+import { type Actor, workspaceRoleAllowed } from "../access";
 import { HttpError } from "../http";
 import { D1Unit, d1Record } from "./unit";
 import { guardedD1Batch, type D1Statement } from "./atomic";
@@ -27,7 +27,12 @@ async function load(binding: D1Database, input: Actor) {
   let actor = input;
   if (!input.demo) {
     const user = (await unit.read<User>("User", '"id"=?', [input.id]))[0];
-    if (!user || user.disabled || user.agencyId !== input.agencyId)
+    if (
+      !user ||
+      user.disabled ||
+      user.agencyId !== input.agencyId ||
+      !workspaceRoleAllowed(user.role)
+    )
       throw new HttpError(403, "Workspace access unavailable");
     actor = { ...input, role: user.role };
   }

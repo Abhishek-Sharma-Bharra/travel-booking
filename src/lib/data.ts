@@ -4,9 +4,19 @@ import { subscriptionAccess, limitsFor, planLimits } from "./subscriptions";
 import { mailReady, verificationRequired } from "./mail";
 import { db, d1Binding } from "./db";
 import { workspaceSnapshotD1 } from "./d1/workspace";
-import { Actor, scope } from "./access";
+import { Actor, scope, workspaceRoleAllowed } from "./access";
+import { HttpError } from "./http";
 export async function workspaceData(a: Actor) {
   const binding = d1Binding();
+  if (!binding && !a.demo) {
+    const current = await db.user.findFirst({
+      where: { id: a.id, agencyId: a.agencyId, disabled: false },
+      select: { role: true },
+    });
+    if (!current || !workspaceRoleAllowed(current.role))
+      throw new HttpError(403, "Workspace access unavailable");
+    a = { ...a, role: current.role };
+  }
   const snapshot = binding ? await workspaceSnapshotD1(binding, a) : undefined;
   if (snapshot) a = snapshot.actor;
   const leadWhere = scope(a);
@@ -82,6 +92,8 @@ export async function workspaceData(a: Actor) {
             })
           : [],
       ]);
+  if (!!agency.demo !== !!a.demo)
+    throw new HttpError(403, "Workspace access unavailable");
   const payload = {
     refreshedAt: new Date().toISOString(),
     billing: {
@@ -105,7 +117,8 @@ export async function workspaceData(a: Actor) {
     },
     access: {
       canViewCosts: a.role !== "AGENT",
-      workspaceAssistantEnabled: process.env.WORKSPACE_ASSISTANT_ENABLED === "true",
+      workspaceAssistantEnabled:
+        process.env.WORKSPACE_ASSISTANT_ENABLED === "true",
       workspaceOperationsEnabled:
         process.env.WORKSPACE_OPERATIONS_ENABLED === "true",
       canWrite: !a.demo && subscriptionAccess(agency),

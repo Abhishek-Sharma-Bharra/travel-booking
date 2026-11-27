@@ -1106,3 +1106,22 @@
     max-width: 100%;
   }
 }
+
+@media screen {
+  .agency-studio .studio-release-tools {
+    padding: 24px;
+    border: 1px solid #e7def4;
+    border-radius: 18px;
+    background: #fff;
+    margin-top: 20px;
+  }
+  .agency-studio .studio-release-tools p {
+    color: #65728a;
+    max-width: 720px;
+  }
+  .agency-studio .studio-release-tools .studio-welcome-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}

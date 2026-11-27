@@ -144,6 +144,42 @@ export default function AgencyStudioWelcome({
           </article>
         ))}
       </div>
+      <div
+        className="studio-release-tools"
+        role="region"
+        aria-label="Available workspace tools"
+      >
+        <div>
+          <span className="studio-eyebrow">EXPLORE YOUR WORKSPACE</span>
+          <h3>Tools ready for your daily operations</h3>
+          <p>
+            Review records and drafts. Live paid AI, external messaging and
+            automatic billing require separate setup.
+          </p>
+        </div>
+        <div className="studio-welcome-actions">
+          <button
+            className="btn secondary"
+            onClick={() => onPage("CRM review")}
+          >
+            CRM review centre <ArrowUpRight size={16} />
+          </button>
+          {manager && (
+            <button
+              className="btn secondary"
+              onClick={() => onPage("Suppliers")}
+            >
+              Suppliers & contracts <ArrowUpRight size={16} />
+            </button>
+          )}
+          <button
+            className="btn secondary"
+            onClick={() => onPage("Itineraries & costing")}
+          >
+            Itineraries & costing <ArrowUpRight size={16} />
+          </button>
+        </div>
+      </div>
     </section>
   );
 }

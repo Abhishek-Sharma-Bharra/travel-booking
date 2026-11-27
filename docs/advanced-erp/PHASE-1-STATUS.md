@@ -41,3 +41,7 @@ Later phases need approved live AI pilot/budgets, consented messaging delivery a
 No incremental third-party spend in this increment; no paid infrastructure activated. Current workload still consumes the existing Cloudflare/D1 allowances. Capacity and ongoing cost require real traffic/row-read/token measurements. Optional live AI, telephony, WhatsApp, merchant fees and paid Cloudflare services are additional and disabled until configured/approved.
 
 Before a production release: retain current restore bookmark; build from the reviewed commit; run `npm run cloudflare:build` (includes local worker-size guard); apply only outstanding reviewed additive migrations using `npm run cloudflare:release:worker`; deploy paired Pages and private Worker from the same revision; inspect health/build identifiers and signup, populated dashboard, hotel/operator and CRM review flows. Verify billing/AI flags remain off. Do not seed production. Roll back application commits if needed; these changes require no data rollback. This report is not a production-readiness certification.
+
+## Later operations increment — 27 November 2026
+
+See [market pilot release](../market-pilot/RELEASE-2026-11-27.md) for the subsequent supplier directory/versioned contract records, explicit per-enquiry auto-assignment and role-read hardening. This earlier report's “no migration” and test counts apply to `c44e5de`, not the later operations release with additive migration 0011. A global campaign assignment policy, purchase orders and the other remaining items are not silently marked complete.

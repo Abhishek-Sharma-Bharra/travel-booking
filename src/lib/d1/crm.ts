@@ -1,3 +1,5 @@
+import { workspaceRoleAllowed } from "../access";
+import { AUTO_ASSIGNEE, leastOpenAssignee } from "../lead-assignment";
 import {
   itineraryQuoteSource,
   itineraryQuoteLink,
@@ -66,7 +68,12 @@ async function attempt(
   writable(actor);
   const unit = new D1Unit(db);
   const current = (await unit.read<User>("User", '"id"=?', [actor.id]))[0];
-  if (!current || current.disabled || current.agencyId !== actor.agencyId)
+  if (
+    !current ||
+    current.disabled ||
+    current.agencyId !== actor.agencyId ||
+    !workspaceRoleAllowed(current.role)
+  )
     throw new HttpError(403, "Workspace access unavailable");
   const a = { ...actor, role: current.role };
   const agency = (await unit.read<Agency>("Agency", '"id"=?', [a.agencyId]))[0];
@@ -134,6 +141,40 @@ async function attempt(
       throw new Error(
         "Import new enquiries only; create quotations and bookings in the app",
       );
+    const automatic = parsed.some((row) => row.assignedId === AUTO_ASSIGNEE);
+    if (automatic) {
+      if (a.role === "AGENT")
+        throw new HttpError(
+          403,
+          "Only an owner or manager can automatically assign a new enquiry",
+        );
+      if (
+        action !== "lead" ||
+        wrapper.id ||
+        parsed.length !== 1 ||
+        parsed[0].stage !== "New"
+      )
+        throw new HttpError(
+          400,
+          "Automatic assignment is available only for one new enquiry at creation",
+        );
+      const candidates = await unit.read<User>(
+        "User",
+        `"agencyId"=? AND NOT "disabled" AND "role" IN ('OWNER','MANAGER','AGENT')`,
+        [a.agencyId],
+      );
+      const workload = [];
+      for (const user of candidates)
+        workload.push({
+          id: user.id,
+          open: await unit.count(
+            "Lead",
+            `"agencyId"=? AND "assignedId"=? AND stage IN ('New','Contacted','Qualified','Quoted')`,
+            [a.agencyId, user.id],
+          ),
+        });
+      parsed[0].assignedId = leastOpenAssignee(workload);
+    }
     for (const assigned of new Set(parsed.map((row) => row.assignedId))) {
       const user = (
         await unit.read<User>("User", '"id"=? AND "agencyId"=?', [
@@ -198,7 +239,12 @@ async function attempt(
         ...scoreLead(v),
       });
       unit.writes.push(insertD1("Lead", record));
-      audit("Enquiry created", String(record.id));
+      audit(
+        automatic
+          ? "Enquiry created · automatically assigned by least-open workload"
+          : "Enquiry created",
+        String(record.id),
+      );
     }
     return finish({ message: `${parsed.length} enquiry record(s) saved` });
   }

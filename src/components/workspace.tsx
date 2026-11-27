@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import AgencyStudioWelcome from "./agency-studio-welcome";
+import { AUTO_ASSIGNEE } from "@/lib/lead-assignment";
 import { readApiJson } from "@/lib/api-response";
 import dynamic from "next/dynamic";
 import {
@@ -101,6 +102,7 @@ import {
 type Lead = Dataset["leads"][number];
 type Booking = Dataset["bookings"][number];
 type Quote = Dataset["quotes"][number];
+const SupplierDirectory = dynamic(() => import("./supplier-directory"));
 const CrmReview = dynamic(() => import("./crm-review"));
 const navigation = [
   {
@@ -263,7 +265,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
     if (
       p !== page &&
       pendingItinerary.current &&
-      !window.confirm("Discard unsaved itinerary edits?")
+      !window.confirm("Discard unsaved workspace edits?")
     )
       return;
     manualNavigation.current++;
@@ -412,9 +414,18 @@ export default function Workspace({ initial }: { initial: Dataset }) {
       {
         name: "assignedId",
         label: "Assigned to",
-        options: data.users
-          .filter((u) => !u.disabled && (manager || u.id === data.actor.id))
-          .map((u) => ({ value: u.id, label: u.name })),
+        options: [
+          ...(manager && !l
+            ? [{ value: AUTO_ASSIGNEE, label: "Auto · least open enquiries" }]
+            : []),
+          ...data.users
+            .filter((u) => !u.disabled && (manager || u.id === data.actor.id))
+            .map((u) => ({ value: u.id, label: u.name })),
+        ],
+        hint:
+          manager && !l
+            ? "Auto chooses an active teammate using current open-enquiry counts when the server saves. Campaign routing and existing assignments stay as configured."
+            : undefined,
       },
       {
         name: "stage",
@@ -1388,6 +1399,14 @@ export default function Workspace({ initial }: { initial: Dataset }) {
               className="workspace-records"
               data-feature={page.toLowerCase().replaceAll(" ", "-")}
             >
+              {page === "Suppliers" && (
+                <SupplierDirectory
+                  data={data}
+                  onDirtyChange={(v) => {
+                    pendingItinerary.current = v;
+                  }}
+                />
+              )}
               {[
                 "Customers",
                 "Departure calendar",
