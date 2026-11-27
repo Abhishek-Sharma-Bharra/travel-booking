@@ -42,7 +42,8 @@
     "d1:demo:prepare": "tsx scripts/cloudflare/d1-demo.ts",
     "d1:demo:local": "npm run d1:demo:prepare && wrangler d1 execute TRAVELOS_DB --local --config cloudflare/worker/wrangler.jsonc --persist-to .local/cloudflare-state --file .local/d1-demo.sql",
     "test:e2e:cloudflare": "playwright test --config playwright.cloudflare.config.ts",
-    "cloudflare:release:worker": "node scripts/cloudflare/release-worker.mjs"
+    "cloudflare:release:worker": "node scripts/cloudflare/release-worker.mjs",
+    "cloudflare:smoke:local": "node scripts/cloudflare/smoke-local.mjs"
   },
   "dependencies": {
     "@prisma/adapter-d1": "7.10.1",
