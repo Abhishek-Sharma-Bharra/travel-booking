@@ -1,39 +1,73 @@
-// Display proposals only. Never use these values to charge or activate access.
+// Versioned display proposals only: never derive charges or entitlements here.
+// Existing subscription identifiers, capacities and customer agreements stay intact.
+export const publicOfferVersion = "advanced-erp-proposal-2026-11-27";
 export const proposedAgencyOffers = [
   {
-    name: "Starter",
-    price: "499",
-    copy: "A considered start for a small agency.",
-    features: [
-      "Enquiries & follow-ups",
-      "Packages & quotations",
-      "Bookings & collection records",
-      "Core reports",
-    ],
+    name: "Business Starter",
+    price: "2,999",
+    annualPrice: "32,999",
+    seats: "3 staff accounts proposed",
+    copy: "A connected foundation for travel operations.",
     popular: false,
+    features: [
+      "CRM, enquiries & follow-ups",
+      "Packages, itinerary drafts & costing",
+      "Quotation and booking records",
+      "Supplier balances & business dashboard",
+    ],
+    upcoming: ["GST-compliant billing & full customer portal"],
   },
   {
-    name: "Growth",
-    price: "999",
-    copy: "Room for a growing travel team.",
-    features: [
-      "Connected agency workflow",
-      "Team roles & access",
-      "Marketing performance views",
-      "AI assistance subject to setup",
-    ],
+    name: "AI Growth",
+    price: "5,999",
+    annualPrice: "64,999",
+    seats: "10 staff accounts proposed",
+    copy: "For teams building a connected sales workflow.",
     popular: true,
+    features: [
+      "Starter workflow capabilities",
+      "Scoped team roles & access",
+      "Campaign links & attribution reports",
+      "Guided sales assistant & analytics",
+    ],
+    upcoming: [
+      "Live AI sales & approved messaging automation",
+      "Branded customer portal & validated lead scoring",
+    ],
   },
   {
-    name: "Pro",
-    price: "1,999",
-    copy: "More context for your next chapter.",
-    features: [
-      "Agency operations & reporting",
-      "Business intelligence views",
-      "Model previews with clear labels",
-      "Discuss advanced requirements",
-    ],
+    name: "AI Professional",
+    price: "9,999",
+    annualPrice: "1,09,999",
+    seats: "25 staff accounts proposed",
+    copy: "Bring operations and business reporting together.",
     popular: false,
+    features: [
+      "Growth workflow capabilities",
+      "Hotel & transport workspaces",
+      "Grounded business advisor tools",
+      "Planning baselines with data sufficiency labels",
+    ],
+    upcoming: [
+      "Voice agent & validated ML forecasting",
+      "Advanced B2B workflows & agreed priority support",
+    ],
   },
-];
+  {
+    name: "Enterprise",
+    price: "19,999",
+    annualPrice: null,
+    seats: "Custom limits by agreement",
+    copy: "A scoped implementation for complex operations.",
+    popular: false,
+    features: [
+      "Discuss existing modules with your team",
+      "Define usage limits and onboarding scope",
+      "Written integration & support requirements",
+    ],
+    upcoming: [
+      "Multi-branch & advanced white label",
+      "Custom integrations, AI workflows & enterprise analytics",
+    ],
+  },
+] as const;

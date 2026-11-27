@@ -1,0 +1,287 @@
+@media screen {
+  .public-theme-toggle {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 15px;
+    border: 1px solid #cec0e8;
+    border-radius: 24px;
+    background: #fff;
+    color: #342350;
+    font:
+      600 13px "Segoe UI",
+      sans-serif;
+    box-shadow: 0 4px 18px #1b29431a;
+  }
+  .public-theme-toggle:focus-visible {
+    outline: 3px solid #8b5cf6;
+    outline-offset: 3px;
+  }
+  body.site-studio .public-appearance[data-appearance="dark"] {
+    --ink: #eef0ff;
+    --muted: #bec4da;
+    --surface: #1c2338;
+    --line: #3a4561;
+    background: #12182a;
+    color: #eef0ff;
+    color-scheme: dark;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(.saas-home, .marketing-page) {
+    --ink: #eef0ff;
+    --muted: #bec4da;
+    --surface: #1c2338;
+    --line: #3a4561;
+    background: #12182a;
+    color: #eef0ff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(
+      h1,
+      h2,
+      h3,
+      h4,
+      strong,
+      .saas-brand,
+      .brand,
+      .saas-nav-links a,
+      .marketing-links a
+    ) {
+    color: #eef0ff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(
+      p,
+      small,
+      li,
+      summary,
+      label,
+      .saas-footer-bottom,
+      .marketing-footer,
+      .saas-home span
+    ) {
+    color: #bec4da;
+  }
+  body.site-studio .public-appearance[data-appearance="dark"] a:not(.btn) {
+    color: #d1c0ff;
+  }
+  body.site-studio .public-appearance[data-appearance="dark"] .saas-header {
+    background: #12182af2;
+    border-color: #3a4561;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(
+      .saas-hero,
+      .saas-ai-section,
+      .saas-demo,
+      .saas-overview,
+      .saas-section,
+      .saas-final-cta
+    ) {
+    background: transparent;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(
+      .product-preview,
+      .preview-window,
+      .preview-app,
+      .preview-content,
+      .preview-topline,
+      .preview-sidebar,
+      .preview-profile,
+      .hero-float-note,
+      .saas-workspace-cards article,
+      .saas-pricing-grid article,
+      .saas-intelligence-grid article,
+      .saas-assistant-card,
+      .saas-demo-ticket,
+      .marketing-card,
+      .marketing-copy,
+      .marketing-callout,
+      .saas-pricing-note,
+      .saas-supplier-pricing,
+      .saas-availability-note,
+      .saas-model-disclosure,
+      .saas-nav-links.is-open,
+      .marketing-intro,
+      .marketing-nav
+    ) {
+    background: #1c2338;
+    border-color: #3a4561;
+    color: #eef0ff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(
+      .preview-metrics article,
+      .preview-chart,
+      .preview-task,
+      .preview-trip,
+      .preview-room-row,
+      .preview-quote,
+      .preview-calendar,
+      .assistant-user,
+      .assistant-draft-note,
+      .chat-draft,
+      .saas-ai-boundaries,
+      .story-steps button,
+      .saas-pill,
+      .saas-status-pill,
+      .saas-plan-label,
+      .saas-capability-strip span
+    ) {
+    background: #29324b;
+    border-color: #465475;
+    color: #e6dcff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(
+      .preview-chart-title,
+      .preview-heading,
+      .preview-chat-name,
+      .quote-total,
+      .saas-home h1 em,
+      .saas-kicker
+    ) {
+    color: #cbb4ff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(.saas-home, .marketing-page)
+    .btn.secondary,
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(
+      .saas-carousel-controls button,
+      .saas-menu-toggle,
+      .public-theme-toggle
+    ) {
+    background: #29324b;
+    border-color: #6d6293;
+    color: #f4edff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(.saas-home, .marketing-page)
+    .btn.primary {
+    color: #fff;
+    background: linear-gradient(110deg, #7044d9, #4264d6);
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(.btn.primary span, .btn.primary strong) {
+    color: #fff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    .preview-model-note {
+    background: #29324b;
+    color: #d9cef0;
+  }
+  .saas-home .saas-upcoming {
+    font-size: 12px;
+    line-height: 1.7;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+  .crm-review details {
+    padding: 14px 0;
+    border-bottom: 1px solid #e7e7f1;
+    overflow-wrap: anywhere;
+  }
+  .crm-review .ops-actions label {
+    flex: 1;
+    min-width: 180px;
+  }
+  .crm-review td {
+    overflow-wrap: anywhere;
+  }
+  .crm-review .ops-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+  @media (min-width: 1100px) {
+    .saas-home .saas-pricing-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 600px) {
+    .public-theme-toggle {
+      bottom: 12px;
+      right: 12px;
+    }
+    .public-theme-toggle span {
+      display: none;
+    }
+  }
+}
+@media print {
+  .public-theme-toggle {
+    display: none;
+  }
+}
+
+@media screen {
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(.saas-home, .marketing-page)
+    .btn.secondary {
+    background: #29324b !important;
+    color: #f4edff !important;
+    border-color: #6d6293 !important;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    :is(.marketing-links, .marketing-footer)
+    a:not(.btn) {
+    color: #d1c0ff !important;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    .marketing-page
+    :is(h1, h2, h3, h4, strong, .brand) {
+    color: #eef0ff;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    .marketing-page
+    :is(p, li, small) {
+    color: #bec4da;
+  }
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    .marketing-page
+    :is(
+      .marketing-intro,
+      .marketing-nav,
+      .marketing-card,
+      .marketing-callout,
+      .pricing-card
+    ) {
+    background: #1c2338;
+    border-color: #3a4561;
+  }
+}
+@media screen {
+  body.site-studio
+    .public-appearance[data-appearance="dark"]
+    .marketing-links
+    a[aria-current="page"] {
+    background: #413558;
+    color: #fff !important;
+  }
+  body.site-studio .public-appearance[data-appearance="dark"] .marketing-copy {
+    padding: 24px;
+    border-radius: 16px;
+    margin: 24px 0;
+  }
+}

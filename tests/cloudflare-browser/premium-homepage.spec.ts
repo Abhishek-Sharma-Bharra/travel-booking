@@ -35,9 +35,9 @@ test("premium homepage explains real capabilities, keeps workspace links and mak
   await expect(
     workspaces.getByRole("link", { name: "Car rental workspace", exact: true }),
   ).toHaveAttribute("href", "/operator?kind=CAR");
-  await expect(page.locator("#pricing")).toContainText("₹499");
-  await expect(page.locator("#pricing")).toContainText("₹999");
-  await expect(page.locator("#pricing")).toContainText("₹1,999");
+  await expect(page.locator("#pricing")).toContainText("₹2,999");
+  await expect(page.locator("#pricing")).toContainText("₹5,999");
+  await expect(page.locator("#pricing")).toContainText("₹9,999");
   await expect(page.locator("#pricing")).toContainText("Checkout not active");
   await expect(page.locator("#intelligence")).toContainText("synthetic data");
   await page
@@ -52,7 +52,7 @@ test("premium homepage explains real capabilities, keeps workspace links and mak
   await page.goto("/pricing");
   await expect(
     page.getByRole("region", { name: "Proposed agency subscriptions" }),
-  ).toContainText("₹499");
+  ).toContainText("₹2,999");
   await expect(
     page.getByRole("heading", {
       name: "Subscription-only offers, without booking commissions",

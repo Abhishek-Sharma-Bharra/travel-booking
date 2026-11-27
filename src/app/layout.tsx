@@ -7,6 +7,7 @@ import "./light-theme.css";
 import "./workspace-operations.css";
 import "./agency-studio.css";
 import "./unified-premium.css";
+import "./public-appearance.css";
 import { publicOrigin } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(publicOrigin()),

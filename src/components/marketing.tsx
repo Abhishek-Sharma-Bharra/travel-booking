@@ -1,3 +1,4 @@
+import PublicAppearance from "./public-site/public-appearance";
 import Link from "next/link";
 import { Compass, ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
@@ -100,16 +101,18 @@ export default function MarketingPage({
   children: ReactNode;
 }) {
   return (
-    <main className="landing marketing-page">
-      <MarketingHeader path={path} />
-      <header className="marketing-intro">
-        <span className="eyebrow">{eyebrow}</span>
-        <h1>{title}</h1>
-        <p>{intro}</p>
-      </header>
-      {children}
-      <MarketingFooter />
-    </main>
+    <PublicAppearance>
+      <main className="landing marketing-page">
+        <MarketingHeader path={path} />
+        <header className="marketing-intro">
+          <span className="eyebrow">{eyebrow}</span>
+          <h1>{title}</h1>
+          <p>{intro}</p>
+        </header>
+        {children}
+        <MarketingFooter />
+      </main>
+    </PublicAppearance>
   );
 }
 export function DemoCallout() {
