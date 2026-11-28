@@ -1101,6 +1101,7 @@ export default function Workspace({ initial }: { initial: Dataset }) {
           ))}
         </nav>
         <div className="sidebar-bottom">
+          {["OWNER","MANAGER"].includes(data.actor.role) && !data.demo && <a href="/workspace/commerce" className="help-card">Accounts & customer portal</a>}
           <div className="help-card">
             <button
               className="text-button"

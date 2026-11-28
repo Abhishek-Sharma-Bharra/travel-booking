@@ -1,4 +1,5 @@
 "use client";
+import VoiceInput from "./voice-input";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Send, Plus } from "lucide-react";
 import { readApiJson } from "@/lib/api-response";
@@ -176,6 +177,7 @@ export default function BusinessRecordAssistant({
             onChange={(e) => setQuestion(e.target.value)}
           />
         </label>
+        <VoiceInput language={language} disabled={busy} maxLength={500} onText={setQuestion}/>
         <button className="btn primary" disabled={busy || !question.trim()}>
           <Send size={15} />
           {busy ? "Checking permitted records…" : "Ask about records"}

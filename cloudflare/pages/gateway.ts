@@ -41,12 +41,13 @@ export default {
     }
     // Application APIs are JSON-only. Keep OAuth/auth redirects and webhook
     // challenge responses untouched; they legitimately return other formats.
-    const jsonApi =
-      /^\/api\/(?:action|data|hotelier|admin|public|analytics|assistant|automation|tour|campaigns|invitations|health|payments|marketplace|workspace|billing|suppliers)(?:\/|$)/.test(
+    const applicationJsonApi =
+      /^\/api\/(?:action|data|hotelier|admin|public|analytics|assistant|automation|tour|campaigns|invitations|health|payments|marketplace|workspace|billing|suppliers|commerce|customer|communications)(?:\/|$)/.test(
         path,
       ) ||
       path === "/api/messaging" ||
       path === "/api/integrations";
+    const jsonApi = applicationJsonApi && !(path === "/api/communications/webhook" && request.method === "GET");
     const requestId = crypto.randomUUID();
     // Overwrite client-supplied IDs so the same support reference can be
     // followed through Pages, the backend Worker and Next's error handler.

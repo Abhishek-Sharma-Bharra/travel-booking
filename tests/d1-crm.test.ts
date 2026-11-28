@@ -704,7 +704,7 @@ test("D1 invitation acceptance resets only onboarding, consumes the token and re
   });
 });
 
-test("D1 blocks unported provider and hotel entry points before network calls", async () => {
+test("D1 keeps native ads disabled and blocks legacy unported provider entry points before network calls", async () => {
   let calls = 0;
   const transport: typeof fetch = async () => {
     calls++;
@@ -718,11 +718,11 @@ test("D1 blocks unported provider and hotel entry points before network calls", 
   await scoped(async () => {
     await assert.rejects(
       ads.startAuthorization(owner, "META"),
-      /not enabled on this D1 staging/,
+      /Native ads are disabled/,
     );
     await assert.rejects(
       ads.finishAuthorization(owner, "META", "state", "code", transport),
-      /not enabled on this D1 staging/,
+      /Native ads are disabled/,
     );
     await assert.rejects(
       ads.syncAds(
@@ -732,7 +732,7 @@ test("D1 blocks unported provider and hotel entry points before network calls", 
         "2026-01-02",
         transport,
       ),
-      /not enabled on this D1 staging/,
+      /authenticated owner/,
     );
     await assert.rejects(
       messaging.provisionChannel(

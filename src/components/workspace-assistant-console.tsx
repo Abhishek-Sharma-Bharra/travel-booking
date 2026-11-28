@@ -1,4 +1,5 @@
 "use client";
+import VoiceInput from "./voice-input";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
@@ -435,6 +436,7 @@ export default function WorkspaceAssistantConsole({
                 placeholder="Which enquiries need a follow-up? / Aaj kin enquiries par baat karun?"
               />
             </label>
+            <VoiceInput language={language} disabled={busy} onText={text=>edit(()=>setQuestion(text))}/>
             <div className="studio-assistant-fields">
               {needsLead && (
                 <label>

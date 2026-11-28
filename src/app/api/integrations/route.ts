@@ -52,7 +52,7 @@ export async function POST(req: Request) {
           ? await selectAdAccount(a, v.id, v.accountId || "")
           : v.action === "disconnect"
             ? await disconnectAdAccount(a, v.id)
-            : await syncAds(a.agencyId, v.id, v.from || "", v.to || "");
+            : await syncAds(a.agencyId, v.id, v.from || "", v.to || "", fetch, a);
     return Response.json(result, { headers: privateHeaders });
   } catch (e) {
     return errorResponse(e);

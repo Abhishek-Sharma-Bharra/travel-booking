@@ -761,3 +761,63 @@
     border-color: #864252 !important;
   }
 }
+
+/* Compact navigation flyout and restrained service typography. */
+@media screen {
+  body.site-studio .public-panel {
+    position: fixed;
+    inset: 78px auto auto 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    width: min(760px, calc(100vw - 28px));
+    max-height: calc(100dvh - 98px);
+    padding: 22px 26px;
+    border-radius: 18px;
+    box-shadow: 0 12px 36px #18264120;
+  }
+  body.site-studio .public-panel::backdrop { background: #14203a18; backdrop-filter: none; }
+  body.site-studio .public-panel-heading { margin-bottom: 12px; gap: 12px; }
+  body.site-studio .public-panel-heading .eyebrow { display: none; }
+  body.site-studio .public-panel-heading h2 { font-size: 20px; line-height: 1.35; margin: 4px 0; letter-spacing: -.02em; }
+  body.site-studio .public-panel-close { width: 30px; height: 30px; flex-basis: 30px; }
+  body.site-studio .public-panel-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px 28px; margin: 14px 0; }
+  body.site-studio .public-panel-grid article { padding: 8px 0; border: 0; border-radius: 0; background: transparent !important; gap: 3px; }
+  body.site-studio .public-panel h3 { font-size: 17px; line-height: 1.4; margin: 0; }
+  body.site-studio .public-panel :is(p,li) { font-size: 14px; line-height: 1.55; margin: 0 0 5px; }
+  body.site-studio .public-panel-grid .btn { padding: 6px 0; min-height: 30px; background: transparent !important; color: #6541b7 !important; border: 0; box-shadow: none; font-size: 13px; }
+  body.site-studio[data-appearance="dark"] .public-panel-grid .btn { color: #c5b5ff !important; }
+  body.site-studio .saas-home .saas-section h2 { font-size: clamp(24px,2.4vw,34px); line-height: 1.25; font-weight: 650; }
+  body.site-studio .saas-home .saas-solution-banner h2 { font-size: clamp(22px,2.1vw,29px); }
+  body.site-studio .saas-home .saas-workspace-cards h3 { font-size: 19px; font-weight: 650; }
+  body.site-studio .marketing-intro h1 { font-size: clamp(29px,3.3vw,44px); }
+  @media (max-width:600px) {
+    body.site-studio .public-panel { inset: 70px auto auto 50%; padding: 18px; max-height: calc(100dvh - 86px); }
+    body.site-studio .public-panel-grid { grid-template-columns: 1fr; gap: 10px; }
+  }
+}
+@media screen {
+ .commerce-workspace { max-width:1120px; margin:auto; padding:32px 24px; }
+ .commerce-workspace .panel { margin:24px 0; padding:24px; }
+ .commerce-parties { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin:20px 0; }
+ .commerce-workspace label { display:block; margin:12px 0; }
+ .commerce-workspace :is(input:not([type=checkbox]),select,textarea) { width:100%; display:block; margin:6px 0; }
+ .commerce-workspace input[type=checkbox] { width:auto; }
+ .commerce-workspace fieldset { min-width:0; padding:16px; border:1px solid #d6cdec; border-radius:12px; }
+ .commerce-print { position:relative; }
+ @media(max-width:650px){.commerce-parties{grid-template-columns:1fr}.commerce-workspace{padding:20px 14px}}
+}
+@media print {
+ body:has(.commerce-print) * { visibility:hidden; }
+ body:has(.commerce-print) .commerce-print,body:has(.commerce-print) .commerce-print * { visibility:visible; color:#111!important; background:white!important; }
+ html:has(.commerce-print), body:has(.commerce-print), body:has(.commerce-print) .public-appearance, body:has(.commerce-print) .commerce-workspace { min-height:0!important; height:auto!important; margin:0!important; padding:0!important; }
+ body:has(.commerce-print) .commerce-workspace > :not(.commerce-print) { display:none!important; }
+ body:has(.commerce-print) .commerce-print { position:static; inset:auto; margin:0; width:100%; padding:0; box-shadow:none; border:0; }
+ body:has(.commerce-print) .commerce-no-print { display:none!important; }
+ .commerce-parties { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+}
+@media screen {
+ .voice-input { border:1px solid #cfc6e8; border-radius:12px; padding:12px; margin:12px 0; }
+ .voice-input label { display:block; font-size:12px; line-height:1.6; margin-bottom:8px; }
+ .voice-input input[type=checkbox] { width:auto!important; display:inline-block!important; }
+ .voice-input small { display:block; margin-top:8px; }
+}

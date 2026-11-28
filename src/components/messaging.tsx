@@ -57,7 +57,7 @@ export default function Messaging({ data }: { data: Dataset }) {
   }
   return (
     <section className="assistant-card feature-page messaging-page">
-      <h2>Official WhatsApp messaging</h2>
+      <p><a href="/workspace/communications">Official WhatsApp delivery workspace →</a></p><h2>Official WhatsApp messaging</h2>
       <p>
         The manual Open in WhatsApp button remains available separately.
         Official API sending requires approved business/number setup, customer

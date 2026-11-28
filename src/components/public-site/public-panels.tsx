@@ -26,22 +26,52 @@ const groups: Record<
 > = {
   product: [
     {
-      title: "Sales, connected",
-      copy: "Capture requirements, prepare versioned quotations and convert a reviewed quotation into one booking. Keep follow-ups linked to the same enquiry.",
+      title: "Travel CRM & lead management",
+      copy: "Leads, pipeline, follow-ups and customer history.",
       href: "/features",
       action: "View product features",
     },
     {
-      title: "Operations, in focus",
-      copy: "Use itinerary costing, booking documents, recorded collections, supplier contracts and role-based reporting in your agency workspace.",
+      title: "Itineraries & operations",
+      copy: "Itinerary costing, suppliers and trip operations.",
       href: "/product-demo",
       action: "Open the product tour",
     },
     {
-      title: "Your suppliers, one platform",
-      copy: "Hotel rooms and full-vehicle bus/car charters have their own registration and operations workflows. Inventory holds and confirmation rules remain server-validated.",
+      title: "Booking management",
+      copy: "Hotel rooms, full bus charters and car rentals.",
       href: "/marketplace",
       action: "Explore the marketplace",
+    },
+    {
+      title: "Accounts & GST documents",
+      copy: "Reviewed GST invoices, credit notes and payment records.",
+      href: "/workspace/commerce",
+      action: "Open accounts workspace",
+    },
+    {
+      title: "Customer portal",
+      copy: "Private booking details, documents and payment status.",
+      href: "/customer",
+      action: "Open customer portal",
+    },
+    {
+      title: "Hotel & flight connections",
+      copy: "Supplier-maintained hotel inventory. External flight ticketing is not enabled.",
+      href: "/marketplace",
+      action: "Explore current inventory",
+    },
+    {
+      title: "Quotation software",
+      copy: "Versioned quotes, reviewed acceptance and booking documents.",
+      href: "/guides/enquiry-to-booking",
+      action: "View quotation workflow",
+    },
+    {
+      title: "Official WhatsApp",
+      copy: "Approved text templates and opt-in delivery; business setup required.",
+      href: "/workspace/communications",
+      action: "Open messaging workspace",
     },
   ],
   features: [
@@ -53,7 +83,7 @@ const groups: Record<
     },
     {
       title: "Follow-ups and WhatsApp drafts",
-      copy: "Track assigned enquiries and follow-up dates. Prepare a WhatsApp draft for human review. Official Meta template/media delivery needs an approved connection, opt-in and remaining D1 integration work; it is not live by default.",
+      copy: "Track assigned enquiries and follow-up dates. Prepare a WhatsApp draft for human review. Official Meta template/media delivery needs an approved connection and opt-in. Native D1 approved text-template delivery has a dedicated workspace; media/bulk sends remain disabled.",
       href: "/features",
       action: "See integration availability",
     },
@@ -104,8 +134,8 @@ const groups: Record<
       action: "Discuss an AI pilot",
     },
     {
-      title: "Voice and messaging roadmap",
-      copy: "Inbound calling, speech services and automated WhatsApp delivery require provider access, consent and further implementation. These are upcoming capabilities, not active features in your trial.",
+      title: "Voice input and messaging",
+      copy: "Browser voice dictation is available with microphone consent and review before submit. Official text-template delivery requires an approved business connection. Inbound AI phone calls are not enabled.",
       href: "/features",
       action: "View current capabilities",
     },

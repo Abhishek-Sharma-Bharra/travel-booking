@@ -289,7 +289,7 @@ test("bus/car workspace selects matching owned business and serves scoped operat
   const ads = await (await page.request.get("/api/integrations")).json();
   expect(ads.availability.enabled).toBe(false);
   expect(ads.configured).toEqual({ META: false, GOOGLE: false });
-  expect(ads.availability.note).toContain("Continue recording spend manually");
+  expect(ads.availability.note).toContain("provider approval and encrypted OAuth configuration");
   sql(`UPDATE "User" SET "emailVerified"=1 WHERE id='${user.id}'`);
   const profile = {
     name: "P2 Bus Business",

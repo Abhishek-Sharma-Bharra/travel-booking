@@ -1,5 +1,8 @@
 # Laptop se TravelOS launch setup — 28 November 2026
 
+
+**Latest implementation update:** See [customer commerce and native connections](../commerce/README.md). Native D1 GST documents/credit notes, booking-invitation portal, gated customer payment verification, native read-only ads and reviewed WhatsApp text delivery now have implementation/tests. Provider activation is still disabled because accounts are not ready. Browser dictation is available; inbound telephony, live SaaS recurring renewal, government IRN submission and bulk/media messaging are not completed by that increment.
+
 Edge/Chrome browser se yeh setup ho sakta hai; abhi terminal ki zaroorat nahi. Password, OTP, authenticator key, recovery codes, bank details aur API secrets chat mein na bhejein.
 
 ## Pehle confirm karein ki naya release live hai

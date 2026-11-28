@@ -48,6 +48,7 @@ export async function integrationActor(
 const callback = (provider: string) =>
   `${trustedOrigin()}/api/integrations/${provider.toLowerCase()}/callback`;
 export async function startAuthorization(inputActor: Actor, provider: string) {
+  if(d1Binding())return (await import("./native-d1")).nativeStart(inputActor,provider);
   requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true);
   providerSchema.parse(provider);
@@ -106,6 +107,7 @@ export async function finishAuthorization(
   code: string,
   transport: typeof fetch = fetch,
 ) {
+  if(d1Binding())return (await import("./native-d1")).nativeFinish(inputActor,provider,state,code,transport);
   requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true);
   providerSchema.parse(provider);
@@ -223,6 +225,7 @@ export async function selectAdAccount(
   accountId: string,
   transport: typeof fetch = fetch,
 ) {
+  if(d1Binding())return (await import("./native-d1")).nativeSelect(inputActor,id,accountId,transport);
   requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true),
     c = await permittedConnection(a, id);
@@ -317,6 +320,7 @@ export async function selectAdAccount(
   });
 }
 export async function disconnectAdAccount(inputActor: Actor, id: string) {
+  if(d1Binding())return (await import("./native-d1")).nativeDisconnect(inputActor,id);
   requirePostgresIntegration("Live advertising integration");
   const a = await integrationActor(inputActor, true, true),
     c = await db.integrationConnection.findFirst({
@@ -354,6 +358,7 @@ export async function integrationOverview(
   inputActor: Actor,
   transport: typeof fetch = fetch,
 ) {
+  if(d1Binding())return (await import("./native-d1")).nativeOverview(inputActor);
   const a = await integrationActor(inputActor);
   const connections = await db.integrationConnection.findMany({
     where: { agencyId: a.agencyId, status: { not: "DISCONNECTED" } },
@@ -438,7 +443,9 @@ export async function syncAds(
   from: string,
   to: string,
   transport: typeof fetch = fetch,
+  initiator?: Actor,
 ) {
+  if(d1Binding())return (await import("./native-d1")).nativeSync(initiator,agencyId,connectionId,from,to,transport);
   requirePostgresIntegration("Live advertising integration");
   const c = await permittedConnection(
     { id: "sync-worker", agencyId, role: "OWNER" },
@@ -614,6 +621,7 @@ export async function authorizedAccounts(
   id: string,
   transport: typeof fetch = fetch,
 ) {
+  if(d1Binding())return (await import("./native-d1")).nativeAccounts(inputActor,id,transport);
   const a = await integrationActor(inputActor, true),
     c = await permittedConnection(a, id);
   if (c.status !== "SELECT_ACCOUNT")

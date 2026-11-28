@@ -1,16 +1,17 @@
-# Remaining implementation and launch gates
+# Remaining launch gates — current after native commerce upgrade
 
-This is not a claim that all requested automation is finished.
+See [customer commerce and native connections](../commerce/README.md) for implementation details and the setup/deployment checklist. Provider accounts are not ready; live activation remains OFF. This is not a claim that all automation is finished.
 
-| Module | Working foundation | Remaining code / external dependency | Activation check |
-| --- | --- | --- | --- |
-| Email | Verification/reset and admin setup flows | Owned verified sender, server-only provider secret, delivery testing | Test delivery and one-use links before enforcing verification |
-| AI | Scoped guided tools, drafts and bounded optional provider route | API project/key, agency budget and approved live pilot | No invented prices or financial confirmation; log cost and failures |
-| Subscriptions | Disabled Razorpay Test Mode sandbox, signed callbacks/idempotency | Merchant account, final terms/catalogue; live renewals and entitlement reconciliation | Test replay/late/refund events before a separate live release |
-| GST | Branded booking/quotation print documents | Statutory invoice/credit-note numbering, tax and place-of-supply implementation | Accountant-approved rules, immutable issued documents and refund linkage |
-| Customer portal | Public package/hotel journeys and booking requests | Full authenticated customer records, signed online quotation acceptance | Tenant/contact isolation, expiring links and replay prevention |
-| WhatsApp | Reviewed drafts and manual contact links; messaging foundation | Approved WABA/templates/opt-in; complete native D1 delivery integration | Per-agency isolation, signature/replay validation, uncertain-send reconciliation |
-| Ads | Integration foundation and role-scoped records | Meta app/Google OAuth approvals and remaining D1 connector work | Read-only spend pilot, currency/timezone accuracy and token rotation |
-| Voice | No active inbound call module | Provider/number, consent, speech pipeline, turn handling, human handoff | Bounded pilot, interruption/retry behavior and explicit spending approval |
+| Module | Working implementation | Remaining work / external dependency |
+| --- | --- | --- |
+| Email | Verification/reset, admin setup and customer invitation flows | Owned verified sender, server-only provider secret and real delivery tests before enforcing verification |
+| AI | Scoped guided tools, reviewed drafts and bounded optional provider routing | API project/key, agency budget and an approved live pilot |
+| Platform subscriptions | Disabled Razorpay Test Mode sandbox, signed callbacks/idempotency | Merchant account, final terms/catalogue and live recurring renewal/entitlement reconciliation |
+| Customer booking payments | Native D1 merchant-scoped orders, backend capture/refund verification, idempotent receipt records and review/reconciliation paths | Agency-owned merchant KYC/Test Mode and separately approved live pilot; no automatic payment split or refund initiation |
+| GST | Immutable tax invoices, credit notes, financial-year numbering, explicit reviewed treatment and browser PDF | Accountant-approved business-specific rules; government IRN/e-invoice submission and GST filing are not implemented |
+| Customer portal | One-use email invitations, private booking/documents/payment view, scoped HTTP-only sessions and revocation | Verified sender delivery; general customer password accounts and pre-booking online quotation acceptance remain separate |
+| WhatsApp | Native D1 authorised number connection, encrypted credentials, reviewed approved text templates, purpose-specific consent and signed delivery reconciliation | Approved Meta/WABA connection and live pilot; media/button templates, bulk campaigns and unattended scheduling are not implemented in this flow |
+| Ads | Native D1 Meta/Google OAuth, account selection and bounded complete read-only spend snapshots | Approved apps/developer access, encrypted configuration and real provider pilot; background sync/large-account scale are separate |
+| Voice | Opt-in browser dictation in agency and supplier assistants; unsupported browsers keep typing | Inbound telephony, speech-call orchestration, call billing/consent and human handoff require further implementation/provider choice |
 
-Do not toggle paid flags merely to remove a warning. Provider setup and unfinished implementation are separate tasks. Payment/inventory truth stays in backend records; autonomous messages and financial changes need their corresponding contracts, consent and verified integration.
+Do not toggle paid flags merely to remove a warning. Provider setup and unfinished implementation are separate tasks. Payment/inventory truth stays in backend records; unattended messages and financial changes need their corresponding contracts, consent and verified integration.

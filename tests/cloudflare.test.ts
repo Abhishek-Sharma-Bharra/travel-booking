@@ -521,3 +521,9 @@ test("Next error logs retain the gateway support reference inside the request sc
     console.error = original;
   }
 });
+
+test("native WhatsApp GET verification challenge stays text while new commerce APIs reject upstream HTML",async()=>{
+ const response=await gateway.fetch(new Request(origin+"/api/communications/webhook?hub.mode=subscribe&hub.challenge=12345"),{PUBLIC_ORIGIN:origin,ASSETS:{fetch:async()=>new Response("unused")},TRAVELOS_BACKEND:{fetch:async()=>new Response("12345",{headers:{"Content-Type":"text/plain"}})}});
+ assert.equal(response.status,200);assert.equal(await response.text(),"12345");
+ for(const path of ["/api/commerce","/api/customer","/api/communications"]){const r=await gateway.fetch(new Request(origin+path),{PUBLIC_ORIGIN:origin,ASSETS:{fetch:async()=>new Response("unused")},TRAVELOS_BACKEND:{fetch:async()=>new Response("<html>error</html>",{status:500,headers:{"Content-Type":"text/html"}})}});assert.equal(r.status,503);assert.equal((await r.json() as {code:string}).code,"BACKEND_NON_JSON_RESPONSE");}
+});
