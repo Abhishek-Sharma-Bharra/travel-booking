@@ -14,15 +14,18 @@ test("premium homepage explains real capabilities, keeps workspace links and mak
     .getByRole("button", { name: "Pause slideshow", exact: true })
     .click();
   const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(
+    nav.getByRole("link", { name: "Home", exact: true }),
+  ).toBeVisible();
   for (const name of [
-    "Home",
+    "Product",
     "Features",
     "Solutions",
     "AI Intelligence",
     "Pricing",
     "Demo",
   ])
-    await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
+    await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
   await expect(
     nav.getByRole("link", { name: "Agency sign in" }),
   ).toHaveAttribute("href", "/login");
@@ -35,9 +38,9 @@ test("premium homepage explains real capabilities, keeps workspace links and mak
   await expect(
     workspaces.getByRole("link", { name: "Car rental workspace", exact: true }),
   ).toHaveAttribute("href", "/operator?kind=CAR");
-  await expect(page.locator("#pricing")).toContainText("₹2,999");
-  await expect(page.locator("#pricing")).toContainText("₹5,999");
-  await expect(page.locator("#pricing")).toContainText("₹9,999");
+  await expect(page.locator("#pricing")).toContainText("₹2,499");
+  await expect(page.locator("#pricing")).toContainText("₹4,999");
+  await expect(page.locator("#pricing")).toContainText("₹8,999");
   await expect(page.locator("#pricing")).toContainText("Checkout not active");
   await expect(page.locator("#intelligence")).toContainText("synthetic data");
   await page
@@ -52,7 +55,7 @@ test("premium homepage explains real capabilities, keeps workspace links and mak
   await page.goto("/pricing");
   await expect(
     page.getByRole("region", { name: "Proposed agency subscriptions" }),
-  ).toContainText("₹2,999");
+  ).toContainText("₹2,499");
   await expect(
     page.getByRole("heading", {
       name: "Subscription-only offers, without booking commissions",
@@ -157,7 +160,7 @@ test("mobile navigation, horizontal swipe and all five previews work without ove
   await expect(open).toHaveAttribute("aria-expanded", "true");
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Solutions", exact: true })
+    .getByRole("button", { name: "Solutions", exact: true })
     .focus();
   await page.keyboard.press("Escape");
   await expect(open).toBeFocused();

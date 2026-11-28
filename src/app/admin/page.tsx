@@ -1,21 +1,26 @@
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { requireOperator } from "@/lib/operator-access";
+import { adminOverview, operatorEmailAllowed } from "@/lib/admin-overview";
 import { db } from "@/lib/db";
 import Admin from "@/components/admin";
 export const dynamic = "force-dynamic";
 export default async function Page() {
   const s = await auth.api.getSession({ headers: await headers() });
-  if (!s) redirect("/login");
-  await requireOperator(s.user.id, s.session.token).catch((e) => {
-    if (
-      (e as Error).message ===
-      "Verify your authenticator again to manage client subscriptions"
-    )
-      redirect("/two-factor?next=admin");
-    notFound();
-  });
+  if (!s) redirect("/login?next=admin");
+  const summary = await adminOverview(s.user.id, s.session.token).catch(
+    async (e) => {
+      if (
+        (e as Error).message ===
+        "Verify your authenticator again to manage client subscriptions"
+      )
+        redirect("/two-factor?next=admin");
+      const user = await db.user.findUnique({ where: { id: s.user.id } });
+      if (user && !user.disabled && operatorEmailAllowed(user.email))
+        redirect("/admin/setup");
+      notFound();
+    },
+  );
   const agencies = await db.agency.findMany({
     where: { demo: false },
     select: {
@@ -36,5 +41,7 @@ export default async function Page() {
     orderBy: { createdAt: "desc" },
     take: 200,
   });
-  return <Admin initial={JSON.parse(JSON.stringify(agencies))} />;
+  return (
+    <Admin initial={JSON.parse(JSON.stringify(agencies))} summary={summary} />
+  );
 }

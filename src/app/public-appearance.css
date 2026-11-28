@@ -1,4 +1,24 @@
 @media screen {
+  body.site-studio[data-appearance="dark"] .public-appearance
+    .agency-studio.premium-workspace.studio-workspace
+    :is(.metric, .overview-pipeline, .assistant-card, .secondary-metrics,
+        .sidebar-bottom, .tour-highlight) {
+    background: #1c2338 !important;
+    border-color: #3c4a68 !important;
+  }
+  body.site-studio[data-appearance="dark"] .public-appearance
+    .agency-studio.premium-workspace.studio-workspace
+    :is(.overview-lanes > section, .overview-lanes article, .overview-lanes button, .lane-empty, .icon-box,
+        .metric-top svg, .top-pill) {
+    background: #25314b !important;
+    color: #c1cae0 !important;
+    border-color: #3c4a68 !important;
+  }
+  body.site-studio[data-appearance="dark"] .public-appearance
+    .agency-studio.premium-workspace.studio-workspace
+    :is(.text-button, .metric-top span, .secondary-metrics small, .secondary-metrics div > span:not(.icon-box)) {
+    color: #c5b5ff !important;
+  }
   .public-theme-toggle {
     position: fixed;
     bottom: 18px;
@@ -283,5 +303,461 @@
     padding: 24px;
     border-radius: 16px;
     margin: 24px 0;
+  }
+}
+/* Public navigation dialogs and one application-wide appearance preference. */
+@media screen {
+  .public-appearance {
+    min-height: 100vh;
+  }
+  .saas-home .saas-nav-links > button,
+  .marketing-nav .marketing-links > button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: #465675;
+    font:
+      650 15px "Segoe UI",
+      sans-serif;
+    padding: 10px 5px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .saas-home .saas-nav-links > button:hover,
+  .marketing-nav .marketing-links > button:hover {
+    background: #f0eafb;
+    color: #6535bc;
+  }
+  body.site-studio :is(.saas-home, .marketing-page) :is(h1, h2, h3) {
+    font-weight: 750;
+    letter-spacing: -0.035em;
+  }
+  body.site-studio .saas-home .saas-section h2 {
+    font-size: clamp(32px, 3.8vw, 54px);
+    line-height: 1.15;
+  }
+  body.site-studio .marketing-intro h1 {
+    font-weight: 750;
+    font-size: clamp(36px, 4.5vw, 62px);
+  }
+  body.site-studio :is(.agency-studio, .hotel-shell, .admin-studio) h1 {
+    font-weight: 750;
+  }
+  .platform-whatsapp {
+    position: fixed;
+    right: 18px;
+    bottom: 76px;
+    z-index: 71;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 17px;
+    border-radius: 28px;
+    background: #087f5b !important;
+    color: #fff !important;
+    font:
+      700 14px "Segoe UI",
+      sans-serif;
+    box-shadow: 0 6px 25px #063d2f35;
+    text-decoration: none;
+  }
+  .platform-whatsapp:hover {
+    background: #056347 !important;
+  }
+  .platform-whatsapp:focus-visible {
+    outline: 3px solid #36ce9d;
+    outline-offset: 3px;
+  }
+  .public-panel {
+    width: min(1080px, calc(100vw - 32px));
+    max-height: calc(100dvh - 48px);
+    padding: 32px;
+    border: 1px solid #ded4ef;
+    border-radius: 24px;
+    background: #fcfbff;
+    color: #1b2943;
+    box-shadow: 0 24px 100px #15213a44;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .public-panel::backdrop {
+    background: #10172b9c;
+    backdrop-filter: blur(5px);
+  }
+  .public-panel-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 22px;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .public-panel-heading h2 {
+    font-size: clamp(28px, 3vw, 42px);
+    font-weight: 750;
+    line-height: 1.15;
+    margin: 12px 0;
+    max-width: 820px;
+  }
+  .public-panel-close {
+    flex: 0 0 42px;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #dcd1ed;
+    border-radius: 50%;
+    background: #f1ebfb;
+    color: #44315e;
+    cursor: pointer;
+  }
+  .public-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin: 24px 0;
+  }
+  .public-panel-grid article {
+    padding: 24px;
+    border: 1px solid #e4ddef;
+    border-radius: 18px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .public-panel h3 {
+    font-weight: 750;
+    font-size: 22px;
+    line-height: 1.25;
+  }
+  .public-panel p,
+  .public-panel li {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #52617b;
+  }
+  .public-panel .btn {
+    margin-top: auto;
+    white-space: normal;
+    text-align: left;
+  }
+  .public-panel-price {
+    font-size: 30px;
+    color: #6541b7;
+  }
+  .public-panel-price small {
+    font-size: 13px;
+  }
+  .public-panel-contact {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .public-panel-contact p {
+    flex-basis: 100%;
+  }
+  .public-panel :is(button, a):focus-visible {
+    outline: 3px solid #8b5cf6;
+    outline-offset: 3px;
+  }
+  body.site-studio[data-appearance="dark"] {
+    background: #101727 !important;
+  }
+  body.site-studio[data-appearance="dark"] .public-appearance {
+    --paper: #101727;
+    --surface: #1c2338;
+    --ink: #eef0ff;
+    --muted: #bec4da;
+    --line: #3a4561;
+    --accent-soft: #29324b;
+    background: #101727;
+    color: #eef0ff;
+    color-scheme: dark;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(
+      .saas-home,
+      .marketing-page,
+      .saas-ai-section,
+      .saas-hero,
+      .saas-section,
+      .saas-demo,
+      .saas-final-cta,
+      .saas-overview,
+      .agency-studio,
+      .main-area,
+      .page-content,
+      .auth-page,
+      .hotel-shell,
+      .hotel-business,
+      .marketplace-page,
+      .marketplace-shell,
+      .loading,
+      .admin-studio
+    ) {
+    background: #101727 !important;
+    color: #eef0ff !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(
+      .panel,
+      .sidebar,
+      .topbar,
+      .modal,
+      .tour-card,
+      .auth-card,
+      .auth-panel,
+      .marketing-card,
+      .pricing-card,
+      .marketing-intro,
+      .marketing-nav,
+      .marketing-copy,
+      .marketing-callout,
+      .public-panel,
+      .public-panel-grid article,
+      .saas-assistant-card,
+      .saas-checklist,
+      .studio-welcome,
+      .studio-steps article,
+      .studio-release-tools,
+      .ops-record,
+      .hotel-card,
+      .business-card,
+      .feature-card,
+      .preview-window,
+      .preview-app,
+      .preview-content,
+      .preview-sidebar,
+      .preview-topline,
+      .product-preview,
+      .saas-workspace-cards article,
+      .saas-pricing-grid article,
+      .saas-intelligence-grid article,
+      .saas-pricing-note,
+      .saas-supplier-pricing,
+      .saas-solution-banner,
+      .saas-availability-note,
+      .saas-model-disclosure
+    ) {
+    background: #1c2338 !important;
+    border-color: #3a4561 !important;
+    color: #eef0ff !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(
+      h1,
+      h2,
+      h3,
+      h4,
+      strong,
+      label,
+      summary,
+      .brand,
+      .saas-brand,
+      .nav-item,
+      .preview-heading,
+      .preview-chart-title,
+      .assistant-card-header
+    ) {
+    color: #eef0ff !important;
+    -webkit-text-fill-color: currentColor;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(
+      p,
+      small,
+      li,
+      td,
+      th,
+      dt,
+      dd,
+      .muted,
+      .method-note,
+      .eyebrow,
+      .studio-eyebrow,
+      .breadcrumb,
+      .saas-hero-description,
+      .saas-plan-price span,
+      .saas-footer-bottom,
+      .marketing-footer
+    ) {
+    color: #c1cae0 !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(h1 em, h2 em, .saas-kicker, .public-panel-price, .saas-text-link) {
+    color: #bea4ff !important;
+    -webkit-text-fill-color: currentColor;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(
+      .saas-nav-links > button,
+      .marketing-links > button,
+      .public-panel-close,
+      .btn.secondary,
+      .public-theme-toggle
+    ) {
+    background: #29324b !important;
+    color: #f4edff !important;
+    border-color: #596884 !important;
+  }
+  body.site-studio[data-appearance="dark"] .public-appearance .btn.primary {
+    background: linear-gradient(110deg, #7044d9, #4264d6) !important;
+    color: #fff !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(input, select, textarea) {
+    background: #111c30 !important;
+    color: #eef0ff !important;
+    border-color: #53617c !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(input, textarea)::placeholder {
+    color: #aab7ce !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(
+      thead,
+      tbody tr,
+      .preview-metrics article,
+      .preview-chart,
+      .preview-task,
+      .assistant-user,
+      .assistant-draft-note,
+      .preview-room-row,
+      .preview-quote,
+      .studio-step-icon,
+      .ops-metrics article
+    ) {
+    background: #25314b !important;
+    border-color: #3c4a68 !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    .sidebar
+    .nav-item.active {
+    background: #493370 !important;
+    color: #fff !important;
+  }
+  body.site-studio[data-appearance="dark"] .public-appearance svg text {
+    fill: #c1cae0;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    a:not(.btn):not(.platform-whatsapp) {
+    color: #d0bfff !important;
+  }
+  @media (max-width: 600px) {
+    .public-panel {
+      padding: 22px 18px;
+      border-radius: 18px;
+    }
+    .public-panel-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .platform-whatsapp {
+      right: 12px;
+      bottom: 65px;
+      padding: 12px;
+    }
+    .platform-whatsapp span {
+      display: none;
+    }
+    .saas-home .saas-nav-links > button {
+      width: 100%;
+      text-align: left;
+      padding: 13px 12px;
+    }
+  }
+}
+@media print {
+  .platform-whatsapp,
+  .public-panel {
+    display: none !important;
+  }
+}
+@media screen and (max-width: 1240px) {
+  .saas-home .saas-nav {
+    position: relative;
+  }
+  .saas-home .saas-menu-toggle {
+    display: grid !important;
+    place-items: center;
+  }
+  .saas-home .saas-nav-links {
+    display: none !important;
+    position: absolute;
+    top: 74px;
+    right: 0;
+    width: min(360px, calc(100vw - 32px));
+    max-height: calc(100dvh - 100px);
+    overflow: auto;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px;
+    gap: 10px;
+    border: 1px solid #e4ddef;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 60px #1b29431c;
+  }
+  .saas-home .saas-nav-links.is-open {
+    display: flex !important;
+  }
+  .saas-home .saas-nav-links > button {
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+  }
+}
+@media screen {
+  body.site-studio[data-appearance="dark"] .saas-home .saas-ai-section::before {
+    background: linear-gradient(120deg, #131c30, #1b2440) !important;
+  }
+  body.site-studio[data-appearance="dark"] .saas-home .saas-hero::before {
+    background: none !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(
+      .workspace-filter-rail,
+      .workspace-switch,
+      .filter-bar,
+      .info-box,
+      .auth-workspace-switch,
+      .help-card,
+      .user-box,
+      .studio-art-tag,
+      .studio-insight-note,
+      .empty-state,
+      .assistant-input-preview,
+      .assistant-answer
+    ) {
+    background: #25314b !important;
+    border-color: #43516d !important;
+    color: #dce4f5 !important;
+  }
+  body.site-studio[data-appearance="dark"] .public-appearance .positive {
+    color: #74e4b4 !important;
+  }
+  body.site-studio[data-appearance="dark"]
+    .public-appearance
+    :is(.negative, .error) {
+    color: #ffabb3 !important;
+  }
+  body.site-studio[data-appearance="dark"] .public-appearance .error-box {
+    background: #372535 !important;
+    color: #ffbbc3 !important;
+    border-color: #864252 !important;
   }
 }

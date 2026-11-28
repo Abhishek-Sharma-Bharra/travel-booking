@@ -1,12 +1,19 @@
 "use client";
 import { useEffect, useState, type ReactNode } from "react";
-import { Moon, Sun } from "lucide-react";
+import PublicPanels from "./public-panels";
+import { usePathname } from "next/navigation";
+import { Moon, Sun, MessageCircle } from "lucide-react";
 export default function PublicAppearance({
   children,
 }: {
   children: ReactNode;
 }) {
   const [theme, setTheme] = useState("light");
+  const pathname = usePathname();
+  const phone = "919717956828";
+  useEffect(() => {
+    document.body.dataset.appearance = theme;
+  }, [theme]);
   useEffect(() => {
     try {
       if (localStorage.getItem("travelos-public-appearance") === "dark")
@@ -24,7 +31,19 @@ export default function PublicAppearance({
   }
   return (
     <div className="public-appearance" data-appearance={theme}>
-      {children}
+      <PublicPanels phone={phone}>{children}</PublicPanels>
+      {!pathname.startsWith("/trips/") && !/^\/stays\/.+/.test(pathname) && (
+        <a
+          className="platform-whatsapp"
+          aria-label="Contact VASHISHT on WhatsApp"
+          href={`https://wa.me/${phone}?text=${encodeURIComponent("Namaste VASHISHT team, I would like to discuss TravelOS for my business.")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <MessageCircle size={21} />
+          <span>WhatsApp us</span>
+        </a>
+      )}
       <button
         className="public-theme-toggle"
         aria-label={

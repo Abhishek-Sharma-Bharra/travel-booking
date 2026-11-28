@@ -529,3 +529,75 @@ for (const engine of ["d1", "postgresql"] as const)
         /active owner or manager/,
       );
     }));
+
+for (const engine of ["d1", "postgresql"] as const)
+  test(`${engine}: platform overview requires allowlist, email, MFA and a recent verified session before returning real counts`, () =>
+    scope(engine, async () => {
+      const { adminOverview } = await import("../src/lib/admin-overview");
+      const f = await fixture();
+      const user = await db.user.findUniqueOrThrow({
+        where: { id: f.owner.id },
+      });
+      const previous = process.env.PLATFORM_ADMIN_EMAILS;
+      process.env.PLATFORM_ADMIN_EMAILS = user.email;
+      const token = randomUUID();
+      try {
+        await assert.rejects(
+          adminOverview(f.owner.id, token),
+          /Verified service administrator/,
+        );
+        await db.user.update({
+          where: { id: f.owner.id },
+          data: { emailVerified: true, twoFactorEnabled: true },
+        });
+        await db.session.create({
+          data: {
+            id: randomUUID(),
+            token,
+            userId: f.owner.id,
+            expiresAt: new Date(Date.now() + 3600000),
+          },
+        });
+        await assert.rejects(
+          adminOverview(f.owner.id, token),
+          /Verify your authenticator/,
+        );
+        await db.session.update({
+          where: { token },
+          data: { mfaVerifiedAt: new Date() },
+        });
+        const result = await adminOverview(f.owner.id, token);
+        assert.equal(
+          result.agencies,
+          await db.agency.count({ where: { demo: false } }),
+        );
+        assert.ok(result.activeAccess >= 1);
+        assert.ok(!("MRR" in result));
+        process.env.PLATFORM_ADMIN_EMAILS = "different@test.invalid";
+        await assert.rejects(
+          adminOverview(f.owner.id, token),
+          /Verified service administrator/,
+        );
+      } finally {
+        if (previous === undefined) delete process.env.PLATFORM_ADMIN_EMAILS;
+        else process.env.PLATFORM_ADMIN_EMAILS = previous;
+      }
+    }));
+
+test("configured platform owner is added without replacing existing administrator identities", async () => {
+  const { operatorEmailAllowed } = await import("../src/lib/operator-access");
+  const admins = process.env.PLATFORM_ADMIN_EMAILS,
+    owner = process.env.PLATFORM_OWNER_EMAIL;
+  try {
+    process.env.PLATFORM_ADMIN_EMAILS = "colleague@test.invalid";
+    process.env.PLATFORM_OWNER_EMAIL = " Owner@test.invalid ";
+    assert.equal(operatorEmailAllowed("owner@test.invalid"), true);
+    assert.equal(operatorEmailAllowed("colleague@test.invalid"), true);
+    assert.equal(operatorEmailAllowed("unknown@test.invalid"), false);
+  } finally {
+    if (admins === undefined) delete process.env.PLATFORM_ADMIN_EMAILS;
+    else process.env.PLATFORM_ADMIN_EMAILS = admins;
+    if (owner === undefined) delete process.env.PLATFORM_OWNER_EMAIL;
+    else process.env.PLATFORM_OWNER_EMAIL = owner;
+  }
+});

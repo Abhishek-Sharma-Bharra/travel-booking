@@ -1,11 +1,11 @@
 // Versioned display proposals only: never derive charges or entitlements here.
 // Existing subscription identifiers, capacities and customer agreements stay intact.
-export const publicOfferVersion = "advanced-erp-proposal-2026-11-27";
+export const publicOfferVersion = "advanced-erp-proposal-2026-11-27-v2";
 export const proposedAgencyOffers = [
   {
     name: "Business Starter",
-    price: "2,999",
-    annualPrice: "32,999",
+    price: "2,499",
+    annualPrice: null,
     seats: "3 staff accounts proposed",
     copy: "A connected foundation for travel operations.",
     popular: false,
@@ -19,8 +19,8 @@ export const proposedAgencyOffers = [
   },
   {
     name: "AI Growth",
-    price: "5,999",
-    annualPrice: "64,999",
+    price: "4,999",
+    annualPrice: null,
     seats: "10 staff accounts proposed",
     copy: "For teams building a connected sales workflow.",
     popular: true,
@@ -37,8 +37,8 @@ export const proposedAgencyOffers = [
   },
   {
     name: "AI Professional",
-    price: "9,999",
-    annualPrice: "1,09,999",
+    price: "8,999",
+    annualPrice: null,
     seats: "25 staff accounts proposed",
     copy: "Bring operations and business reporting together.",
     popular: false,
@@ -55,7 +55,7 @@ export const proposedAgencyOffers = [
   },
   {
     name: "Enterprise",
-    price: "19,999",
+    price: "14,999",
     annualPrice: null,
     seats: "Custom limits by agreement",
     copy: "A scoped implementation for complex operations.",

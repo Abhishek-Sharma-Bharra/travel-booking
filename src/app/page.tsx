@@ -23,7 +23,6 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import PublicAppearance from "@/components/public-site/public-appearance";
 import HomepageNav from "@/components/public-site/homepage-nav";
 import HeroCarousel from "@/components/public-site/hero-carousel";
 import FeatureStory from "@/components/public-site/feature-story";
@@ -55,7 +54,7 @@ const faqs = [
   ],
   [
     "How does subscription pricing work?",
-    "Business Starter ₹2,999, AI Growth ₹5,999, AI Professional ₹9,999 and Enterprise from ₹19,999 per month are proposed offers, not an active checkout. Final entitlements, applicable taxes and annual terms need confirmation. Existing contracts are not changed. Hotel and transport plans are configured separately.",
+    "Business Starter ₹2,499, AI Growth ₹4,999, AI Professional ₹8,999 and Enterprise ₹14,999 per month, plus applicable GST, are proposed offers, not an active checkout. Final entitlements, applicable taxes and annual terms need confirmation. Existing contracts are not changed. Hotel and transport plans are configured separately.",
   ],
   [
     "Is the new offer subscription-only?",
@@ -70,7 +69,7 @@ export default function Home() {
   const hotelsEnabled = process.env.HOTELS_ENABLED === "true",
     email = publicContactEmail();
   return (
-    <PublicAppearance>
+    <>
       <main id="home" className="landing saas-home">
         <HomepageNav />
         <script
@@ -561,10 +560,8 @@ export default function Home() {
                   <h3>{p.name}</h3>
                   <p>{p.copy}</p>
                   <div className="saas-plan-price">
-                    <strong>
-                      {p.name === "Enterprise" ? "From " : ""}₹{p.price}
-                    </strong>
-                    <span>/ month</span>
+                    <strong>₹{p.price}</strong>
+                    <span>/ month + GST</span>
                   </div>
                   <small>
                     {p.annualPrice
@@ -712,6 +709,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-    </PublicAppearance>
+    </>
   );
 }

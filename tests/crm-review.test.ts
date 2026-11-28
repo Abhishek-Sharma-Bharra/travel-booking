@@ -140,14 +140,14 @@ test("lost reasons aggregate case only, preserve missing reasons, and terminal l
   assert.throws(() => crmReview(d, new Date("invalid")), /date/);
 });
 test("premium catalogue is a versioned proposal and does not migrate legacy capacity or billing", () => {
-  assert.equal(publicOfferVersion, "advanced-erp-proposal-2026-11-27");
+  assert.equal(publicOfferVersion, "advanced-erp-proposal-2026-11-27-v2");
   assert.deepEqual(
     proposedAgencyOffers.map((x) => x.price),
-    ["2,999", "5,999", "9,999", "19,999"],
+    ["2,499", "4,999", "8,999", "14,999"],
   );
   assert.deepEqual(
     proposedAgencyOffers.map((x) => x.annualPrice),
-    ["32,999", "64,999", "1,09,999", null],
+    [null, null, null, null],
   );
   assert.ok(proposedAgencyOffers.every((x) => x.upcoming.length > 0));
   assert.deepEqual(limitsFor("Starter"), { seats: 3, leads: 3000 });

@@ -1,3 +1,4 @@
+import PublicAppearance from "@/components/public-site/public-appearance";
 import type { Metadata } from "next";
 import "./globals.css";
 import "./premium.css";
@@ -26,7 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-IN">
-      <body className="premium-theme light-theme site-studio">{children}</body>
+      <body className="premium-theme light-theme site-studio">
+        <PublicAppearance>{children}</PublicAppearance>
+      </body>
     </html>
   );
 }

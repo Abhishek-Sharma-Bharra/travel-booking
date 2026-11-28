@@ -27,6 +27,7 @@ const cloudflareWebpack: NonNullable<NextConfig["webpack"]> = (
   return webpackConfig;
 };
 const config: NextConfig = {
+  env: { TRAVELOS_RELEASE: process.env.TRAVELOS_BUILD_ID || "local" },
   serverExternalPackages: ["pg", "@travelos/d1-client"],
   ...(process.env.TRAVELOS_BUILD_ID
     ? {

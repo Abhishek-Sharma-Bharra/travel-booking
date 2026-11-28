@@ -28,7 +28,7 @@ export function configurationGaps() {
   if (!verificationRequired()) gaps.push("Required email verification");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.SUPPORT_EMAIL || ""))
     gaps.push("Support email");
-  if (!process.env.PLATFORM_ADMIN_EMAILS)
+  if (!process.env.PLATFORM_ADMIN_EMAILS && !process.env.PLATFORM_OWNER_EMAIL)
     gaps.push("Service administrator allowlist");
   return gaps;
 }

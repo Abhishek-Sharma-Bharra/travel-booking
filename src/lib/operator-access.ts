@@ -7,16 +7,12 @@ export async function requireOperator(
   client: Prisma.TransactionClient = db,
 ) {
   const u = await client.user.findUnique({ where: { id: userId } });
-  const allowed = (process.env.PLATFORM_ADMIN_EMAILS || "")
-    .split(",")
-    .map((v) => v.trim().toLowerCase())
-    .filter(Boolean);
   if (
     !u ||
     u.disabled ||
     !u.emailVerified ||
     !u.twoFactorEnabled ||
-    !allowed.includes(u.email.toLowerCase())
+    !operatorEmailAllowed(u.email)
   )
     throw new HttpError(
       403,
@@ -36,4 +32,15 @@ export async function requireOperator(
       "Verify your authenticator again to manage client subscriptions",
     );
   return u;
+}
+
+// The owner entry supplements rather than overwrites existing operator entries.
+export function operatorEmailAllowed(email: string) {
+  const allowed = (process.env.PLATFORM_ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const owner = (process.env.PLATFORM_OWNER_EMAIL || "").trim().toLowerCase();
+  if (owner) allowed.push(owner);
+  return allowed.includes(email.trim().toLowerCase());
 }

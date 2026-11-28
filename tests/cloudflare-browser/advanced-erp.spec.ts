@@ -23,7 +23,7 @@ test("premium proposals, dark preference, and CRM review work without changing l
   );
   await expect(page.locator(".saas-home")).toHaveCSS(
     "background-color",
-    "rgb(18, 24, 42)",
+    "rgb(16, 23, 39)",
   );
   await page.goto("/pricing");
   await expect(page.locator(".public-appearance")).toHaveAttribute(
@@ -34,7 +34,7 @@ test("premium proposals, dark preference, and CRM review work without changing l
     page.getByRole("heading", { name: "AI Growth", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("Annual proposal: ₹64,999 / year", { exact: true }),
+    page.getByText("Annual terms on request", { exact: true }).first(),
   ).toBeVisible();
   await expect(page.getByRole("main")).toContainText(
     "Upcoming / subject to setup",
@@ -45,7 +45,7 @@ test("premium proposals, dark preference, and CRM review work without changing l
   );
   await expect(page.locator(".pricing-card li").first()).toHaveCSS(
     "color",
-    "rgb(190, 196, 218)",
+    "rgb(193, 202, 224)",
   );
   await page.screenshot({
     path: "test-results/erp-pricing-dark.png",
@@ -117,7 +117,9 @@ test("premium proposals, dark preference, and CRM review work without changing l
     },
   );
   await page.goto("/workspace");
-  await expect(page.locator(".public-theme-toggle")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Use dark appearance" }),
+  ).toBeVisible();
   await nav(page, "CRM review");
   const review = page.getByRole("region", { name: "CRM review centre" });
   await expect(

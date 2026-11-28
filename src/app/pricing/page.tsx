@@ -23,9 +23,7 @@ export default function Pricing() {
         {proposedAgencyOffers.map((plan) => (
           <article className="marketing-card pricing-card" key={plan.name}>
             <h2>{plan.name}</h2>
-            <p className="marketing-price">
-              {plan.name === "Enterprise" ? "From " : ""}₹{plan.price} / month
-            </p>
+            <p className="marketing-price">₹{plan.price} / month + GST</p>
             <p>
               {plan.annualPrice
                 ? `Annual proposal: ₹${plan.annualPrice} / year`

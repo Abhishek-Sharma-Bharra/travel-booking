@@ -1,9 +1,14 @@
-import PublicAppearance from "./public-site/public-appearance";
+import {
+  PublicMenuButton,
+  type PublicPanel,
+} from "./public-site/public-panels";
 import Link from "next/link";
 import { Compass, ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 const links = [
+  ["/product-demo", "Product"],
   ["/features", "Features"],
+  ["/#workspaces", "Solutions"],
   ["/pricing", "Pricing"],
   ["/marketplace", "Marketplace"],
   ["/product-demo", "Demo"],
@@ -44,13 +49,26 @@ export function MarketingHeader({
         <div className="marketing-links">
           {hotelsEnabled && <Link href="/#workspaces">Workspaces</Link>}
           {navigation.map(([href, label]) => (
-            <Link
+            <PublicMenuButton
               key={href}
-              href={href}
-              aria-current={path === href ? "page" : undefined}
+              panel={
+                (
+                  {
+                    Product: "product",
+                    Features: "features",
+                    Solutions: "solutions",
+                    Marketplace: "solutions",
+                    Demo: "demo",
+                    Contact: "contact",
+                    Pricing: "pricing",
+                    "Hotel features": "solutions",
+                    "How it works": "product",
+                  } as Record<string, PublicPanel>
+                )[label] || "product"
+              }
             >
               {label}
-            </Link>
+            </PublicMenuButton>
           ))}
           {hotelAudience && process.env.HOTEL_BOOKING_ENABLED === "true" && (
             <Link href="/stays">Find a hotel · for guests</Link>
@@ -101,7 +119,7 @@ export default function MarketingPage({
   children: ReactNode;
 }) {
   return (
-    <PublicAppearance>
+    <>
       <main className="landing marketing-page">
         <MarketingHeader path={path} />
         <header className="marketing-intro">
@@ -112,7 +130,7 @@ export default function MarketingPage({
         {children}
         <MarketingFooter />
       </main>
-    </PublicAppearance>
+    </>
   );
 }
 export function DemoCallout() {

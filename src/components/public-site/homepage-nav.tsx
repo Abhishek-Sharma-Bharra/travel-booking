@@ -1,13 +1,15 @@
 "use client";
+import { PublicMenuButton, type PublicPanel } from "./public-panels";
 import { useRef, useState } from "react";
 import { ArrowUpRight, Compass, Menu, X } from "lucide-react";
 const links = [
-  ["#home", "Home"],
-  ["#features", "Features"],
-  ["#workspaces", "Solutions"],
-  ["#intelligence", "AI Intelligence"],
-  ["#pricing", "Pricing"],
-  ["#demo", "Demo"],
+  ["product", "Product"],
+  ["features", "Features"],
+  ["solutions", "Solutions"],
+  ["intelligence", "AI Intelligence"],
+  ["pricing", "Pricing"],
+  ["demo", "Demo"],
+  ["contact", "Contact"],
 ];
 export default function HomepageNav() {
   const [open, setOpen] = useState(false);
@@ -45,10 +47,15 @@ export default function HomepageNav() {
             }
           }}
         >
-          {links.map(([href, title]) => (
-            <a href={href} key={href}>
+          <a href="#home">Home</a>
+          {links.map(([panel, title]) => (
+            <PublicMenuButton
+              key={panel}
+              panel={panel as PublicPanel}
+              onOpen={() => setOpen(false)}
+            >
               {title}
-            </a>
+            </PublicMenuButton>
           ))}
           <a className="saas-login" href="/login" aria-label="Agency sign in">
             Login

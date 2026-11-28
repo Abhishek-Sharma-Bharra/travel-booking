@@ -1,4 +1,5 @@
 "use client";
+import type { AdminOverview } from "@/lib/admin-overview";
 import { readSubscriptionRequest } from "@/lib/subscription-request-format";
 import { useState } from "react";
 import Link from "next/link";
@@ -13,7 +14,13 @@ type Agency = {
   _count: { users: number };
   activities: { id: string; action: string; createdAt: string }[];
 };
-export default function Admin({ initial }: { initial: Agency[] }) {
+export default function Admin({
+  initial,
+  summary,
+}: {
+  initial: Agency[];
+  summary?: AdminOverview;
+}) {
   const [agencies, setAgencies] = useState(initial),
     [message, setMessage] = useState(""),
     [error, setError] = useState(""),
@@ -22,6 +29,61 @@ export default function Admin({ initial }: { initial: Agency[] }) {
     <main className="page-content admin-studio">
       <span className="eyebrow">VERIFIED SERVICE ADMINISTRATOR</span>
       <h1>Client subscriptions</h1>
+      {summary && (
+        <section className="panel" aria-label="Platform overview">
+          <h2>Platform overview</h2>
+          <p>
+            Recorded snapshot · {indianDate(summary.asOf)}. Refresh after
+            updates; active access is not proof of a collected subscription
+            payment.
+          </p>
+          <div className="ops-metrics">
+            {[
+              ["Registered agencies", summary.agencies],
+              ["Active CRM access", summary.activeAccess],
+              ["Current trials", summary.trials],
+              ["Registered hotels", summary.hotels],
+            ].map(([label, value]) => (
+              <article key={String(label)}>
+                <small>{label}</small>
+                <strong>{value}</strong>
+              </article>
+            ))}
+          </div>
+          <h3>Launch configuration</h3>
+          {summary.gaps.length ? (
+            <ul>
+              {summary.gaps.map((g) => (
+                <li key={g}>{g} · needs review</li>
+              ))}
+            </ul>
+          ) : (
+            <p>
+              Configuration checks complete. Real delivery, provider and
+              recovery testing still need independent verification.
+            </p>
+          )}
+          <p>
+            Live AI gate:{" "}
+            {summary.liveAI ? "enabled — verify pilot and budget" : "off"} ·
+            SaaS test billing:{" "}
+            {summary.testBilling ? "enabled (test only)" : "off"} · Live hotel
+            payment gate:{" "}
+            {summary.liveHotelPayments ? "enabled — verify merchant" : "off"}.
+          </p>
+          <p>
+            MRR / ARR: unavailable until real contractual billing and verified
+            payment records are connected. Proposed catalogue prices are not
+            counted as revenue.
+          </p>
+          <a className="btn secondary" href="/admin/hotels">
+            Hotel review
+          </a>
+          <a className="btn secondary" href="/admin/setup">
+            Administrator security setup
+          </a>
+        </section>
+      )}
       <Link className="btn primary" href="/admin/marketplace">
         Marketplace administration
       </Link>
